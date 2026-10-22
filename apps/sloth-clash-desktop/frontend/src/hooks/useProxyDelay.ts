@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-import { TestProxyDelay } from '../api/proxy'
+import { TestProxyDelay, TestProxyGroupDelay } from '../api/proxy'
 
 /**
  * Per-node delay state and ping actions for the Proxies screen.
@@ -36,25 +36,48 @@ export function useProxyDelay() {
     }
   }, [])
 
-  /** Ping every node in the group (chunked parallel — like Clash Verge "ping all"). */
-  const pingAll = useCallback(
-    async (groupName: string, proxies: string[]) => {
-      const list = proxies.map((p) => String(p).trim()).filter(Boolean)
-      if (list.length === 0) return
-      const batchKey = `__all_${groupName}`
-      setBusy((prev) => ({ ...prev, [batchKey]: true }))
-      try {
-        const chunkSize = 8
-        for (let i = 0; i < list.length; i += chunkSize) {
-          const chunk = list.slice(i, i + chunkSize)
-          await Promise.all(chunk.map((id) => ping(id)))
+  // Citrus schedules the whole group test and keeps its native health history.
+  const pingAll = useCallback(async (groupName: string, proxies: string[]) => {
+    const list = proxies.map((name) => String(name).trim()).filter(Boolean)
+    if (!list.length) return
+    const batchKey = `__all_${groupName}`
+    setBusy((prev) => ({
+      ...prev,
+      [batchKey]: true,
+      ...Object.fromEntries(list.map((name) => [name, true])),
+    }))
+    try {
+      const measured = await TestProxyGroupDelay(groupName)
+      setDelays((prev) => ({
+        ...prev,
+        ...Object.fromEntries(
+          list
+            .filter((name) => Object.hasOwn(measured, name))
+            .map((name) => [name, Number(measured[name]) || 0]),
+        ),
+      }))
+      setErrors((prev) => {
+        const next = { ...prev }
+        for (const name of list) {
+          if (!Object.hasOwn(measured, name) || Number(measured[name]) > 0)
+            delete next[name]
+          else next[name] = 'no delay value'
         }
-      } finally {
-        setBusy((prev) => ({ ...prev, [batchKey]: false }))
-      }
-    },
-    [ping],
-  )
+        return next
+      })
+    } catch (error) {
+      setErrors((prev) => ({
+        ...prev,
+        ...Object.fromEntries(list.map((name) => [name, String(error)])),
+      }))
+    } finally {
+      setBusy((prev) => ({
+        ...prev,
+        [batchKey]: false,
+        ...Object.fromEntries(list.map((name) => [name, false])),
+      }))
+    }
+  }, [])
 
   return { busy, delays, errors, ping, pingAll }
 }

@@ -1,4 +1,4 @@
-# CONTRIBUTING — i18n (Sloth Clash desktop)
+# CONTRIBUTING — i18n (Kabosu desktop)
 
 The Wails desktop UI uses **react-i18next** with **one JSON file per language** — no separate Tauri/Rust locale bundles.
 

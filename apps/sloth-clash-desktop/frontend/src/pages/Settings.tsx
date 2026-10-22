@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
+import { MaterialSymbol } from '../components/MaterialSymbol'
 import type { SettingsResetMode } from '../components/SettingsResetModal'
-import { APP_DOWNLOADS_URL, APP_REPO_URL, APP_TELEGRAM_URL } from '../constants'
+import { APP_DOWNLOADS_URL, APP_REPO_URL } from '../constants'
 import { useCoreBuild } from '../hooks/queries/useCoreBuild'
 import type { CompactSettings } from '../types/app'
 import {
@@ -118,11 +119,8 @@ function PortLockRow({
   )
 }
 
-// REALITY handshake policy, handed to the core through two config keys (core
-// patch series, docs/core-patches.md). Auto lets the core learn per server
-// which key share it needs; Always / Never pin it. The client version is what
-// Xray's minClientVer / maxClientVer compare against; empty = core default.
-// Saving reloads the core config, so new connections use it right away.
+// REALITY preferences use native Citrus node options; Auto preserves node/core
+// defaults. Saving reapplies the runtime configuration.
 function isValidRealityVersion(raw: string): boolean {
   const v = raw.trim()
   if (v === '') return true
@@ -156,13 +154,16 @@ function RealityCard({
     if (draft.trim() !== saved) onCommit({ clientVersion: draft.trim() })
   }
   return (
-    <div className="homeCard settingsCardCompact">
-      <h3 className="homeCardTitle">
-        <span className="settingsCardIcon" aria-hidden>
-          🔐
-        </span>
-        {t('settings.reality.title')}
-      </h3>
+    <details className="homeCard settingsCardCompact settingsDisclosure">
+      <summary>
+        <h3 className="homeCardTitle">
+          <span className="settingsCardIcon" aria-hidden>
+            <MaterialSymbol name="shield" />
+          </span>
+          {t('settings.reality.title')}
+        </h3>
+        <MaterialSymbol name="chevron" />
+      </summary>
       <label className="field">
         <span className="fieldLab">{t('settings.reality.mlkem')}</span>
         <select
@@ -203,7 +204,7 @@ function RealityCard({
       <p className="muted settingsMicroHint">
         {t('settings.reality.applyHint')}
       </p>
-    </div>
+    </details>
   )
 }
 
@@ -434,26 +435,6 @@ export function SettingsPage({
               />
             </svg>
           </button>
-          <button
-            type="button"
-            className="settingsGithubBtn settingsGithubTopBtn"
-            title={t('settings.openTelegram')}
-            aria-label={t('settings.openTelegram')}
-            onClick={() => onBrowserOpen(APP_TELEGRAM_URL)}
-          >
-            <svg
-              className="settingsGithubSvg"
-              viewBox="0 0 24 24"
-              width="22"
-              height="22"
-              aria-hidden
-            >
-              <path
-                fill="currentColor"
-                d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"
-              />
-            </svg>
-          </button>
         </div>
       </div>
       <p className="muted settingsPanelLead">{t('settings.lead')}</p>
@@ -463,77 +444,10 @@ export function SettingsPage({
           <div className="homeCard settingsCardCompact">
             <h3 className="homeCardTitle">
               <span className="settingsCardIcon" aria-hidden>
-                ⚙️
+                <MaterialSymbol name="settings" />
               </span>
               {t('settings.general')}
             </h3>
-            <label className="field">
-              <span className="fieldLab">{t('settings.theme')}</span>
-              <div className="segPill">
-                {(['system', 'dark', 'light'] as const).map((th) => (
-                  <button
-                    key={th}
-                    type="button"
-                    className={theme === th ? 'pillOpt active' : 'pillOpt'}
-                    onClick={() => onSetTheme(th)}
-                  >
-                    {th === 'system'
-                      ? t('settings.themeSystem')
-                      : th === 'dark'
-                        ? t('settings.themeDark')
-                        : t('settings.themeLight')}
-                  </button>
-                ))}
-              </div>
-            </label>
-            <AccentField accent={accent} onSetAccent={onSetAccent} />
-            <label className="field">
-              <span className="fieldLab">{t('settings.language')}</span>
-              <select
-                className="selectModern"
-                value={lang}
-                onChange={(e) => onSetLang(e.target.value as Lang)}
-              >
-                <option value="en">English</option>
-                <option value="ru">Русский</option>
-                <option value="zh">简体中文</option>
-              </select>
-            </label>
-            <label className="field">
-              <span className="fieldLab">{t('settings.uiScale')}</span>
-              <select
-                className="selectModern"
-                value={String(settings.uiScale)}
-                onChange={(e) =>
-                  onSetSetting('uiScale', Number(e.target.value))
-                }
-              >
-                {UI_SCALE_OPTIONS.map((s) => (
-                  <option key={s} value={String(s)}>
-                    {Math.round(s * 100)}%
-                  </option>
-                ))}
-              </select>
-            </label>
-            {trayAvailable ? (
-              <label className="field">
-                <span className="fieldLab">{t('settings.trayIcon')}</span>
-                <select
-                  className="selectModern"
-                  value={trayIconStyle}
-                  onChange={(e) => onSetTrayIconStyle(e.target.value)}
-                >
-                  <option value="">{t('settings.trayIconAuto')}</option>
-                  <option value="colorful">
-                    {t('settings.trayIconColorful')}
-                  </option>
-                  <option value="mono">{t('settings.trayIconMono')}</option>
-                </select>
-                <p className="muted settingsMicroHint">
-                  {t('settings.trayIconHint')}
-                </p>
-              </label>
-            ) : null}
             <div className="settingsToggleRow">
               <span>{t('settings.startMinimized')}</span>
               <SettingsSwitch
@@ -576,15 +490,102 @@ export function SettingsPage({
                 }
               />
             </div>
+            <div className="settingsToggleRow">
+              <span>{t('settings.autoUpdate')}</span>
+              <SettingsSwitch
+                checked={appUpdateEnabled}
+                label={t('settings.autoUpdate')}
+                onToggle={() => onToggleAppUpdate(!appUpdateEnabled)}
+              />
+            </div>
+            <label className="field">
+              <span className="fieldLab">{t('settings.language')}</span>
+              <select
+                className="selectModern"
+                value={lang}
+                onChange={(e) => onSetLang(e.target.value as Lang)}
+              >
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+                <option value="zh">简体中文</option>
+              </select>
+            </label>
+            <details className="appearanceDisclosure">
+              <summary>
+                <MaterialSymbol name="sun" />
+                {t('expressive.appearance')}
+                <MaterialSymbol name="chevron" />
+              </summary>
+              <div className="settingsAppearanceBody">
+                <label className="field">
+                  <span className="fieldLab">{t('settings.theme')}</span>
+                  <div className="segPill">
+                    {(['system', 'dark', 'light'] as const).map((th) => (
+                      <button
+                        key={th}
+                        type="button"
+                        className={theme === th ? 'pillOpt active' : 'pillOpt'}
+                        onClick={() => onSetTheme(th)}
+                      >
+                        {th === 'system'
+                          ? t('settings.themeSystem')
+                          : th === 'dark'
+                            ? t('settings.themeDark')
+                            : t('settings.themeLight')}
+                      </button>
+                    ))}
+                  </div>
+                </label>
+                <AccentField accent={accent} onSetAccent={onSetAccent} />
+                <label className="field">
+                  <span className="fieldLab">{t('settings.uiScale')}</span>
+                  <select
+                    className="selectModern"
+                    value={String(settings.uiScale)}
+                    onChange={(e) =>
+                      onSetSetting('uiScale', Number(e.target.value))
+                    }
+                  >
+                    {UI_SCALE_OPTIONS.map((s) => (
+                      <option key={s} value={String(s)}>
+                        {Math.round(s * 100)}%
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {trayAvailable ? (
+                  <label className="field">
+                    <span className="fieldLab">{t('settings.trayIcon')}</span>
+                    <select
+                      className="selectModern"
+                      value={trayIconStyle}
+                      onChange={(e) => onSetTrayIconStyle(e.target.value)}
+                    >
+                      <option value="">{t('settings.trayIconAuto')}</option>
+                      <option value="colorful">
+                        {t('settings.trayIconColorful')}
+                      </option>
+                      <option value="mono">{t('settings.trayIconMono')}</option>
+                    </select>
+                    <p className="muted settingsMicroHint">
+                      {t('settings.trayIconHint')}
+                    </p>
+                  </label>
+                ) : null}
+              </div>
+            </details>
           </div>
 
-          <div className="homeCard settingsCardCompact">
-            <h3 className="homeCardTitle">
-              <span className="settingsCardIcon" aria-hidden>
-                🌐
-              </span>
-              {t('settings.connection')}
-            </h3>
+          <details className="homeCard settingsCardCompact settingsDisclosure">
+            <summary>
+              <h3 className="homeCardTitle">
+                <span className="settingsCardIcon" aria-hidden>
+                  <MaterialSymbol name="proxies" />
+                </span>
+                {t('settings.connection')}
+              </h3>
+              <MaterialSymbol name="chevron" />
+            </summary>
             <div className="settingsToggleRow">
               <span>{t('settings.smartDns')}</span>
               <SettingsSwitch
@@ -656,17 +657,20 @@ export function SettingsPage({
                 {t('settings.guidedTun')}
               </button>
             </div>
-          </div>
+          </details>
 
           <RealityCard prefs={realityPrefs} onCommit={onSetReality} />
 
-          <div className="homeCard settingsCardCompact">
-            <h3 className="homeCardTitle">
-              <span className="settingsCardIcon" aria-hidden>
-                🛡️
-              </span>
-              {t('settings.tun.title')}
-            </h3>
+          <details className="homeCard settingsCardCompact settingsDisclosure">
+            <summary>
+              <h3 className="homeCardTitle">
+                <span className="settingsCardIcon" aria-hidden>
+                  <MaterialSymbol name="shield" />
+                </span>
+                {t('settings.tun.title')}
+              </h3>
+              <MaterialSymbol name="chevron" />
+            </summary>
             <p className="muted settingsMicroHint">{t('settings.tun.hint')}</p>
             <div className="settingsTunSummary">
               <span className="settingsTunSummaryItem">
@@ -707,17 +711,20 @@ export function SettingsPage({
                 {t('settings.tun.configure')}
               </button>
             </div>
-          </div>
+          </details>
         </div>
 
         <div className="settingsCol">
-          <div className="homeCard settingsCardCompact">
-            <h3 className="homeCardTitle">
-              <span className="settingsCardIcon" aria-hidden>
-                🔄
-              </span>
-              {t('settings.profilesUpdates')}
-            </h3>
+          <details className="homeCard settingsCardCompact settingsDisclosure">
+            <summary>
+              <h3 className="homeCardTitle">
+                <span className="settingsCardIcon" aria-hidden>
+                  <MaterialSymbol name="refresh" />
+                </span>
+                {t('settings.profilesUpdates')}
+              </h3>
+              <MaterialSymbol name="chevron" />
+            </summary>
             <label className="field">
               <span className="fieldLab">
                 Default auto-update interval (min)
@@ -765,15 +772,18 @@ export function SettingsPage({
                 {t('settings.refreshAllSubs')}
               </button>
             </div>
-          </div>
+          </details>
 
-          <div className="homeCard settingsCardCompact">
-            <h3 className="homeCardTitle">
-              <span className="settingsCardIcon" aria-hidden>
-                🧰
-              </span>
-              {t('settings.dataDiag')}
-            </h3>
+          <details className="homeCard settingsCardCompact settingsDisclosure">
+            <summary>
+              <h3 className="homeCardTitle">
+                <span className="settingsCardIcon" aria-hidden>
+                  <MaterialSymbol name="advanced" />
+                </span>
+                {t('settings.dataDiag')}
+              </h3>
+              <MaterialSymbol name="chevron" />
+            </summary>
             <label className="field">
               <span className="fieldLab">{t('settings.logLevel')}</span>
               <select
@@ -825,15 +835,18 @@ export function SettingsPage({
                 {t('settings.resetRemoveProfiles')}
               </button>
             </div>
-          </div>
+          </details>
 
-          <div className="homeCard settingsCardCompact settingsInfoDevCard">
-            <h3 className="homeCardTitle settingsInfoDevTitle">
-              <span className="settingsCardIcon" aria-hidden>
-                ℹ️
-              </span>
-              {t('settings.info')}
-            </h3>
+          <details className="homeCard settingsCardCompact settingsDisclosure settingsInfoDevCard">
+            <summary>
+              <h3 className="homeCardTitle settingsInfoDevTitle">
+                <span className="settingsCardIcon" aria-hidden>
+                  <MaterialSymbol name="devices" />
+                </span>
+                {t('settings.info')}
+              </h3>
+              <MaterialSymbol name="chevron" />
+            </summary>
             <div className="settingsInfoDevBody">
               <div className="settingsKpiGrid">
                 <div className="settingsKpi">
@@ -883,20 +896,15 @@ export function SettingsPage({
               {coreBuild?.source ? (
                 <p className="small muted settingsCoreBuild">
                   <span>
-                    {coreBuild.source === 'patched'
-                      ? t('settings.coreBuildPatched', {
+                    {coreBuild.source === 'citrus'
+                      ? t('settings.coreBuildCitrus', {
                           version: coreBuild.version,
-                          count: coreBuild.patches?.length ?? 0,
                         })
-                      : coreBuild.source === 'stock'
-                        ? t('settings.coreBuildStock', {
-                            version: coreBuild.version,
-                          })
-                        : t('settings.coreBuildLocal', {
-                            version: coreBuild.version,
-                          })}
+                      : t('settings.coreBuildLocal', {
+                          version: coreBuild.version,
+                        })}
                   </span>
-                  {coreBuild.source !== 'stock' ? (
+                  {coreBuild.source ? (
                     <>
                       <button
                         type="button"
@@ -917,14 +925,6 @@ export function SettingsPage({
                 </p>
               ) : null}
               <div className="settingsInfoDevActions">
-                <div className="settingsToggleRow">
-                  <span>{t('settings.autoUpdate')}</span>
-                  <SettingsSwitch
-                    checked={appUpdateEnabled}
-                    label={t('settings.autoUpdate')}
-                    onToggle={() => onToggleAppUpdate(!appUpdateEnabled)}
-                  />
-                </div>
                 <div className="settingsToggleRow">
                   <div>
                     <span>{t('settings.corpVpnToggle')}</span>
@@ -1020,7 +1020,7 @@ export function SettingsPage({
                 </div>
               </div>
             </div>
-          </div>
+          </details>
         </div>
       </div>
       {tunBanner ? (

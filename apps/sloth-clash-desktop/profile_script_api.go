@@ -52,6 +52,10 @@ func (a *App) SetProfileScriptOverride(profileID string, script string) (AppStat
 			continue
 		}
 		found = true
+		if profileScriptLocked(a.profiles[i]) && strings.TrimSpace(script) != "" {
+			a.mu.Unlock()
+			return a.GetAppState(), errors.New("config scripts are locked by operator policy")
+		}
 		a.profiles[i].ScriptOverride = script
 		a.profiles[i].ScriptError = ""
 		a.profiles[i].ScriptErrorLine = 0
@@ -164,6 +168,9 @@ func (a *App) PreviewProfileScript(profileID string, script string) (ProfileScri
 		return ProfileScriptPreview{}, errors.New("profile not found")
 	}
 
+	if profileScriptLocked(target) {
+		return ProfileScriptPreview{}, errors.New("config scripts are locked by operator policy")
+	}
 	root, err := slothDataRoot()
 	if err != nil {
 		return ProfileScriptPreview{}, err

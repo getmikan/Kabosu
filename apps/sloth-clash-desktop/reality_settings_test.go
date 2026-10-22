@@ -1,10 +1,6 @@
 package main
 
 import (
-	"embed"
-	"os"
-	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -24,11 +20,11 @@ func TestParseRealityClientVersion(t *testing.T) {
 	}
 }
 
-func TestRealityMLKEMMapping(t *testing.T) {
+func TestRealityMLKEMNormalization(t *testing.T) {
 	for in, want := range map[string]string{
-		"": "auto", "auto": "auto", "Always": "on", "on": "on", "never": "off", "OFF": "off", "bogus": "auto",
+		"": "auto", "auto": "auto", "Always": "always", "on": "always", "never": "never", "OFF": "never", "bogus": "auto",
 	} {
-		if got := coreRealityMLKEM(in); got != want {
+		if got := normalizeRealityMLKEM(in); got != want {
 			t.Errorf("coreRealityMLKEM(%q) = %q, want %q", in, got, want)
 		}
 	}
@@ -50,11 +46,18 @@ func TestApplyRealityOverlay(t *testing.T) {
 			RealitySettings{}, "auto", ""},
 	}
 	for _, c := range cases {
+		opts := map[string]any{}
+		c.sub["proxies"] = []any{map[string]any{"type": "vless", "reality-opts": opts}}
 		applyRealityOverlay(c.sub, c.prefs)
-		if got := c.sub["reality-mlkem"]; got != c.mlkem {
-			t.Errorf("%s: reality-mlkem = %v, want %s", c.name, got, c.mlkem)
+		gotMLKEM, hasMLKEM := opts["support-x25519mlkem768"]
+		if c.mlkem == "auto" && hasMLKEM {
+			t.Errorf("auto must use native node/core default")
 		}
-		got, has := c.sub["reality-client-version"]
+		if c.mlkem != "auto" && gotMLKEM != (c.mlkem == "on") {
+			t.Errorf("native MLKEM = %v", gotMLKEM)
+		}
+
+		got, has := opts["client-version"]
 		if c.version == "" && has {
 			t.Errorf("%s: reality-client-version = %v, want absent", c.name, got)
 		}
@@ -77,48 +80,5 @@ func TestSetRealitySettingsRejectsBadVersion(t *testing.T) {
 	}
 	if got := currentDesktopPrefs().Reality; got != prev.Reality {
 		t.Fatalf("rejected input changed prefs: %+v", got)
-	}
-}
-
-// TestRealityKeysReachTheCore runs the full config pipeline with a non-default
-// policy and, when a core is available (SLOTH_MIHOMO_BIN or the provisioned
-// sidecar), has it validate the result: the patched core must accept the keys
-// and an unpatched one must ignore them.
-func TestRealityKeysReachTheCore(t *testing.T) {
-	prev := currentDesktopPrefs()
-	t.Cleanup(func() {
-		prefsMu.Lock()
-		prefsCurrent = prev
-		prefsMu.Unlock()
-	})
-	prefsMu.Lock()
-	prefsCurrent.Reality = RealitySettings{MLKEM: "always", ClientVersion: "1.9.0"}
-	prefsMu.Unlock()
-
-	var b embed.FS
-	a := NewApp(b)
-	dir := t.TempDir()
-	if err := a.writeRuntimeConfig(dir, "https://example.com/sub", "", "", "", "", 9090, 7890, "secret", "rule", false, false); err != nil {
-		t.Fatalf("writeRuntimeConfig: %v", err)
-	}
-	cfg := readYAMLMapForTest(t, filepath.Join(dir, "config.yaml"))
-	if cfg["reality-mlkem"] != "on" || cfg["reality-client-version"] != "1.9.0" {
-		t.Fatalf("REALITY keys not written: mlkem=%v version=%v", cfg["reality-mlkem"], cfg["reality-client-version"])
-	}
-	raw, err := os.ReadFile(filepath.Join(dir, "config.yaml"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	text := string(raw)
-	if i, j := strings.Index(text, "\nreality-mlkem:"), strings.Index(text, "\nproxies:"); i < 0 || (j >= 0 && i > j) {
-		t.Errorf("reality-mlkem is not placed before proxies (canonical order)")
-	}
-
-	bin := testCoreBinaryForPassthrough()
-	if bin == "" {
-		t.Skip("no core binary available (set SLOTH_MIHOMO_BIN or run `pnpm run prebuild`)")
-	}
-	if err := runConfigPreflight(bin, dir); err != nil {
-		t.Fatalf("core rejected a config carrying the REALITY keys: %v", err)
 	}
 }

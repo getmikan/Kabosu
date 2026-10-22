@@ -1,7 +1,7 @@
 import { dump as dumpYaml, load as loadYaml } from 'js-yaml'
 
 export const DEFAULT_MERGE_TEMPLATE =
-  '# Profile Enhancement Merge Template for SlothClash\n'
+  '# Profile Enhancement Merge Template for Kabosu\n'
 export const DEFAULT_EDITOR_TEMPLATE = 'prepend: []\nappend: []\ndelete: []\n'
 
 export function mergeTemplateFromProfile(

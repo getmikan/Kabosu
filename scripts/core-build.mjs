@@ -1,21 +1,4 @@
-/**
- * Builds the patched mihomo core described by core/mihomo/manifest.json: the
- * upstream tag (commit-verified) + core/patches/mihomo/*.patch, cross-compiled
- * with the flags upstream release builds use. The release workflow builds every
- * target with it; prebuild uses it to build the host target for local builds.
- *
- * usage: node scripts/core-build.mjs <out-dir> [goos-goarch ...]   (default: every manifest target)
- *        node scripts/core-build.mjs --test-only                   (apply the series, vet + test, no binaries)
- * flags: --skip-tests   skip go vet + the patched packages' tests
- * env:   MIHOMO_UPSTREAM  clone source override (e.g. a local mirror); the commit check still applies
- *
- * Output: one raw binary per target, SHA256SUMS, BUILDINFO.txt. Fails — naming
- * the patch — when a patch no longer applies or its hash drifted from the
- * manifest, so a core bump can never ship an unpatched core.
- *
- * Written in Node rather than bash: macOS ships bash 3.2 and `bash` on Windows
- * may resolve to WSL; node, git and go behave the same on every desktop OS.
- */
+/** Build the immutable Citrus dev revision from core/citrus/manifest.json. */
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
@@ -27,86 +10,59 @@ export const ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
 )
-const MANIFEST = path.join(ROOT, 'core', 'mihomo', 'manifest.json')
-const PATCH_DIR = path.join(ROOT, 'core', 'patches', 'mihomo')
 const SELF = fileURLToPath(import.meta.url)
-
+const MANIFEST = path.join(ROOT, 'core/citrus/manifest.json')
 export function readManifest() {
-  return JSON.parse(fs.readFileSync(MANIFEST, 'utf8'))
+  return verifyCoreManifest(JSON.parse(fs.readFileSync(MANIFEST, 'utf8')))
 }
-
+export function verifyCoreManifest(m) {
+  if (
+    !/^[0-9a-f]{40}$/.test(m?.commit ?? '') ||
+    m.name !== 'Citrus' ||
+    m.tag !== `dev-${m.commit.slice(0, 12)}` ||
+    !m.upstream ||
+    !m.assets
+  ) {
+    throw new Error(
+      'Invalid Citrus source manifest: expected a pinned commit and matching dev version',
+    )
+  }
+  for (const [target, asset] of Object.entries(m.assets)) {
+    if (
+      !/^(windows|darwin|linux)-(amd64|arm64)$/.test(target) ||
+      asset.file !==
+        `citrus-${target}${target.startsWith('windows-') ? '.exe' : ''}`
+    ) {
+      throw new Error(`Invalid Citrus target: ${target}`)
+    }
+  }
+  return m
+}
 export function sha256File(file) {
   return createHash('sha256').update(fs.readFileSync(file)).digest('hex')
 }
-
 function run(cmd, args, opts = {}) {
-  const res = spawnSync(cmd, args, {
+  const result = spawnSync(cmd, args, {
     stdio: opts.capture ? ['ignore', 'pipe', 'pipe'] : 'inherit',
     encoding: 'utf8',
     ...opts,
   })
-  if (res.error) {
+  if (result.error) throw result.error
+  if (result.status !== 0)
     throw new Error(
-      res.error.code === 'ENOENT'
-        ? `${cmd} not found in PATH (the core build needs git and Go)`
-        : `${cmd}: ${res.error.message}`,
+      `${cmd} ${args.join(' ')} exited with ${result.status}${opts.capture ? '\n' + (result.stderr || result.stdout) : ''}`,
     )
-  }
-  if (res.status !== 0) {
-    const detail = opts.capture ? `\n${res.stderr || res.stdout}` : ''
-    throw new Error(
-      `${cmd} ${args.join(' ')} exited with ${res.status}${detail}`,
-    )
-  }
-  return opts.capture ? res.stdout.trim() : ''
+  return opts.capture ? result.stdout.trim() : ''
 }
-
-/**
- * The patch directory and the manifest must list exactly the same series, and
- * every patch must hash to what the manifest records. Returns the patch files
- * in series order.
- */
-export function verifyPatchSeries(m = readManifest()) {
-  const listed = m.patches.map((p) => p.file)
-  const onDisk = fs
-    .readdirSync(PATCH_DIR)
-    .filter((f) => f.endsWith('.patch'))
-    .sort()
-  if (listed.join('\n') !== onDisk.join('\n')) {
-    throw new Error(
-      `core/patches/mihomo does not match the manifest patch list ` +
-        `(manifest: ${listed.join(' ')}; on disk: ${onDisk.join(' ')})`,
-    )
-  }
-  for (const p of m.patches) {
-    const got = sha256File(path.join(PATCH_DIR, p.file))
-    if (got !== p.sha256) {
-      throw new Error(
-        `patch ${p.file}: sha256 ${got} does not match manifest ${p.sha256} ` +
-          '(update core/mihomo/manifest.json)',
-      )
-    }
-  }
-  return listed
-}
-
-/**
- * The Go release every core is built with, from core/mihomo/.tool-versions
- * (also read by setup-go in CI and bumped by Renovate). Forced through
- * GOTOOLCHAIN, so a local build fetches that exact toolchain when the installed
- * one differs (checksum-verified by the go command) and produces the same bytes
- * as the release. Changing it changes the core hash, so it moves deliberately.
- */
 export function coreGoToolchain() {
   const text = fs.readFileSync(
-    path.join(ROOT, 'core', 'mihomo', '.tool-versions'),
+    path.join(ROOT, 'core/citrus/.tool-versions'),
     'utf8',
   )
-  const v = text.match(/^golang\s+(\d+\.\d+\.\d+)\s*$/m)?.[1]
-  if (!v) throw new Error('core/mihomo/.tool-versions: expected "golang x.y.z"')
-  return `go${v}`
+  const version = text.match(/^golang\s+(\d+\.\d+\.\d+)\s*$/m)?.[1]
+  if (!version) throw new Error('Invalid core/citrus/.tool-versions')
+  return `go${version}`
 }
-
 function goEnv() {
   const env = {
     ...process.env,
@@ -119,62 +75,17 @@ function goEnv() {
   delete env.GOAMD64
   return env
 }
-
 export function goVersion() {
   return run('go', ['version'], { capture: true, env: goEnv(), cwd: ROOT })
 }
-
-/**
- * Cache key for one built target: everything that determines its bytes — the
- * upstream commit, the patch hashes, the Go version and this script (flags).
- */
-export function coreBuildKey(m, target, goVer = goVersion()) {
+export function coreBuildKey(m, target, go = goVersion()) {
   return createHash('sha256')
     .update(
-      JSON.stringify({
-        commit: m.commit,
-        patches: m.patches.map((p) => p.sha256),
-        target,
-        go: goVer,
-        script: sha256File(SELF),
-      }),
+      JSON.stringify({ manifest: m, target, go, script: sha256File(SELF) }),
     )
     .digest('hex')
     .slice(0, 16)
 }
-
-// Upstream stamps BuildTime with `date`; the tag's commit time keeps a rebuild
-// with the same Go version byte-identical. Format: "Sat Oct 04 12:00:00 UTC 2026".
-function buildTimeOf(unixSeconds) {
-  const d = new Date(unixSeconds * 1000)
-  const pad = (n) => String(n).padStart(2, '0')
-  const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()]
-  const mon = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ][d.getUTCMonth()]
-  return (
-    `${day} ${mon} ${pad(d.getUTCDate())} ` +
-    `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} ` +
-    `UTC ${d.getUTCFullYear()}`
-  )
-}
-
-/**
- * Clone the pinned tag, check its commit, apply the series, optionally vet +
- * test, then build `targets` into `outDir`. With no outDir only the checks and
- * tests run.
- */
 export function buildCore({
   outDir = '',
   targets = [],
@@ -182,104 +93,73 @@ export function buildCore({
   log = console.log,
 } = {}) {
   const m = readManifest()
-  const patches = verifyPatchSeries(m)
-  const upstream = (process.env.MIHOMO_UPSTREAM || '').trim() || m.upstream
-  if (outDir && targets.length === 0) targets = Object.keys(m.assets)
-  for (const t of targets) {
-    if (!m.assets[t])
-      throw new Error(`target ${t} is not in the manifest assets`)
-  }
-
-  let out = ''
-  if (outDir) {
-    fs.mkdirSync(outDir, { recursive: true })
-    out = path.resolve(outDir)
-    // Never leave binaries of an earlier run next to a failed one.
-    for (const f of fs.readdirSync(out)) {
-      if (
-        f.startsWith('mihomo-') ||
-        f === 'SHA256SUMS' ||
-        f === 'BUILDINFO.txt'
-      ) {
-        fs.rmSync(path.join(out, f), { force: true })
-      }
-    }
-  }
-
-  const work = fs.mkdtempSync(path.join(os.tmpdir(), 'sloth-core-'))
+  const upstream = (process.env.CITRUS_UPSTREAM || '').trim() || m.upstream
+  if (outDir && !targets.length) targets = Object.keys(m.assets)
+  for (const target of targets)
+    if (!m.assets[target]) throw new Error(`Unknown target: ${target}`)
+  const out = outDir ? path.resolve(outDir) : ''
+  if (out) fs.mkdirSync(out, { recursive: true })
+  const work = fs.mkdtempSync(path.join(os.tmpdir(), 'kabosu-citrus-'))
+  const src = path.join(work, 'src')
   try {
-    const src = path.join(work, 'mihomo')
-    log(`==> clone ${upstream} @ ${m.tag}`)
-    // LF checkout on every OS: the patches carry LF context, and CRLF in Go
-    // sources would leak into raw string literals.
+    log(`==> Citrus ${m.branch} at ${m.commit}`)
+    run('git', ['init', '--quiet', src])
+    run('git', ['-C', src, 'config', 'core.autocrlf', 'false'])
+    run('git', ['-C', src, 'remote', 'add', 'origin', upstream])
     run('git', [
-      '-c',
-      'advice.detachedHead=false',
-      'clone',
+      '-C',
+      src,
+      'fetch',
       '--quiet',
       '--depth',
       '1',
-      '--config',
-      'core.autocrlf=false',
-      '--config',
-      'core.eol=lf',
-      '--branch',
-      m.tag,
-      upstream,
-      src,
+      'origin',
+      m.commit,
     ])
-    const head = run('git', ['-C', src, 'rev-parse', 'HEAD'], { capture: true })
-    if (head !== m.commit) {
-      throw new Error(
-        `tag ${m.tag} resolves to ${head}, manifest pins ${m.commit} (tag moved?)`,
+    run('git', [
+      '-C',
+      src,
+      '-c',
+      'advice.detachedHead=false',
+      'checkout',
+      '--quiet',
+      '--detach',
+      'FETCH_HEAD',
+    ])
+    const commit = run('git', ['-C', src, 'rev-parse', 'HEAD'], {
+      capture: true,
+    })
+    if (commit !== m.commit)
+      throw new Error(`Citrus revision mismatch: ${commit}`)
+    const env = goEnv()
+    const go = goVersion()
+    log(`==> ${go}`)
+    if (!skipTests) {
+      run(
+        'go',
+        [
+          'test',
+          '-count=1',
+          './component/tls/',
+          './config/',
+          './adapter/provider/',
+        ],
+        { cwd: src, env },
       )
     }
-
-    for (const p of patches) {
-      const file = path.join(PATCH_DIR, p)
-      try {
-        run('git', ['-C', src, 'apply', '--check', file], { capture: true })
-      } catch (e) {
-        throw new Error(
-          `patch ${p} does not apply to mihomo ${m.tag}; rebase it before bumping the core\n${e.message}`,
-          { cause: e },
-        )
-      }
-      run('git', ['-C', src, 'apply', file])
-      log(`==> applied ${p}`)
-    }
-
-    const env = goEnv()
-    const goVer = goVersion()
-    log(`==> ${goVer}`)
-
-    if (!skipTests) {
-      log('==> go vet + tests of the patched packages')
-      run('go', ['vet', './component/tls/', './config/', './hub/executor/'], {
-        cwd: src,
-        env,
-      })
-      run('go', ['test', '-count=1', './component/tls/', './config/'], {
-        cwd: src,
-        env,
-      })
-    }
-    if (!out) return { goVersion: goVer }
-
-    const commitTime = Number(
+    if (!out) return { goVersion: go }
+    const unix = Number(
       run('git', ['-C', src, 'log', '-1', '--format=%ct'], { capture: true }),
     )
-    const ldflags =
-      `-extldflags --static ` +
-      `-X 'github.com/metacubex/mihomo/constant.Version=${m.tag}' ` +
-      `-X 'github.com/metacubex/mihomo/constant.BuildTime=${buildTimeOf(commitTime)}' ` +
-      `-w -s -buildid=`
-
+    const ldflags = `-X github.com/metacubex/mihomo/constant.Version=${m.tag} -X github.com/metacubex/mihomo/constant.BuildTime=${new Date(unix * 1000).toISOString()} -w -s -buildid=`
     const sums = []
-    for (const t of targets) {
-      const file = m.assets[t].file
-      const [goos, goarch] = t.split('-')
-      log(`==> build ${t} -> ${file}`)
+    for (const target of targets) {
+      const [GOOS, GOARCH] = target.split('-')
+      const file = m.assets[target].file
+      const destination = path.join(out, file)
+      // Old output must never masquerade as a successful build after a failure.
+      fs.rmSync(destination, { force: true })
+      log(`==> ${target}: ${file}`)
       run(
         'go',
         [
@@ -290,105 +170,97 @@ export function buildCore({
           '-ldflags',
           ldflags,
           '-o',
-          path.join(out, file),
+          destination,
           '.',
         ],
         {
           cwd: src,
-          // amd64-v2 matches the upstream builds shipped before the patch series.
           env: {
             ...env,
-            GOOS: goos,
-            GOARCH: goarch,
-            ...(goarch === 'amd64' ? { GOAMD64: 'v2' } : {}),
+            GOOS,
+            GOARCH,
+            ...(GOARCH === 'amd64' ? { GOAMD64: 'v2' } : {}),
           },
         },
       )
-      sums.push(`${sha256File(path.join(out, file))}  ${file}`)
+      sums.push(`${sha256File(destination)}  ${file}`)
     }
-    fs.writeFileSync(path.join(out, 'SHA256SUMS'), `${sums.join('\n')}\n`)
+    fs.writeFileSync(path.join(out, 'SHA256SUMS'), sums.join('\n') + '\n')
     fs.writeFileSync(
       path.join(out, 'BUILDINFO.txt'),
       [
-        `core:      mihomo ${m.tag} + ${patches.length} SlothClash patches`,
-        `upstream:  ${upstream}`,
+        'core:      Citrus',
+        `upstream:  ${m.upstream}`,
         `tag:       ${m.tag}`,
         `commit:    ${m.commit}`,
-        `go:        ${goVer}`,
+        `go:        ${go}`,
         'flags:     CGO_ENABLED=0 GOAMD64=v2(amd64) -tags with_gvisor -trimpath',
         `ldflags:   ${ldflags}`,
-        'patches:',
-        ...m.patches.map((p) => `  ${p.sha256}  ${p.file}`),
         '',
       ].join('\n'),
     )
-    log(`==> done: mihomo ${m.tag} + ${patches.length} patches`)
     log(sums.join('\n'))
-    return { goVersion: goVer, sums }
+    return { goVersion: go, sums }
   } finally {
-    fs.rmSync(work, { recursive: true, force: true, maxRetries: 3 })
-  }
-}
-
-/**
- * Checks a core directory produced by buildCore (a CI artifact) against the
- * manifest: BUILDINFO names the pinned tag, commit and patch hashes, and the
- * target binary hashes to its SHA256SUMS line. Returns the binary's path and hash.
- */
-export function verifyBuiltCore(dir, target, m = readManifest()) {
-  const asset = m.assets[target]
-  if (!asset) throw new Error(`target ${target} is not in the manifest assets`)
-  const info = fs.readFileSync(path.join(dir, 'BUILDINFO.txt'), 'utf8')
-  const expect = [
-    `tag:       ${m.tag}`,
-    `commit:    ${m.commit}`,
-    ...m.patches.map((p) => `  ${p.sha256}  ${p.file}`),
-  ]
-  for (const line of expect) {
-    if (!info.split(/\r?\n/).includes(line)) {
+    const tempRoot = path.resolve(os.tmpdir())
+    const target = path.resolve(work)
+    if (
+      path.dirname(target) !== tempRoot ||
+      !path.basename(target).startsWith('kabosu-citrus-')
+    ) {
       throw new Error(
-        `${dir}/BUILDINFO.txt was not built from this manifest (missing "${line.trim()}")`,
+        'Refusing to remove a directory outside the Citrus temporary workspace',
       )
     }
+    fs.rmSync(target, { recursive: true, force: true, maxRetries: 3 })
   }
-  const sums = fs.readFileSync(path.join(dir, 'SHA256SUMS'), 'utf8')
-  const want = sums
-    .split(/\r?\n/)
-    .map((l) => l.match(/^([0-9a-f]{64})\s+\*?(.+)$/))
-    .find((mm) => mm && mm[2] === asset.file)?.[1]
-  if (!want) throw new Error(`${dir}/SHA256SUMS has no line for ${asset.file}`)
-  const file = path.join(dir, asset.file)
-  const got = sha256File(file)
-  if (got !== want) {
-    throw new Error(
-      `${asset.file}: sha256 ${got} does not match SHA256SUMS ${want}`,
-    )
-  }
-  return { file, sha256: got }
 }
-
+export function verifyBuiltCore(dir, target, m = readManifest()) {
+  verifyCoreManifest(m)
+  const asset = m.assets[target]
+  if (!asset) throw new Error(`Unknown Citrus target: ${target}`)
+  const lines = fs
+    .readFileSync(path.join(dir, 'BUILDINFO.txt'), 'utf8')
+    .split(/\r?\n/)
+  for (const expected of [
+    'core:      Citrus',
+    `upstream:  ${m.upstream}`,
+    `tag:       ${m.tag}`,
+    `commit:    ${m.commit}`,
+  ]) {
+    if (!lines.includes(expected))
+      throw new Error(`Citrus provenance mismatch: missing ${expected}`)
+  }
+  const sums = fs
+    .readFileSync(path.join(dir, 'SHA256SUMS'), 'utf8')
+    .split(/\r?\n/)
+  const want = sums
+    .map((line) => line.match(/^([0-9a-f]{64})\s+\*?(.+)$/))
+    .find((match) => match?.[2] === asset.file)?.[1]
+  const file = path.join(dir, asset.file)
+  const sha256 = sha256File(file)
+  if (!want || want !== sha256)
+    throw new Error(`Citrus checksum mismatch: ${asset.file}`)
+  return { file, sha256 }
+}
 if (process.argv[1] && path.resolve(process.argv[1]) === SELF) {
   const args = process.argv.slice(2)
-  const testOnly = args.includes('--test-only')
-  const skipTests = args.includes('--skip-tests')
-  const positional = args.filter((a) => !a.startsWith('--'))
+  const positional = args.filter((arg) => !arg.startsWith('--'))
   try {
-    if (testOnly) {
-      buildCore({})
-    } else {
-      if (positional.length === 0) {
-        console.error(
-          'usage: node scripts/core-build.mjs <out-dir> [goos-goarch ...] | --test-only',
+    if (args.includes('--test-only')) buildCore({})
+    else {
+      if (!positional.length)
+        throw new Error(
+          'Usage: node scripts/core-build.mjs <out-dir> [os-arch] [--skip-tests]',
         )
-        process.exit(2)
-      }
-      const [outDir, ...targets] = positional
-      buildCore({ outDir, targets, skipTests })
+      buildCore({
+        outDir: positional[0],
+        targets: positional.slice(1),
+        skipTests: args.includes('--skip-tests'),
+      })
     }
-  } catch (e) {
-    if (process.env.GITHUB_ACTIONS)
-      console.log(`::error::${e.message.split('\n')[0]}`)
-    console.error(`ERROR: ${e.message}`)
+  } catch (error) {
+    console.error(error.message)
     process.exit(1)
   }
 }

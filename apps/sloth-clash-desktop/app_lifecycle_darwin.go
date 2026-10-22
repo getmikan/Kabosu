@@ -47,7 +47,7 @@ func slothOnTerminateRequest() {
 //export slothOnOpenURL
 func slothOnOpenURL(raw *C.char) {
 	u := strings.TrimSpace(C.GoString(raw))
-	if u == "" || !strings.HasPrefix(strings.ToLower(u), "slothclash:") {
+	if findInstallConfigURL([]string{u}) == "" {
 		return
 	}
 	darwinLifecycleMu.Lock()

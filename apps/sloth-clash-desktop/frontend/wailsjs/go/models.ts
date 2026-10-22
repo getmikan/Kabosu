@@ -68,7 +68,40 @@ export namespace companion {
 }
 
 export namespace main {
+  export interface MikanServerGroup {
+    id: number
+    name: string
+    mode: string
+    used: number
+    limit?: number
+    extra: number
+    left?: number
+    exhausted: boolean
+    proxies?: string[]
+  }
+  export interface MikanGroups {
+    resetsAt?: number
+    groups: MikanServerGroup[]
+  }
+  export interface SubscriptionPanel {
+    webPageUrl?: string
+    announcementUrl?: string
+    updateIntervalMinutes?: number
+    shareLinksLocked?: boolean
+    networkStack?: string
+    hwidActive?: boolean
+    hwidNotSupported?: boolean
+    hwidMaxDevicesReached?: boolean
+    hwidLimit?: boolean
+    groups?: MikanGroups
+    brand?: BrandManifest
+  }
   export class BrandManifest {
+    showOperatorTab?: boolean
+    hideRouting?: boolean
+    lockConfigScript?: boolean
+    primaryProxyGroup?: string
+    proxyGroupLayout?: string
     enabled: boolean
     name?: string
     tagline?: string
@@ -100,6 +133,11 @@ export namespace main {
 
     constructor(source: any = {}) {
       if ('string' === typeof source) source = JSON.parse(source)
+      this.showOperatorTab = source['showOperatorTab']
+      this.hideRouting = source['hideRouting']
+      this.lockConfigScript = source['lockConfigScript']
+      this.primaryProxyGroup = source['primaryProxyGroup']
+      this.proxyGroupLayout = source['proxyGroupLayout']
       this.enabled = source['enabled']
       this.name = source['name']
       this.tagline = source['tagline']
@@ -323,6 +361,9 @@ export namespace main {
     selected?: string
     hidden?: boolean
     icon?: string
+    chainAlive?: boolean
+    failedHop?: string
+    chainError?: string
 
     static createFrom(source: any = {}) {
       return new ProxyGroup(source)
@@ -336,6 +377,9 @@ export namespace main {
       this.selected = source['selected']
       this.hidden = source['hidden']
       this.icon = source['icon']
+      this.chainAlive = source['chainAlive']
+      this.failedHop = source['failedHop']
+      this.chainError = source['chainError']
     }
   }
   export class ProxyState {
@@ -373,6 +417,7 @@ export namespace main {
     }
   }
   export class Profile {
+    panel?: SubscriptionPanel
     id: string
     name: string
     type: string
@@ -387,6 +432,13 @@ export namespace main {
     mergeTemplate?: string
     rulesTemplate?: string
     proxyTemplate?: string
+    scriptOverride?: string
+    scriptError?: string
+    scriptErrorLine?: number
+    scriptErrorColumn?: number
+    scriptConsole?: string[]
+    scriptConsoleTruncated?: boolean
+    scriptLastDurationMs?: number
     skipAutoConfig?: boolean
     lastGoodGroup?: string
 
@@ -396,6 +448,7 @@ export namespace main {
 
     constructor(source: any = {}) {
       if ('string' === typeof source) source = JSON.parse(source)
+      this.panel = source['panel']
       this.id = source['id']
       this.name = source['name']
       this.type = source['type']
@@ -410,6 +463,13 @@ export namespace main {
       this.mergeTemplate = source['mergeTemplate']
       this.rulesTemplate = source['rulesTemplate']
       this.proxyTemplate = source['proxyTemplate']
+      this.scriptOverride = source['scriptOverride']
+      this.scriptError = source['scriptError']
+      this.scriptErrorLine = source['scriptErrorLine']
+      this.scriptErrorColumn = source['scriptErrorColumn']
+      this.scriptConsole = source['scriptConsole']
+      this.scriptConsoleTruncated = source['scriptConsoleTruncated']
+      this.scriptLastDurationMs = source['scriptLastDurationMs']
       this.skipAutoConfig = source['skipAutoConfig']
       this.lastGoodGroup = source['lastGoodGroup']
     }
@@ -677,10 +737,33 @@ export namespace main {
       return a
     }
   }
+  export class CoreBuildInfo {
+    version: string
+    source: string
+    ref?: string
+    patches: string[]
+    patchesUrl: string
+    docUrl: string
+
+    static createFrom(source: any = {}) {
+      return new CoreBuildInfo(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.version = source['version']
+      this.source = source['source']
+      this.ref = source['ref']
+      this.patches = source['patches']
+      this.patchesUrl = source['patchesUrl']
+      this.docUrl = source['docUrl']
+    }
+  }
 
   export class CorpVpnCredentials {
     gateway?: string
     username?: string
+    servercert?: string
 
     static createFrom(source: any = {}) {
       return new CorpVpnCredentials(source)
@@ -690,6 +773,7 @@ export namespace main {
       if ('string' === typeof source) source = JSON.parse(source)
       this.gateway = source['gateway']
       this.username = source['username']
+      this.servercert = source['servercert']
     }
   }
   export class CorpVpnStatus {
@@ -724,6 +808,34 @@ export namespace main {
       this.supported = source['supported']
     }
   }
+  export class UISettings {
+    startMinimized?: boolean
+    autoConnectOnStartup?: boolean
+    closeToTray?: boolean
+
+    static createFrom(source: any = {}) {
+      return new UISettings(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.startMinimized = source['startMinimized']
+      this.autoConnectOnStartup = source['autoConnectOnStartup']
+      this.closeToTray = source['closeToTray']
+    }
+  }
+  export class TraySettings {
+    iconStyle?: string
+
+    static createFrom(source: any = {}) {
+      return new TraySettings(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.iconStyle = source['iconStyle']
+    }
+  }
   export class ExperimentalSettings {
     corpVpnEnabled?: boolean
 
@@ -746,6 +858,20 @@ export namespace main {
     constructor(source: any = {}) {
       if ('string' === typeof source) source = JSON.parse(source)
       this.hwidEnabled = source['hwidEnabled']
+    }
+  }
+  export class RealitySettings {
+    mlkem?: string
+    clientVersion?: string
+
+    static createFrom(source: any = {}) {
+      return new RealitySettings(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.mlkem = source['mlkem']
+      this.clientVersion = source['clientVersion']
     }
   }
   export class TrafficSettings {
@@ -790,10 +916,13 @@ export namespace main {
     tun: TunSettings
     traffic: TrafficSettings
     connection: ConnectionSettings
+    reality: RealitySettings
     privacy: PrivacySettings
     appUpdate: AppUpdateSettings
     experimental: ExperimentalSettings
     corpVpn: CorpVpnCredentials
+    tray: TraySettings
+    ui: UISettings
     lang?: string
 
     static createFrom(source: any = {}) {
@@ -808,6 +937,7 @@ export namespace main {
         source['connection'],
         ConnectionSettings,
       )
+      this.reality = this.convertValues(source['reality'], RealitySettings)
       this.privacy = this.convertValues(source['privacy'], PrivacySettings)
       this.appUpdate = this.convertValues(
         source['appUpdate'],
@@ -818,6 +948,8 @@ export namespace main {
         ExperimentalSettings,
       )
       this.corpVpn = this.convertValues(source['corpVpn'], CorpVpnCredentials)
+      this.tray = this.convertValues(source['tray'], TraySettings)
+      this.ui = this.convertValues(source['ui'], UISettings)
       this.lang = source['lang']
     }
 
@@ -900,6 +1032,68 @@ export namespace main {
       this.rules = source['rules']
       this.isFullProfile = source['isFullProfile']
       this.lastError = source['lastError']
+    }
+  }
+  export class scriptResult {
+    ran: boolean
+    applied: boolean
+    error?: string
+    line?: number
+    column?: number
+    console?: string[]
+    consoleTruncated?: boolean
+    durationMs?: number
+
+    static createFrom(source: any = {}) {
+      return new scriptResult(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.ran = source['ran']
+      this.applied = source['applied']
+      this.error = source['error']
+      this.line = source['line']
+      this.column = source['column']
+      this.console = source['console']
+      this.consoleTruncated = source['consoleTruncated']
+      this.durationMs = source['durationMs']
+    }
+  }
+  export class ProfileScriptPreview {
+    withScript: string
+    withoutScript: string
+    changed: boolean
+    result: scriptResult
+
+    static createFrom(source: any = {}) {
+      return new ProfileScriptPreview(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.withScript = source['withScript']
+      this.withoutScript = source['withoutScript']
+      this.changed = source['changed']
+      this.result = this.convertValues(source['result'], scriptResult)
+    }
+
+    convertValues(a: any, classs: any, asMap: boolean = false): any {
+      if (!a) {
+        return a
+      }
+      if (a.slice && a.map) {
+        return (a as any[]).map((elem) => this.convertValues(elem, classs))
+      } else if ('object' === typeof a) {
+        if (asMap) {
+          for (const key of Object.keys(a)) {
+            a[key] = new classs(a[key])
+          }
+          return a
+        }
+        return new classs(a)
+      }
+      return a
     }
   }
 
@@ -1005,6 +1199,7 @@ export namespace main {
     }
   }
   export class SubscriptionPeek {
+    panel?: SubscriptionPanel
     url: string
     suggestedName: string
     profileTitleRaw?: string
@@ -1020,6 +1215,7 @@ export namespace main {
 
     constructor(source: any = {}) {
       if ('string' === typeof source) source = JSON.parse(source)
+      this.panel = source['panel']
       this.url = source['url']
       this.suggestedName = source['suggestedName']
       this.profileTitleRaw = source['profileTitleRaw']

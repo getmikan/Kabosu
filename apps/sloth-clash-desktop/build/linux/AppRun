@@ -1,5 +1,5 @@
 #!/bin/bash
-# AppRun for the Sloth Clash AppImage.
+# AppRun for the Kabosu AppImage.
 #
 # linuxdeploy-plugin-gtk drops environment hooks (GTK/GLib/GIO/pixbuf paths)
 # into apprun-hooks/; they are sourced first. The process then runs from usr/
@@ -26,4 +26,4 @@ if [ -n "$webkit_libexec" ]; then
 fi
 
 cd "$APPDIR/usr" || exit 1
-exec "$APPDIR/usr/bin/sloth-clash-desktop" "$@"
+exec "$APPDIR/usr/bin/kabosu-desktop" "$@"

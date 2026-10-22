@@ -54,7 +54,7 @@ func TestResolveTrayIconStyle(t *testing.T) {
 
 func TestTrayTooltipFor(t *testing.T) {
 	s := trayStringsEN
-	if got := trayTooltipFor(trayIconIdle, s); got != "Sloth Clash · Disconnected" {
+	if got := trayTooltipFor(trayIconIdle, s); got != "Kabosu · Disconnected" {
 		t.Fatalf("idle tooltip = %q", got)
 	}
 	if got := trayTooltipFor(trayIconProxy, s); !strings.Contains(got, "Proxy") {

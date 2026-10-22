@@ -11,23 +11,23 @@ import (
 // default. This is the input to the parity audit (config-divergence-audit).
 func representativeFullProfile() map[string]any {
 	return map[string]any{
-		"mode":          "rule",
-		"ipv6":          true,
+		"mode":           "rule",
+		"ipv6":           true,
 		"tcp-concurrent": true,
-		"unified-delay": true,
+		"unified-delay":  true,
 		// sub-provided geo cadence — must be preserved (not overridden).
-		"geodata-mode":    true,
-		"geo-auto-update": true,
+		"geodata-mode":        true,
+		"geo-auto-update":     true,
 		"geo-update-interval": 72,
 		"dns": map[string]any{
-			"enable":        true,
-			"enhanced-mode": "fake-ip",
-			"fake-ip-range": "198.18.0.1/16",
-			"respect-rules": true,
-			"ipv6":          true,
-			"use-hosts":     true,
-			"fake-ip-filter": []any{"+.ru", "*.lan"},
-			"nameserver":     []any{"https://1.1.1.1/dns-query", "https://77.88.8.8/dns-query"},
+			"enable":                  true,
+			"enhanced-mode":           "fake-ip",
+			"fake-ip-range":           "198.18.0.1/16",
+			"respect-rules":           true,
+			"ipv6":                    true,
+			"use-hosts":               true,
+			"fake-ip-filter":          []any{"+.ru", "*.lan"},
+			"nameserver":              []any{"https://1.1.1.1/dns-query", "https://77.88.8.8/dns-query"},
 			"proxy-server-nameserver": []any{"1.1.1.1", "8.8.8.8", "77.88.8.8"},
 			"nameserver-policy": map[string]any{
 				"+.ru": []any{"https://77.88.8.8/dns-query"},
@@ -120,7 +120,7 @@ func TestConfigParitySubscriptionBlocksPreserved(t *testing.T) {
 		t.Errorf("geo-auto-update = %v, want true (subscription-provided, preserved)", m["geo-auto-update"])
 	}
 
-	// Sloth runtime overlay (intentional, documented divergences from verge):
+	// Kabosu runtime overlay (intentional, documented divergences from verge):
 	if m["mixed-port"] != 54333 {
 		t.Errorf("mixed-port = %v, want 54333 (we use a random free port by design)", m["mixed-port"])
 	}

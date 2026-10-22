@@ -7,20 +7,21 @@ import (
 	"strings"
 )
 
-// findSlothclashInstallConfigURL returns the first argv token that looks like a slothclash: deep link.
-func findSlothclashInstallConfigURL(args []string) string {
+// findInstallConfigURL accepts Kabosu links and the upstream scheme for existing integrations.
+func findInstallConfigURL(args []string) string {
 	for _, a := range args {
 		a = strings.TrimSpace(a)
 		a = strings.Trim(a, `"`)
-		if len(a) >= 12 && strings.HasPrefix(strings.ToLower(a), "slothclash:") {
+		lower := strings.ToLower(a)
+		if strings.HasPrefix(lower, "kabosu:") || strings.HasPrefix(lower, "slothclash:") {
 			return a
 		}
 	}
 	return ""
 }
 
-// ParseInstallConfigURL parses slothclash://install-config?name=...&url=...
-// Also accepts slothclash:///install-config?... (path form).
+// ParseInstallConfigURL parses kabosu://install-config?name=...&url=...
+// Also accepts the path form and legacy slothclash links from existing providers.
 func ParseInstallConfigURL(raw string) (name string, subscriptionURL string, err error) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
@@ -30,7 +31,7 @@ func ParseInstallConfigURL(raw string) (name string, subscriptionURL string, err
 	if err != nil {
 		return "", "", err
 	}
-	if !strings.EqualFold(u.Scheme, "slothclash") {
+	if !strings.EqualFold(u.Scheme, "kabosu") && !strings.EqualFold(u.Scheme, "slothclash") {
 		return "", "", fmt.Errorf("unsupported scheme %q", u.Scheme)
 	}
 	host := strings.ToLower(strings.TrimSpace(u.Host))

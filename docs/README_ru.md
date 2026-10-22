@@ -1,109 +1,78 @@
-<h1 align="center">
-  <img src="../apps/sloth-clash-desktop/build/appicon.png" alt="Sloth Clash" width="128" />
-  <br />
-  Sloth Clash
-  <br />
-</h1>
+<p align="center"><img src="readmelogo.png" alt="Kabosu — зелёный цитрус на тёмно-синем фоне" width="192" height="192" /></p>
+<h1 align="center">Kabosu</h1>
+<p align="center">Десктопный клиент Citrus: профили, правила маршрутизации и соединения в одном приложении.<br />Windows · macOS · Linux</p>
+<p align="center"><a href="../README.md">English</a> · <a href="README_zh.md">简体中文</a> · <a href="https://github.com/getmikan/Kabosu/releases">Скачать</a> · <a href="https://github.com/getmikan/Kabosu/issues">Сообщить об ошибке</a></p>
 
-<p align="center">
-  <b>Clash Meta (Mihomo)</b> — десктоп-клиент на <b>Wails · Go · React</b><br />
-  Windows · macOS · Linux
-</p>
+## О проекте
 
-<p align="center">
-  <a href="../README.md">English</a> ·
-  <a href="./README_en.md">English (docs)</a> ·
-  <a href="./README_ru.md">Русский</a> ·
-  <a href="./README_zh.md">简体中文</a>
-  ·
-  <a href="../Changelog.md">Changelog</a>
-</p>
+**Kabosu** — форк [Sloth Clash](https://github.com/Nemu-x/SlothClash), который поддерживает [getmikan](https://github.com/getmikan). В основе — ядро [Citrus](https://github.com/getmikan/Citrus), оболочка Go/Wails и интерфейс React/TypeScript. У форка собственное название, иконка с кабосу и ссылки на релизы.
 
-<p align="center"><sub>Полный английский текст — в корне: <a href="../README.md"><code>README.md</code></a>.</sub></p>
+Для подключения нужна своя подписка, ссылки на серверы или локальный YAML-конфиг. Приложение не предоставляет серверы и не продаёт VPN-подписку.
 
----
+## Возможности
 
-## Обзор
+- Подписки, ссылки на серверы и локальные профили YAML.
+- Выбор узлов и групп прокси, проверка задержки и обновление подписок.
+- Системный прокси и режим TUN.
+- Мониторинг соединений, трафика, правил и журналов.
+- Визуальный и YAML-редактор правил, merge-конфиги и JavaScript-обработчики профилей.
+- Русский, английский и китайский интерфейс, светлая и тёмная темы.
+- Иконки трея с отдельными состояниями отключения, Proxy и TUN.
+- Импорт через `kabosu://install-config` с подтверждением пользователя.
+- Проверка релизов `getmikan/Kabosu`; установка обновлений Windows требует подписанных контрольных сумм.
 
-**Sloth Clash** — GUI под **GPL-3.0** вокруг **Mihomo** (Clash Meta). В этом репозитории — оболочка **Wails** (`apps/sloth-clash-desktop`). Слой **системного сервиса / IPC** для Windows вынесен в отдельный проект: [sloth-clash-service-ipc](https://github.com/Nemu-x/sloth-clash-service-ipc) (артефакты релизов подтягивает `pnpm run prebuild`).
+Интерфейс — зелёный Material 3 Expressive, локальный Roboto Flex и официальные Material Symbols. REALITY, provider overrides и групповые проверки выполняет Citrus. При переносе старых профилей прочитайте [заметки о совместимости ядра](../core/citrus/README.md).
 
-## Возможности (кратко)
+Заголовки панели совместимы с MikanApp: оформление, личный кабинет, политики и квоты групп. [Справочник заголовков](PANEL_HEADERS_ru.md).
 
-- Профили, прокси, правила и сценарии merge / скриптов в интерфейсе  
-- Встраивание ядра Mihomo (stable и опционально alpha через prebuild)  
-- Режимы трафика **Proxy** / **TUN** в один клик с живым статусом подключения  
-- Визуальный + YAML редактор правил, монитор соединений и панель диагностики  
-- Подписанные, fail-closed **встроенные обновления** (Windows) с запуском установщика через UAC  
-- Установщик сервиса Windows и раскладка sidecar под упаковку Wails  
-- Схема deep link `slothclash://` (см. `wails.json`)
+## Скачать
 
-## Скриншоты
+Сборки публикуются в [релизах Kabosu](https://github.com/getmikan/Kabosu/releases). Если для нужной платформы нет файла, приложение можно собрать из исходников.
 
-<table>
-  <tr>
-    <td width="50%"><img src="screenshots/home.png" alt="Главная — подключение, режим, трафик, статус" /><br /><sub><b>Главная</b> — подключение, режим Rule/Global, трафик Proxy/TUN, статус и скорость</sub></td>
-    <td width="50%"><img src="screenshots/profiles.png" alt="Профили — подписки" /><br /><sub><b>Профили</b> — импорт и управление подписками, трафик, авто-обновление</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/proxies.png" alt="Прокси — группы selector и url-test" /><br /><sub><b>Прокси</b> — группы selector / url-test с задержкой и поиском</sub></td>
-    <td width="50%"><img src="screenshots/connections.png" alt="Соединения — живой трафик" /><br /><sub><b>Соединения</b> — живой трафик по процессам, правило, отдача/приём</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/rules.png" alt="Правила — таблица маршрутизации" /><br /><sub><b>Правила</b> — полная таблица маршрутизации с фильтрами по типу/политике</sub></td>
-    <td width="50%"><img src="screenshots/edit_rules.png" alt="Редактор правил — визуальный и YAML" /><br /><sub><b>Редактор правил</b> — визуальный режим + Advanced (YAML), база подписки read-only</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/advanced.png" alt="Дополнительно — диагностика и инструменты" /><br /><sub><b>Дополнительно</b> — диагностика, проверки связи, инструменты восстановления</sub></td>
-    <td width="50%"><img src="screenshots/settings.png" alt="Настройки — рантайм, обновления, диагностика" /><br /><sub><b>Настройки</b> — тема, язык, подключение, обновления и диагностика</sub></td>
-  </tr>
-</table>
+| Система | Форматы сборки |
+| --- | --- |
+| Windows x64 / ARM64 | Установщик `Kabosu-windows-<arch>-installer.exe` |
+| macOS Apple Silicon / Intel | `Kabosu-macOS-<arch>.dmg` |
+| Linux x64 / ARM64 | AppImage, deb, rpm, пакет Arch, tar.gz |
 
-## Сборки
+Для TUN требуется привилегированный helper: установите его через настройки. В Linux для tar.gz нужны GTK 3 и WebKitGTK 4.1, в AppImage они включены. Windows использует WebView2. Бинарники helper пока берутся из [исходного проекта сервиса](https://github.com/Nemu-x/sloth-clash-service-ipc).
 
-Релизы приложения: [SlothClash releases](https://github.com/Nemu-x/SlothClash/releases).  
-Бинарники сервиса для сборки: [sloth-clash-service-ipc releases](https://github.com/Nemu-x/sloth-clash-service-ipc/releases).
+## Сборка
 
-## Сборка локально
-
-Нужны: **Go 1.25+**, **Node 20+**, **pnpm**, Wails v2.
+Нужны **Go 1.26.7**, **Node.js 20.19+ или 22.12+**, **pnpm 10.33.0** и [системные зависимости Wails](https://wails.io/docs/gettingstarted/installation). Для установщика Windows нужен NSIS, для Linux — пакеты разработки GTK/WebKit. Скрипты найдут или установят Wails v2 CLI.
 
 ```bash
-pnpm install
+git clone https://github.com/getmikan/Kabosu.git
+cd Kabosu
+pnpm install --frozen-lockfile
 pnpm run desktop:resources
 pnpm run wails:dev
 ```
 
-Каталог `desktop:resources`: `apps/sloth-clash-desktop/build/` (в git не входит). На Windows в цепочку входит **`pnpm run icons:windows`** — обновляет **`build/windows/icon.ico`** из `build/appicon.png`.
+`desktop:resources` запускает обязательные проверки и готовит ядро, сервис и иконки. Для загрузки ресурсов нужен интернет. Команда сборки текущей платформы — `pnpm run wails:build`. Команды установщиков и сборок других платформ перечислены в [основном README](../README.md#build-from-source).
 
-## CI
+Исходники находятся в `apps/sloth-clash-desktop`. Это внутреннее имя унаследовано от исходного проекта; приложение и пакеты называются Kabosu. Каталог профилей, IPC и имена внешнего сервиса сохранены для совместимости. Подробнее — [BRANDING.md](BRANDING.md).
 
-GitHub Actions: `.github/workflows/desktop-artifacts.yml` — матрица по тегу `v*` или ручной запуск.
+## Иконки
 
-## Участие
+Основное изображение — [`appicon-main.png`](appicon-main.png). Оно используется в README, интерфейсе, системных иконках и цветном трее. Монохромный трей использует силуэт того же плода с листом.
 
-См. [CONTRIBUTING.md](../CONTRIBUTING.md).
+```bash
+pnpm run copy:desktop-appicon
+pnpm run icons:windows
+pnpm run desktop:packaging
+```
 
-## Поддержать проект
+## Проверки и обновления
 
-Sloth Clash бесплатен и распространяется под **GPL-3.0**. Если он вам полезен — крипто-донат помогает продолжать разработку и выпускать релизы. Спасибо! 🦥
+Обязательные проверки: `pnpm run test:required`. Проверка интерфейса: `pnpm run lint`. Сборки платформ выполняет [Desktop artifacts](../.github/workflows/desktop-artifacts.yml).
 
-| Актив | Адрес |
-| --- | --- |
-| **USDT** (TRC20) | `TPACN1kJRm2FnFF1cSqYtBnJwAmZ3qGMni` |
-| **USDT** (Polygon / MATIC) | `0xD9333e859Fb74D885d22E27568589de61E4433b5` |
-| **BTC** | `bc1qkkcgpqym967k2x73al6f7fpvkx52q4rzkut3we` |
-| **ETH** | `0xD9333e859Fb74D885d22E27568589de61E4433b5` |
+Перед выпуском собственных подписанных обновлений настройте ключ minisign Kabosu и секреты репозитория по [UPDATES.md](UPDATES.md). В коде пока сохранён открытый ключ исходного проекта; он не становится ключом Kabosu от смены названия. Проверка подписи действует: неподписанные или подписанные другим ключом обновления Windows будут отклонены. Для SignPath, winget, AUR и Pages нужна отдельная настройка форка.
 
-> Проверьте сеть перед отправкой — перевод в неверной сети вернуть нельзя.
+## Участие, безопасность и лицензия
 
-## Благодарности
+Правила разработки — [CONTRIBUTING.md](../CONTRIBUTING.md), сообщения об уязвимостях — [SECURITY.md](../SECURITY.md).
 
-- **База (откуда выросла концепция GUI):** [clash-verge-rev](https://github.com/clash-verge-rev/clash-verge-rev) — Clash Verge Rev (Tauri); в этом репозитории продукт перенесён на **Wails + Go**.
-- **Ядро прокси (Clash Meta):** [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo).
-- **Десктопная оболочка:** [Wails](https://github.com/wailsapp/wails).
+Спасибо **Nemu-x и участникам Sloth Clash**, а также проектам [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev), [Clash Verge](https://github.com/zzzgydi/clash-verge), [Mihomo](https://github.com/MetaCubeX/mihomo) и [Wails](https://github.com/wailsapp/wails).
 
-Также: [zzzgydi/clash-verge](https://github.com/zzzgydi/clash-verge) (оригинальный Clash Verge) и экосистема Clash.
-
-## Лицензия
-
-[GPL-3.0](../LICENSE)
+Исходная лицензия и история проекта сохранены. Лицензия Kabosu — [GPL-3.0-only](../LICENSE).

@@ -1,137 +1,98 @@
-<h1 align="center">
-  <img src="docs/readmelogo.png" alt="Sloth Clash" width="256" />
-</h1>
-
 <p align="center">
-  <b>Clash Meta (Mihomo)</b> desktop client — <b>Wails · Go · React</b><br />
-  Windows · macOS · Linux
+  <img src="docs/readmelogo.png" alt="Kabosu — green citrus fruit on a dark blue background" width="192" height="192" />
+</p>
+<h1 align="center">Kabosu</h1>
+<p align="center">A desktop client for Citrus. Profiles, routing rules and your connections in one place.</p>
+<p align="center">Windows · macOS · Linux<br />Go · Wails · React · TypeScript</p>
+<p align="center">
+  <a href="docs/README_ru.md">Русский</a> ·
+  <a href="docs/README_zh.md">简体中文</a> ·
+  <a href="https://github.com/getmikan/Kabosu/releases">Downloads</a> ·
+  <a href="https://github.com/getmikan/Kabosu/issues">Issues</a> ·
+  <a href="Changelog.md">Changelog</a>
 </p>
 
-<p align="center">
-  <a href="./docs/README_ru.md">Русский</a> ·
-  <a href="./docs/README_zh.md">简体中文</a>
-  ·
-  <a href="./Changelog.md">Changelog</a>
-  ·
-  <a href="https://t.me/nemux_dev">Telegram</a>
-  ·
-  <a href="#support-the-project">Support</a>
-</p>
+## About
 
-<p align="center">
-  <img src="docs/preview.png" alt="Sloth Clash preview" width="900" />
-</p>
+**Kabosu** is the [getmikan](https://github.com/getmikan) fork of [Sloth Clash](https://github.com/Nemu-x/SlothClash), built around the [Citrus](https://github.com/getmikan/Citrus) proxy core. It keeps the Go/Wails desktop application and React interface, with its own name, citrus artwork and release destinations.
 
----
+Kabosu is a client: bring your own subscription, share links or local configuration. The repository does not provide proxy servers or a VPN subscription.
 
-## Overview
+## Features
 
-Sloth Clash is a **GPL-3.0** GUI around **Mihomo** (Clash Meta). This repository ships the **Wails** desktop shell (`apps/sloth-clash-desktop`). The Windows **system service / IPC** layer lives in a separate project: [sloth-clash-service-ipc](https://github.com/Nemu-x/sloth-clash-service-ipc) (release artifacts are consumed by `pnpm run prebuild`).
+- Import and manage subscriptions, share links and local YAML profiles.
+- Switch proxy nodes and groups, check latency and refresh subscriptions.
+- Route traffic through the system proxy or a TUN adapter.
+- Inspect live connections, routing rules, traffic and diagnostic logs.
+- Edit routing through the visual/YAML editors, profile merges and JavaScript hooks.
+- Use English, Russian or Simplified Chinese, light/dark themes and state-aware tray icons.
+- Import subscriptions through `kabosu://install-config` links, with confirmation before import.
+- Check releases from `getmikan/Kabosu`; Windows update installation requires signed checksums.
 
-## Features (high level)
+The green Material 3 Expressive interface uses local Roboto Flex and official Material Symbols. Native Citrus handles REALITY, provider overrides and group health checks. See [core compatibility notes](core/citrus/README.md) before migrating older profiles.
 
-- Profiles, proxies, rules, and merge / script-style config workflows in the UI  
-- Mihomo core integration (stable channel via prebuild)  
-- One-click **Proxy** / **TUN** traffic modes with a live connection-health status  
-- Visual + YAML rule editor, live connections monitor, and a diagnostics/advanced panel  
-- Signed, fail-closed **in-app updates** (Windows) with UAC-elevated installer hand-off  
-- Windows service installer bundle + sidecar layout compatible with Wails packaging  
-- Deep link scheme `slothclash://` (see `wails.json`)
-
-## Screenshots
-
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/home.png" alt="Home — connect, mode, traffic, live status" /><br /><sub><b>Home</b> — connect, Rule/Global mode, Proxy/TUN traffic, live health & speed</sub></td>
-    <td width="50%"><img src="docs/screenshots/profiles.png" alt="Profiles — subscriptions" /><br /><sub><b>Profiles</b> — import & manage subscriptions, usage, auto-update</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/proxies.png" alt="Proxies — selector and url-test groups" /><br /><sub><b>Proxies</b> — selector / url-test groups with latency and search</sub></td>
-    <td width="50%"><img src="docs/screenshots/connections.png" alt="Connections — live traffic" /><br /><sub><b>Connections</b> — live per-process traffic, matched rule, up/down</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/rules.png" alt="Rules — routing table" /><br /><sub><b>Rules</b> — full routing table with type / policy filters</sub></td>
-    <td width="50%"><img src="docs/screenshots/edit_rules.png" alt="Edit rules — visual and YAML" /><br /><sub><b>Edit rules</b> — visual builder + Advanced (YAML), subscription read-only base</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/advanced.png" alt="Advanced — diagnostics and tools" /><br /><sub><b>Advanced</b> — diagnostics, connectivity probes, recovery tools</sub></td>
-    <td width="50%"><img src="docs/screenshots/settings.png" alt="Settings — runtime, updates, diagnostics" /><br /><sub><b>Settings</b> — theme, language, connection, updates & diagnostics</sub></td>
-  </tr>
-</table>
+Panel response headers follow MikanApp: branding, account links, subscription policies and server-group quotas. See [the header reference](docs/PANEL_HEADERS_ru.md).
 
 ## Downloads
 
-**Latest release — direct downloads** (always point to the newest version):
+Use the [Kabosu releases page](https://github.com/getmikan/Kabosu/releases). Only packages published there are Kabosu builds. If a platform has no asset yet, build it from source.
 
-| Platform | Download |
+| Platform | Packaging produced by CI |
 | --- | --- |
-| Windows (x64) | [SlothClash-windows-amd64-installer.exe](https://github.com/Nemu-x/SlothClash/releases/latest/download/SlothClash-windows-amd64-installer.exe) |
-| Windows (ARM64) | [SlothClash-windows-arm64-installer.exe](https://github.com/Nemu-x/SlothClash/releases/latest/download/SlothClash-windows-arm64-installer.exe) |
-| macOS (Apple Silicon) | [SlothClash-macOS-arm64.dmg](https://github.com/Nemu-x/SlothClash/releases/latest/download/SlothClash-macOS-arm64.dmg) |
-| macOS (Intel) | [SlothClash-macOS-x64.dmg](https://github.com/Nemu-x/SlothClash/releases/latest/download/SlothClash-macOS-x64.dmg) |
-| Linux (x64, AppImage) | [SlothClash-x86_64.AppImage](https://github.com/Nemu-x/SlothClash/releases/latest/download/SlothClash-x86_64.AppImage) |
-| Linux (x64, deb) | [sloth-clash-linux-amd64.deb](https://github.com/Nemu-x/SlothClash/releases/latest/download/sloth-clash-linux-amd64.deb) |
-| Linux (x64, rpm) | [sloth-clash-linux-amd64.rpm](https://github.com/Nemu-x/SlothClash/releases/latest/download/sloth-clash-linux-amd64.rpm) |
-| Linux (x64, Arch) | [sloth-clash-linux-amd64.pkg.tar.zst](https://github.com/Nemu-x/SlothClash/releases/latest/download/sloth-clash-linux-amd64.pkg.tar.zst) |
-| Linux (x64, tar.gz) | [sloth-clash-linux-amd64.tar.gz](https://github.com/Nemu-x/SlothClash/releases/latest/download/sloth-clash-linux-amd64.tar.gz) |
-| Linux (ARM64, AppImage) | [SlothClash-aarch64.AppImage](https://github.com/Nemu-x/SlothClash/releases/latest/download/SlothClash-aarch64.AppImage) |
-| Linux (ARM64, deb) | [sloth-clash-linux-arm64.deb](https://github.com/Nemu-x/SlothClash/releases/latest/download/sloth-clash-linux-arm64.deb) |
-| Linux (ARM64, rpm) | [sloth-clash-linux-arm64.rpm](https://github.com/Nemu-x/SlothClash/releases/latest/download/sloth-clash-linux-arm64.rpm) |
-| Linux (ARM64, Arch) | [sloth-clash-linux-arm64.pkg.tar.zst](https://github.com/Nemu-x/SlothClash/releases/latest/download/sloth-clash-linux-arm64.pkg.tar.zst) |
-| Linux (ARM64, tar.gz) | [sloth-clash-linux-arm64.tar.gz](https://github.com/Nemu-x/SlothClash/releases/latest/download/sloth-clash-linux-arm64.tar.gz) |
+| Windows x64 / ARM64 | `Kabosu-windows-<arch>-installer.exe` |
+| macOS Apple Silicon / Intel | `Kabosu-macOS-<arch>.dmg` |
+| Linux x64 / ARM64 | AppImage, deb, rpm, Arch package and tar.gz |
 
-Linux packages install a menu entry, the app icon, and the `slothclash://` link handler. The AppImage is self-contained (GTK and WebKitGTK bundled, runs on Ubuntu 22.04 and newer) and carries update information for AppImageUpdate; the tar.gz needs `webkit2gtk-4.1` + `gtk3` from your distro. TUN mode needs the helper service: Settings → **Install service** asks for authorisation via polkit (`pkexec`) and installs a systemd unit; without polkit the app shows the one-time `sudo` command to run instead.
+TUN mode requires the privileged helper. Install it from Settings when prompted. Linux tar.gz builds need GTK 3 and WebKitGTK 4.1; AppImage packaging bundles those libraries. Windows installers require WebView2. The helper and its release binaries remain an [upstream dependency](https://github.com/Nemu-x/sloth-clash-service-ipc).
 
-All releases & changelog: [SlothClash releases](https://github.com/Nemu-x/SlothClash/releases). Verify integrity against [`SHA256SUMS`](https://github.com/Nemu-x/SlothClash/releases/latest/download/SHA256SUMS) (signed — [`SHA256SUMS.minisig`](https://github.com/Nemu-x/SlothClash/releases/latest/download/SHA256SUMS.minisig)).  
-Service binaries used at build time: [sloth-clash-service-ipc releases](https://github.com/Nemu-x/sloth-clash-service-ipc/releases).
+## Build from source
 
-## Build (local)
-
-Prerequisites: **Go 1.25+**, **Node 20+**, **pnpm**, Wails v2 (`go run github.com/wailsapp/wails/v2/cmd/wails@latest` works without a global install).
+Requirements: **Go 1.26.7** (desktop toolchain), **Node.js 20.19+ or 22.12+**, **pnpm 10.33.0**, and the [Wails platform dependencies](https://wails.io/docs/gettingstarted/installation). The scripts locate or install the Wails v2 CLI. Windows installer builds also need NSIS; Linux builds need the GTK/WebKit development packages.
 
 ```bash
-pnpm install
-pnpm run desktop:resources   # mihomo sidecar, geo DBs, Sloth service exes, Windows icon → build/
-pnpm run wails:dev           # or: pnpm run wails:build
+git clone https://github.com/getmikan/Kabosu.git
+cd Kabosu
+pnpm install --frozen-lockfile
+pnpm run desktop:resources
+pnpm run wails:dev
 ```
 
-`desktop:resources` writes under `apps/sloth-clash-desktop/build/` (ignored by git). On Windows, **`pnpm run icons:windows`** is included there and refreshes **`build/windows/icon.ico`** from `build/appicon.png` so installers / shortcuts pick up the right icon.
+`desktop:resources` runs the required checks and prepares Citrus, helper binaries and generated icons. It downloads build resources, so network access is required. Build the current platform with `pnpm run wails:build`, or use the platform commands:
 
-## CI
-
-GitHub Actions: `.github/workflows/desktop-artifacts.yml` (Windows, Linux, macOS arm64 + Release) and `.github/workflows/desktop-artifacts-darwin-amd64.yml` (macOS Intel — same tag, adds zip to the same Release).
-
-## Security
-
-Sloth Clash ships **fail-closed, cryptographically verified updates**: the in-app updater verifies a **minisign (ed25519)** signature over `SHA256SUMS` against a public key embedded in the binary, then checks the installer's SHA-256 before launching — anything unsigned or tampered is refused (see [docs/UPDATES.md](./docs/UPDATES.md)). CI runs `govulncheck` + `pnpm audit` on every change, the mihomo core is pinned for reproducible builds, and the project is GPL-3.0 / fully auditable. The privileged helper that manages the core/TUN requires a one-time elevation to install, then runs without further prompts.
-
-To report a vulnerability, see [SECURITY.md](./SECURITY.md) (use GitHub private vulnerability reporting — please don't open public issues for security bugs).
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-## Support the project
-
-Sloth Clash is free and **GPL-3.0**. If it's useful to you, a crypto donation helps keep development and releases going. Thank you! 🦥
-
-| Asset | Address |
+| Target | Command |
 | --- | --- |
-| **USDT** (TRC20) | `TPACN1kJRm2FnFF1cSqYtBnJwAmZ3qGMni` |
-| **USDT** (Polygon / MATIC) | `0xD9333e859Fb74D885d22E27568589de61E4433b5` |
-| **BTC** | `bc1qkkcgpqym967k2x73al6f7fpvkx52q4rzkut3we` |
-| **ETH** | `0xD9333e859Fb74D885d22E27568589de61E4433b5` |
+| Windows x64 installer | `pnpm run desktop:build:windows` |
+| Windows ARM64 installer | `pnpm run desktop:build:windows:arm64` |
+| macOS Apple Silicon DMG | `pnpm run desktop:build:darwin:arm64:dmg` |
+| macOS Intel DMG | `pnpm run desktop:build:darwin:amd64:dmg` |
+| Linux x64 / ARM64 | `pnpm run desktop:build:linux:amd64` / `pnpm run desktop:build:linux:arm64` |
 
-> Double-check the network before sending — wrong-network transfers are unrecoverable.
+Source lives in `apps/sloth-clash-desktop`; this inherited directory name is intentional. Installed executables and packages use Kabosu. See [branding and compatibility](docs/BRANDING.md) for the remaining internal upstream identifiers.
 
-## Acknowledgements
+## Icons
 
-- **Basis (upstream GUI this work descends from):** [clash-verge-rev](https://github.com/clash-verge-rev/clash-verge-rev) — Clash Verge Rev (Tauri); Sloth Clash reimplements the product direction with **Wails + Go** in this repo.
-- **Proxy core (Clash Meta):** [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo).
-- **Desktop shell:** [Wails](https://github.com/wailsapp/wails) — Go backend + web frontend in one binary.
+The supplied Kabosu artwork is tracked in [`docs/appicon-main.png`](docs/appicon-main.png). The same image is used for README artwork, the frontend, application icons and colorful tray states. macOS template icons use a monochrome silhouette of the fruit and leaf.
 
-Also: [zzzgydi/clash-verge](https://github.com/zzzgydi/clash-verge) (original Clash Verge), and the wider Clash ecosystem.
+```bash
+pnpm run copy:desktop-appicon
+pnpm run icons:windows
+pnpm run desktop:packaging
+```
 
-## License
+Windows ICOs contain multiple sizes; Wails generates the macOS and Linux application resources from the same source. Tray badges retain the existing distinction between disconnected, Proxy and TUN states.
 
-[GPL-3.0](./LICENSE)
+## Checks and releases
+
+Run `pnpm run test:required` for the existing required checks and `pnpm run lint` for the frontend. [Desktop artifacts](.github/workflows/desktop-artifacts.yml) builds platform packages; [Core build](.github/workflows/core-build.yml) builds the pinned Citrus core.
+
+Before distributing signed updates, configure a **Kabosu-owned minisign key** and repository signing secrets using [UPDATES.md](docs/UPDATES.md). The inherited upstream public key has not been replaced by this branding change. Verification remains enforced; unsigned or differently signed Windows updates are refused. Optional SignPath, winget, AUR and Pages publishing require the fork's own configuration; this README does not imply those services are registered or live.
+
+## Contributing and security
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for development and [SECURITY.md](SECURITY.md) for private vulnerability reporting. Report ordinary bugs in [Kabosu issues](https://github.com/getmikan/Kabosu/issues).
+
+## Credits and license
+
+Kabosu builds on work by **Nemu-x and the Sloth Clash contributors**. Its earlier UI lineage includes [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev) and [Clash Verge](https://github.com/zzzgydi/clash-verge). Thanks also to [Mihomo](https://github.com/MetaCubeX/mihomo), [Wails](https://github.com/wailsapp/wails) and the Clash ecosystem.
+
+The original license and upstream history are preserved. Kabosu is distributed under [GPL-3.0-only](LICENSE).

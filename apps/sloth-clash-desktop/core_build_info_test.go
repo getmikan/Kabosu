@@ -8,14 +8,14 @@ import (
 func TestCoreBuildInfoFromFS(t *testing.T) {
 	bundle := fstest.MapFS{
 		"build/sidecar/core-version.txt": {Data: []byte("v1.19.32\n")},
-		"build/sidecar/core-build.json": {Data: []byte(`{"version":"v1.19.32","source":"patched","ref":"9a09ac799e9c63ed170cbbc039670be65311afff",
+		"build/sidecar/core-build.json": {Data: []byte(`{"version":"v1.19.32","source":"citrus","ref":"9a09ac799e9c63ed170cbbc039670be65311afff",
 			"patches":["0001-a.patch","0002-b.patch"],"sha256":"x"}`)},
 	}
 	got := coreBuildInfoFromFS(bundle)
-	if got.Version != "v1.19.32" || got.Source != "patched" || len(got.Patches) != 2 {
+	if got.Version != "v1.19.32" || got.Source != "citrus" || len(got.Patches) != 2 {
 		t.Fatalf("parsed %+v", got)
 	}
-	if got.PatchesURL != slothRepoURL+"/tree/9a09ac799e9c63ed170cbbc039670be65311afff/core/patches/mihomo" {
+	if got.PatchesURL != "https://github.com/getmikan/Citrus/tree/9a09ac799e9c63ed170cbbc039670be65311afff" {
 		t.Errorf("patches url %q", got.PatchesURL)
 	}
 
@@ -24,7 +24,7 @@ func TestCoreBuildInfoFromFS(t *testing.T) {
 	if bare.Source != "" || len(bare.Patches) != 0 || bare.Patches == nil {
 		t.Errorf("bare bundle = %+v, want unknown source and an empty (non-nil) patch list", bare)
 	}
-	if bare.PatchesURL != slothRepoURL+"/tree/main/core/patches/mihomo" {
+	if bare.PatchesURL != slothRepoURL+"/tree/main/core/citrus" {
 		t.Errorf("bare patches url %q", bare.PatchesURL)
 	}
 }

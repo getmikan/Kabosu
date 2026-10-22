@@ -1,6 +1,6 @@
-# Contributing to Sloth Clash
+# Contributing to Kabosu
 
-Thanks for helping improve **Sloth Clash** — a **Wails + Go + React** desktop client around **Mihomo** (Clash Meta), hosted under `apps/sloth-clash-desktop/`.
+Thanks for helping improve **Kabosu** — a **Wails + Go + React** desktop client around **Mihomo** (Clash Meta), hosted under `apps/sloth-clash-desktop/`.
 
 ## Internationalization (i18n)
 

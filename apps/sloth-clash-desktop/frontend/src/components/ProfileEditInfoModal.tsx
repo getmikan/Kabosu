@@ -166,6 +166,7 @@ export function ProfileEditInfoModal({
   target,
   name,
   url,
+  urlLocked = false,
   autoEnabled,
   autoInterval,
   ageKey,
@@ -184,6 +185,7 @@ export function ProfileEditInfoModal({
   target: ProfileEditInfoTarget | null
   name: string
   url: string
+  urlLocked?: boolean
   autoEnabled: boolean
   autoInterval: string
   ageKey: string
@@ -236,7 +238,9 @@ export function ProfileEditInfoModal({
           </span>
           <input
             className="input"
-            value={url}
+            value={urlLocked ? '' : url}
+            disabled={urlLocked}
+            title={urlLocked ? t('panel.shareLocked') : undefined}
             onChange={(e) => onUrlChange(e.target.value)}
             placeholder={t('ui.profiles.editInfo.urlPlaceholder')}
           />
@@ -278,7 +282,7 @@ export function ProfileEditInfoModal({
           <button
             type="button"
             className="btn btnModalSecondary"
-            disabled={!url.trim()}
+            disabled={urlLocked || !url.trim()}
             onClick={() => onCopyUrl(url.trim())}
           >
             {t('ui.profiles.editInfo.copyUrl')}

@@ -4,4 +4,5 @@ export {
   SelectProxyGroup,
   SetProxyNode,
   TestProxyDelay,
+  TestProxyGroupDelay,
 } from '../../wailsjs/go/main/App'

@@ -18,6 +18,8 @@ import (
 // the UA, so an absent or wrong version silently degrades what users receive.
 const embeddedCoreVersionFile = "build/sidecar/core-version.txt"
 
+var citrusDevVersionPattern = regexp.MustCompile(`^dev-[0-9a-f]{7,40}$`)
+
 var coreVersionPattern = regexp.MustCompile(`^v?(\d+\.\d+\.\d+)$`)
 
 // coreVersionFromFS reads and validates the pinned core version from a bundle.
@@ -35,6 +37,9 @@ func coreVersionFromFS(bundle fs.FS) string {
 	// First line only: tolerate a trailing newline or an editor's extra line.
 	if i := strings.IndexAny(raw, "\r\n"); i >= 0 {
 		raw = strings.TrimSpace(raw[:i])
+	}
+	if citrusDevVersionPattern.MatchString(raw) {
+		return raw
 	}
 	m := coreVersionPattern.FindStringSubmatch(raw)
 	if m == nil {
@@ -57,13 +62,11 @@ func embeddedCoreVersion() string {
 	return embeddedCoreVersionValue
 }
 
-// CoreBuildInfo says what the shipped core is made of: the upstream mihomo tag
-// plus the SlothClash patch series (core/patches/mihomo). prebuild writes it to
-// build/sidecar/core-build.json next to the binary; Settings → Info shows it so
-// users can see the core is upstream + N patches and follow the link to them.
+// CoreBuildInfo exposes embedded Citrus provenance. Legacy field names remain
+// compatible with existing frontend bindings and diagnostic consumers.
 type CoreBuildInfo struct {
 	Version    string   `json:"version"`
-	Source     string   `json:"source"` // patched | stock | local; "" = unknown build
+	Source     string   `json:"source"`        // citrus; "" = unknown build
 	Ref        string   `json:"ref,omitempty"` // commit the build came from; "" = local build
 	Patches    []string `json:"patches"`
 	PatchesURL string   `json:"patchesUrl"`
@@ -72,7 +75,7 @@ type CoreBuildInfo struct {
 
 const (
 	embeddedCoreBuildFile = "build/sidecar/core-build.json"
-	slothRepoURL          = "https://github.com/Nemu-x/SlothClash"
+	slothRepoURL          = "https://github.com/getmikan/Kabosu"
 )
 
 func coreBuildInfoFromFS(bundle fs.FS) CoreBuildInfo {
@@ -90,14 +93,17 @@ func coreBuildInfoFromFS(bundle fs.FS) CoreBuildInfo {
 		}
 		info.Version = coreVersionFromFS(bundle)
 	}
-	// Link the patches as of the commit the release was built from, so the
-	// page shows exactly the series this binary carries.
+	// Link the exact source revision carried by this binary.
 	ref := "main"
 	if info.Ref != "" {
 		ref = info.Ref
 	}
-	info.PatchesURL = slothRepoURL + "/tree/" + ref + "/core/patches/mihomo"
-	info.DocURL = slothRepoURL + "/blob/" + ref + "/docs/core-patches.md"
+	info.PatchesURL = slothRepoURL + "/tree/" + ref + "/core/citrus"
+	info.DocURL = slothRepoURL + "/blob/" + ref + "/core/citrus/README.md"
+	if info.Source == "citrus" {
+		info.PatchesURL = "https://github.com/getmikan/Citrus/tree/" + ref
+		info.DocURL = "https://github.com/getmikan/Citrus/blob/" + ref + "/README.md"
+	}
 	return info
 }
 

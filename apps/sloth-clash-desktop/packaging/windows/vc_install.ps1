@@ -1,6 +1,6 @@
 # Downloads and silently installs Microsoft Visual C++ 2015-2022 Redistributable.
 #
-# Invoked by the Sloth Clash NSIS installer when the runtime is missing on the
+# Invoked by the Kabosu NSIS installer when the runtime is missing on the
 # user's machine. Lives as a separate file (rather than an inline NSIS
 # `nsExec::ExecToStack 'powershell ...'` string) because NSIS quoting rules
 # fight with PowerShell quoting rules: nesting double quotes, single quotes,

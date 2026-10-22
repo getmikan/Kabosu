@@ -16,7 +16,7 @@ import (
 
 // controllerName is how this controller identifies itself to agents during
 // PIN pairing (shown on the agent side).
-const controllerName = "SlothClash"
+const controllerName = "Kabosu"
 
 // resolveTimeout bounds the mDNS re-resolution done before control calls so an
 // agent that moved ports is found, without making every call wait on a full

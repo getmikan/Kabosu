@@ -18,6 +18,10 @@ export function CheckForUpdates() {
   return window['go']['main']['App']['CheckForUpdates']()
 }
 
+export function ClearProfileScriptOverride(arg1) {
+  return window['go']['main']['App']['ClearProfileScriptOverride'](arg1)
+}
+
 export function CloseAllConnections() {
   return window['go']['main']['App']['CloseAllConnections']()
 }
@@ -126,6 +130,10 @@ export function GetAppState() {
   return window['go']['main']['App']['GetAppState']()
 }
 
+export function GetCoreBuild() {
+  return window['go']['main']['App']['GetCoreBuild']()
+}
+
 export function GetCorpVpnCredentials() {
   return window['go']['main']['App']['GetCorpVpnCredentials']()
 }
@@ -194,6 +202,10 @@ export function InstallService() {
   return window['go']['main']['App']['InstallService']()
 }
 
+export function IsBootSettled() {
+  return window['go']['main']['App']['IsBootSettled']()
+}
+
 export function ListProfiles() {
   return window['go']['main']['App']['ListProfiles']()
 }
@@ -220,6 +232,10 @@ export function OpenPathInExplorer(arg1) {
 
 export function PeekSubscriptionFromURL(arg1) {
   return window['go']['main']['App']['PeekSubscriptionFromURL'](arg1)
+}
+
+export function PreviewProfileScript(arg1, arg2) {
+  return window['go']['main']['App']['PreviewProfileScript'](arg1, arg2)
 }
 
 export function ReExtractBundledResources() {
@@ -314,8 +330,16 @@ export function SetProfileRulesTemplate(arg1, arg2) {
   return window['go']['main']['App']['SetProfileRulesTemplate'](arg1, arg2)
 }
 
+export function SetProfileScriptOverride(arg1, arg2) {
+  return window['go']['main']['App']['SetProfileScriptOverride'](arg1, arg2)
+}
+
 export function SetProxyNode(arg1, arg2) {
   return window['go']['main']['App']['SetProxyNode'](arg1, arg2)
+}
+
+export function SetRealitySettings(arg1) {
+  return window['go']['main']['App']['SetRealitySettings'](arg1)
 }
 
 export function SetTrafficMode(arg1) {
@@ -326,8 +350,16 @@ export function SetTrafficSettings(arg1) {
   return window['go']['main']['App']['SetTrafficSettings'](arg1)
 }
 
+export function SetTraySettings(arg1) {
+  return window['go']['main']['App']['SetTraySettings'](arg1)
+}
+
 export function SetTunSettings(arg1) {
   return window['go']['main']['App']['SetTunSettings'](arg1)
+}
+
+export function SetUISettings(arg1) {
+  return window['go']['main']['App']['SetUISettings'](arg1)
 }
 
 export function SetUiLanguage(arg1) {
@@ -352,6 +384,10 @@ export function StopCorpVpn() {
 
 export function TestProxyDelay(arg1) {
   return window['go']['main']['App']['TestProxyDelay'](arg1)
+}
+
+export function TestProxyGroupDelay(arg1) {
+  return window['go']['main']['App']['TestProxyGroupDelay'](arg1)
 }
 
 export function UpdateProfileInfo(arg1, arg2, arg3) {

@@ -1,7 +1,13 @@
 # In-app updates — signing & release guide
 
-SlothClash ships a **fail-closed, signed** in-app updater. This document is for
+Kabosu ships a **fail-closed, signed** in-app updater. This document is for
 maintainers cutting releases and managing the signing key.
+
+## Fork setup required
+
+Kabosu checks releases at `getmikan/Kabosu`. The branding change preserves the upstream minisign public key in `app_update_verify.go`; it is not a Kabosu signing identity. Before distributing automatic updates, generate a Kabosu-owned key, replace the embedded trust key and configure the matching CI secrets. Keep signature verification enabled. Until then, unsigned or differently signed Windows updates are rejected.
+
+SignPath uses repository variables `SIGNPATH_PROJECT_SLUG` and `SIGNPATH_SIGNING_POLICY`, plus the fork's `SIGNPATH_ORGANIZATION_ID` and API token. An upstream project slug must not be reused.
 
 ## Trust model
 
@@ -22,11 +28,11 @@ tampered is **refused** (closes audit findings **F1 / F8**).
 
 ```bash
 # install minisign: winget install jedisct1.minisign | brew install minisign | apt install minisign
-minisign -G -p slothclash-updates.pub -s slothclash-updates.key
+minisign -G -p kabosu-updates.pub -s kabosu-updates.key
 ```
 
-- **`slothclash-updates.pub`** — public, embed in the app (see below). Not secret.
-- **`slothclash-updates.key`** — **private, password-encrypted**. Store the
+- **`kabosu-updates.pub`** — public, embed in the app (see below). Not secret.
+- **`kabosu-updates.key`** — **private, password-encrypted**. Store the
   offline backup in a password manager / offline media. **Never commit it.**
 
 ### Embed the public key
@@ -35,7 +41,7 @@ The trusted keys live in `apps/sloth-clash-desktop/app_update_verify.go`:
 
 ```go
 var trustedUpdateKeys = []string{
-    "RWQ...AprY", // the second line of slothclash-updates.pub
+    "RWQ...AprY", // the second line of kabosu-updates.pub
 }
 ```
 
@@ -45,7 +51,7 @@ It is an **array for rotation** (see below).
 
 Add two **repository secrets** (Settings → Secrets and variables → Actions):
 
-- `MINISIGN_SECRET_KEY` — the **full contents** of `slothclash-updates.key`
+- `MINISIGN_SECRET_KEY` — the **full contents** of `kabosu-updates.key`
   (both lines: the `untrusted comment:` line + the base64 key line).
 - `MINISIGN_SIGN_PASSWORD` — the password that encrypts the key.
 

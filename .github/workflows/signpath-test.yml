@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   test-sign:
+    if: vars.SIGNPATH_PROJECT_SLUG != '' && vars.SIGNPATH_ORGANIZATION_ID != ''
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,24 +29,24 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force build | Out-Null
-          'package main', 'func main() { println("SlothClash SignPath plumbing test") }' | Set-Content -Encoding ascii hello.go
+          'package main', 'func main() { println("Kabosu SignPath plumbing test") }' | Set-Content -Encoding ascii hello.go
           go env -w GOOS=windows GOARCH=amd64
-          go build -o build/slothclash-signtest.exe hello.go
-          Get-Item build/slothclash-signtest.exe | Select-Object Name,Length
+          go build -o build/kabosu-signtest.exe hello.go
+          Get-Item build/kabosu-signtest.exe | Select-Object Name,Length
 
       - name: Upload UNSIGNED artifact
         id: unsigned
         uses: actions/upload-artifact@v4
         with:
           name: unsigned-exe
-          path: build/slothclash-signtest.exe
+          path: build/kabosu-signtest.exe
 
       - name: Submit to SignPath (test-signing)
         uses: signpath/github-action-submit-signing-request@v1
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
-          organization-id: '3717f257-09ac-492c-bc51-7ed0e5b47a01'
-          project-slug: 'SlothClash'
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
           signing-policy-slug: 'test-signing'
           # artifact-configuration-slug omitted on purpose -> uses the DEFAULT
           # config ("Initial version": pe-file / authenticode). Set it explicitly

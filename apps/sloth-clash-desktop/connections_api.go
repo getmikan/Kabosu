@@ -34,12 +34,12 @@ type ConnectionItem struct {
 }
 
 type ConnectionsOverview struct {
-	Controller   string           `json:"controller"`
-	Reachable    bool             `json:"reachable"`
-	LastError    string           `json:"lastError,omitempty"`
-	UploadTotal  int64            `json:"uploadTotal"`
-	DownloadTotal int64           `json:"downloadTotal"`
-	Connections  []ConnectionItem `json:"connections"`
+	Controller    string           `json:"controller"`
+	Reachable     bool             `json:"reachable"`
+	LastError     string           `json:"lastError,omitempty"`
+	UploadTotal   int64            `json:"uploadTotal"`
+	DownloadTotal int64            `json:"downloadTotal"`
+	Connections   []ConnectionItem `json:"connections"`
 }
 
 // FetchConnectionsOverview reads /connections from the active mihomo controller.
@@ -54,7 +54,7 @@ func (a *App) FetchConnectionsOverview() ConnectionsOverview {
 	if ep == "" || (conn != "connected" && !running) {
 		base := strings.TrimSpace(os.Getenv("SLOTH_CLASH_CONTROLLER"))
 		if base == "" {
-			return ConnectionsOverview{LastError: "connect Sloth or set SLOTH_CLASH_CONTROLLER for external core"}
+			return ConnectionsOverview{LastError: "connect Kabosu or set SLOTH_CLASH_CONTROLLER for external core"}
 		}
 		if !strings.HasPrefix(base, "http://") && !strings.HasPrefix(base, "https://") {
 			base = "http://" + base
@@ -131,12 +131,12 @@ func (a *App) FetchConnectionsOverview() ConnectionsOverview {
 			continue
 		}
 		out.Connections = append(out.Connections, ConnectionItem{
-			ID:       c.ID,
-			Upload:   c.Upload,
-			Download: c.Download,
-			Start:    c.Start,
-			Chains:   c.Chains,
-			Rule:     c.Rule,
+			ID:          c.ID,
+			Upload:      c.Upload,
+			Download:    c.Download,
+			Start:       c.Start,
+			Chains:      c.Chains,
+			Rule:        c.Rule,
 			RulePayload: c.RulePayload,
 			Metadata: ConnectionMeta{
 				Network:         c.Metadata.Network,

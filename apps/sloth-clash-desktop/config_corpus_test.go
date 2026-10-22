@@ -95,4 +95,3 @@ func TestLocalStressYamlFromDownloadsIfPresent(t *testing.T) {
 		t.Fatalf("stress.yaml finalize failed: %v", err)
 	}
 }
-

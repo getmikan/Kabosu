@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metadata for the AppImage (usr/share/metainfo). @VERSION@ and
+     @DATE@ are filled in by build/linux/build-appimage.sh from the release tag.
+     The AppImage catalog (appimage.github.io) and desktop app stores read the
+     screenshots and description from here. -->
+<component type="desktop-application">
+  <id>io.github.getmikan.Kabosu</id>
+  <launchable type="desktop-id">kabosu.desktop</launchable>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <name>Kabosu</name>
+  <summary>Clash Meta (Mihomo) desktop client with TUN and system-proxy modes</summary>
+  <developer id="io.github.getmikan">
+    <name>getmikan</name>
+  </developer>
+  <description>
+    <p>
+      Kabosu is a desktop client for the Mihomo (Clash Meta) proxy core. Import a
+      subscription or a share link, pick a node, and route traffic either through the
+      system proxy or through a TUN adapter that captures every application. Rules,
+      proxy groups, connections and logs are editable and inspectable in place.
+    </p>
+    <p>
+      The app ships its own pinned core and a small privileged helper for TUN mode,
+      updates subscriptions in the background, and can rewrite the generated
+      configuration with a per-profile JavaScript hook for the cases the editors do
+      not cover.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/getmikan/Kabosu</url>
+  <url type="bugtracker">https://github.com/getmikan/Kabosu/issues</url>
+  <url type="help">https://github.com/getmikan/Kabosu/blob/main/README.md</url>
+  <categories>
+    <category>Network</category>
+  </categories>
+  <keywords>
+    <keyword>Clash</keyword>
+    <keyword>Mihomo</keyword>
+    <keyword>Proxy</keyword>
+    <keyword>VPN</keyword>
+    <keyword>TUN</keyword>
+  </keywords>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="@VERSION@" date="@DATE@"/>
+  </releases>
+</component>

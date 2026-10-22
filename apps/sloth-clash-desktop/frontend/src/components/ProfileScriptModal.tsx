@@ -16,7 +16,7 @@ import type { ProfileModalTarget } from './ProfileMergeModal'
 const STARTER_SCRIPT = `// Transforms this profile's generated config before the core sees it.
 // Return the config — whatever you return is what gets used.
 //
-//   config  the full config, after SlothClash's own overlays
+//   config  the full config, after Kabosu's own overlays
 //   ctx     { traffic: 'tun' | 'proxy', platform, appVersion }
 //
 // Ports, the controller endpoint and its secret are re-applied after this runs,

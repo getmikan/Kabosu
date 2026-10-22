@@ -764,7 +764,7 @@ func (a *App) writeRuntimeConfigWithScript(dataDir string, subURL string, ageKey
 }
 
 // writeRuntimeConfigIfNeeded uses a hand-edited config.yaml as base when SkipAutoConfig is set,
-// but always reapplies Sloth runtime overlay (ports, secret, tun) for a working connect.
+// but always reapplies Kabosu runtime overlay (ports, secret, tun) for a working connect.
 // enableTun controls the single source of truth for tun.enable that ends up in the
 // written YAML — match the user's current intent (connected && traffic=="tun") so
 // that PUT /configs?force=true on subsequent reloads does not thrash the adapter.
@@ -1234,7 +1234,7 @@ func rotateCoreLogForNewRun(logPath string) {
 // simply reports nothing to stop.
 //
 // Safe to call unconditionally at startup: SingleInstanceLock guarantees no
-// other Sloth instance owns a live core.
+// other Kabosu instance owns a live core.
 func (a *App) reconcileOrphanServiceCoreOnStartup() {
 	a.mu.RLock()
 	installed := a.state.Service.Installed
@@ -1357,7 +1357,7 @@ func (a *App) startEmbeddedCore(profile Profile, gen uint64, enableTun bool) err
 			}
 			// Safe fallback for proxy mode: keep app usable even if privileged helper is temporarily unreachable.
 			a.mu.Lock()
-			a.state.Connection.LastWarning = "Sloth service IPC unreachable, falling back to user-process core for Proxy mode: " + err.Error()
+			a.state.Connection.LastWarning = "Kabosu service IPC unreachable, falling back to user-process core for Proxy mode: " + err.Error()
 			a.mu.Unlock()
 			a.appendRuntimeDiag("ipc.error", "service IPC unreachable, using embedded core")
 			useServiceCore = false
@@ -1530,7 +1530,7 @@ func (a *App) startEmbeddedCore(profile Profile, gen uint64, enableTun bool) err
 		a.mu.Lock()
 		a.stopCoreLocked()
 		a.mu.Unlock()
-		return errors.New("core did not become ready in time (check Sloth service logs and SlothClash/runtime/<profile-id>/ under your config directory)")
+		return errors.New("core did not become ready in time (check Kabosu service logs and SlothClash/runtime/<profile-id>/ under your config directory)")
 	}
 
 	ctrlPort, err := pickFreePort()
@@ -1709,11 +1709,14 @@ func pullProxyGroupsFromCore(listen, secret string) ([]ProxyGroup, error) {
 		return nil, errors.New("unexpected /proxies shape")
 	}
 	var proxies map[string]struct {
-		Type   string   `json:"type"`
-		All    []string `json:"all"`
-		Now    string   `json:"now"`
-		Hidden bool     `json:"hidden"`
-		Icon   string   `json:"icon"`
+		Type       string   `json:"type"`
+		All        []string `json:"all"`
+		Now        string   `json:"now"`
+		Hidden     bool     `json:"hidden"`
+		Icon       string   `json:"icon"`
+		ChainAlive *bool    `json:"chainAlive"`
+		FailedHop  string   `json:"failedHop"`
+		ChainError string   `json:"chainError"`
 	}
 	if err := json.Unmarshal(proxiesNode, &proxies); err != nil {
 		return nil, err
@@ -1730,12 +1733,15 @@ func pullProxyGroupsFromCore(listen, secret string) ([]ProxyGroup, error) {
 			continue
 		}
 		groups = append(groups, ProxyGroup{
-			Name:     name,
-			Type:     p.Type,
-			Proxies:  append([]string(nil), p.All...),
-			Selected: p.Now,
-			Hidden:   p.Hidden,
-			Icon:     p.Icon,
+			Name:       name,
+			Type:       p.Type,
+			Proxies:    append([]string(nil), p.All...),
+			Selected:   p.Now,
+			Hidden:     p.Hidden,
+			Icon:       p.Icon,
+			ChainAlive: p.ChainAlive,
+			FailedHop:  p.FailedHop,
+			ChainError: p.ChainError,
 		})
 	}
 	sort.Slice(groups, func(i, j int) bool { return groups[i].Name < groups[j].Name })
@@ -1913,7 +1919,7 @@ func (a *App) rulesOverviewFetch(listen, secret string) RulesOverview {
 	listen = strings.TrimSpace(listen)
 	out := RulesOverview{}
 	if listen == "" {
-		out.LastError = "connect Sloth core first"
+		out.LastError = "connect Kabosu core first"
 		return out
 	}
 	if isWinPipeEndpoint(listen) {

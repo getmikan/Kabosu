@@ -1,3 +1,9 @@
+# Kabosu helper dependency
+
+Kabosu uses the upstream Sloth Clash helper without changing its service IDs or IPC names. The checklist below is retained as upstream implementation history; it is not a request to rename the external service in this fork. See [BRANDING.md](BRANDING.md) for compatibility contracts.
+
+---
+
 # Forking the Clash Verge IPC service for Sloth (no SCM / pipe conflicts)
 
 Goal: **Verge** keeps `clash_verge_service` + `\\.\pipe\clash-verge-service`; **Sloth** uses **new** Windows service name, display name, and named pipe so both installers can coexist and you can stop Verge TUN and start Sloth TUN without sharing one SCM slot.

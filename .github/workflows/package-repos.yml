@@ -1,9 +1,9 @@
 # Publishes Linux package REPOSITORIES to GitHub Pages so users get updates via
 # their package manager (apt update / dnf upgrade), plus pushes the AUR package.
 #
-#   apt : flat repo at  https://<owner>.github.io/SlothClash/apt  (GPG-signed InRelease)
-#   dnf : yum repo at   https://<owner>.github.io/SlothClash/rpm  (createrepo_c)
-#   AUR : sloth-clash-bin (gated on AUR_SSH_PRIVATE_KEY secret)
+#   apt : flat repo at  https://<owner>.github.io/Kabosu/apt  (GPG-signed InRelease)
+#   dnf : yum repo at   https://<owner>.github.io/Kabosu/rpm  (createrepo_c)
+#   AUR : kabosu-bin (gated on AUR_SSH_PRIVATE_KEY secret)
 #
 # Trigger: after a release is published (assets present), or manually.
 # Requires: Pages source = "GitHub Actions"; secret GPG_PRIVATE_KEY (repo
@@ -81,8 +81,8 @@ jobs:
           cd site/apt
           apt-ftparchive packages . > Packages
           gzip -k -f Packages
-          apt-ftparchive -o APT::FTPArchive::Release::Origin=SlothClash \
-                         -o APT::FTPArchive::Release::Label=SlothClash \
+          apt-ftparchive -o APT::FTPArchive::Release::Origin=Kabosu \
+                         -o APT::FTPArchive::Release::Label=Kabosu \
                          -o APT::FTPArchive::Release::Suite=stable \
                          -o APT::FTPArchive::Release::Architectures="amd64 arm64" \
                          release . > Release
@@ -99,10 +99,10 @@ jobs:
           mkdir -p site/rpm
           cp pool/*.rpm site/rpm/ 2>/dev/null || true
           createrepo_c site/rpm
-          cat > site/rpm/slothclash.repo <<EOF
-          [slothclash]
-          name=SlothClash
-          baseurl=https://nemu-x.github.io/SlothClash/rpm
+          cat > site/rpm/kabosu.repo <<EOF
+          [kabosu]
+          name=Kabosu
+          baseurl=https://getmikan.github.io/Kabosu/rpm
           enabled=1
           gpgcheck=0
           repo_gpgcheck=0
@@ -159,9 +159,9 @@ jobs:
           [ "$VER" = "$GITHUB_REF_NAME" ] && VER="${{ github.event.release.tag_name }}" && VER="${VER#v}"
           TAG="v${VER}"
           mkdir -p aurpkg dl
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" -D dl -p 'sloth-clash-linux-amd64.tar.gz' -p 'sloth-clash-linux-arm64.tar.gz'
-          SHA_AMD=$(sha256sum dl/sloth-clash-linux-amd64.tar.gz | cut -d' ' -f1)
-          SHA_ARM=$(sha256sum dl/sloth-clash-linux-arm64.tar.gz | cut -d' ' -f1)
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" -D dl -p 'kabosu-linux-amd64.tar.gz' -p 'kabosu-linux-arm64.tar.gz'
+          SHA_AMD=$(sha256sum dl/kabosu-linux-amd64.tar.gz | cut -d' ' -f1)
+          SHA_ARM=$(sha256sum dl/kabosu-linux-arm64.tar.gz | cut -d' ' -f1)
           sed -e "s/@PKGVER@/${VER//-/_}/g" \
               -e "s/@TAG@/${TAG}/g" \
               -e "s/@SHA256_AMD64@/${SHA_AMD}/g" \
@@ -173,9 +173,9 @@ jobs:
         if: steps.gate.outputs.enabled == 'true'
         uses: KSXGitHub/github-actions-deploy-aur@v3
         with:
-          pkgname: sloth-clash-bin
+          pkgname: kabosu-bin
           pkgbuild: aurpkg/PKGBUILD
-          commit_username: Nemu-x
-          commit_email: Nemu-x@users.noreply.github.com
+          commit_username: getmikan
+          commit_email: getmikan@users.noreply.github.com
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: Update to ${{ github.event.release.tag_name || github.ref_name }}

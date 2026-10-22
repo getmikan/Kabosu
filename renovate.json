@@ -52,7 +52,7 @@
     {
       "description": "Core Go toolchain: a bump changes the core bytes and the service pin, so it is reviewed, never automerged",
       "matchManagers": ["asdf"],
-      "matchFileNames": ["core/mihomo/.tool-versions"],
+      "matchFileNames": ["core/citrus/.tool-versions"],
       "matchPackageNames": ["golang"],
       "enabled": true,
       "automerge": false,

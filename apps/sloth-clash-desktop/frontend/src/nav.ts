@@ -20,6 +20,7 @@ export const NAV_DEFS: {
   Icon: ComponentType<SVGProps<SVGSVGElement>>
 }[] = [
   { id: 'home', labelKey: 'nav.home', Icon: IconHome },
+  { id: 'operator', labelKey: 'settings.operator', Icon: IconCorp },
   { id: 'profiles', labelKey: 'nav.profiles', Icon: IconProfiles },
   { id: 'proxies', labelKey: 'nav.proxies', Icon: IconProxies },
   { id: 'connections', labelKey: 'nav.connections', Icon: IconConnections },

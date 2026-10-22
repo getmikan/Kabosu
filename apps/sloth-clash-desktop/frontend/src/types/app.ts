@@ -1,4 +1,5 @@
 export type Screen =
+  | 'operator'
   | 'home'
   | 'proxies'
   | 'profiles'

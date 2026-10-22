@@ -6,7 +6,7 @@ export type InstallConfigRequest = {
   host: string
 }
 
-// A web page can trigger the slothclash:// scheme, so an import that arrives via
+// A web page can trigger the kabosu:// scheme, so an import that arrives via
 // a deep link is always confirmed by the user before anything is fetched.
 export function InstallConfigConfirmModal({
   request,

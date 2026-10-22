@@ -29,7 +29,7 @@ function main(config, ctx) {
 
 ```
 subscription → merge templates (extend / proxy groups / rules)
-             → SlothClash overlays (ports, DNS, TUN, sniffer, your settings)
+             → Kabosu overlays (ports, DNS, TUN, sniffer, your settings)
              → YOUR SCRIPT                       ← here
              → invariants re-applied             ← see below
              → validation → the core

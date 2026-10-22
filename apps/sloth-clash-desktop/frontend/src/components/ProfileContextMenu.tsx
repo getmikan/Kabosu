@@ -1,6 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import type { main } from '../api/models'
+
 export type ProfileMenuTarget = {
   id: string
   name: string
@@ -24,7 +26,7 @@ export function ProfileContextMenu({
   target: ProfileMenuTarget | null
   // The full profile record (or null) — needed to know if the URL is set and
   // for the actual `url` value used by "Copy subscription URL".
-  profile: { url?: string } | null
+  profile: { url?: string; panel?: main.SubscriptionPanel } | null
   onUpdate: (id: string) => void
   onEditInfo: (id: string, name: string, url: string) => void
   onCopyUrl: (url: string) => void
@@ -79,6 +81,8 @@ export function ProfileContextMenu({
   }, [target])
 
   if (!target) return null
+  const shareLocked = Boolean(profile?.panel?.shareLinksLocked)
+  const scriptLocked = Boolean(profile?.panel?.brand?.lockConfigScript)
   const hasUrl = Boolean(String(profile?.url ?? '').trim())
   return (
     <div
@@ -114,7 +118,8 @@ export function ProfileContextMenu({
       <button
         type="button"
         className="ctxItem"
-        disabled={!hasUrl}
+        disabled={!hasUrl || shareLocked}
+        title={shareLocked ? t('panel.shareLocked') : undefined}
         onClick={() => onCopyUrl(String(profile?.url ?? ''))}
       >
         {t('ui.profiles.contextMenu.copySubscriptionUrl')}
@@ -151,6 +156,8 @@ export function ProfileContextMenu({
       <button
         type="button"
         className="ctxItem ctxItemSub"
+        disabled={scriptLocked}
+        title={scriptLocked ? t('panel.scriptLocked') : undefined}
         onClick={() => onOpenScript(target.id, target.name)}
       >
         {t('ui.profiles.contextMenu.script')}
@@ -158,6 +165,7 @@ export function ProfileContextMenu({
       <button
         type="button"
         className="ctxItem ctxItemSub"
+        disabled={shareLocked}
         onClick={() => onOpenEditFile(target.id, target.name)}
       >
         {t('ui.profiles.contextMenu.editFile')}

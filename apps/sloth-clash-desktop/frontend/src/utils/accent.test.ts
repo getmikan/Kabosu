@@ -9,8 +9,8 @@ import {
   resolveAccent,
 } from './accent'
 
-const DARK_BG = '#1a1918'
-const LIGHT_BG = '#e9dec8'
+const DARK_BG = '#101418'
+const LIGHT_BG = '#f8f9ff'
 
 describe('normalizeHex', () => {
   it('normalizes #rrggbb case-insensitively', () => {

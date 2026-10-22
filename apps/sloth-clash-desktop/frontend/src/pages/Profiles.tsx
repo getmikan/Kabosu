@@ -1,11 +1,9 @@
 import { useTranslation } from 'react-i18next'
 
+import { MaterialSymbol } from '../components/MaterialSymbol'
+import { SubscriptionStats } from '../components/SubscriptionStats'
 import { formatProfileAgo } from '../utils/format'
-import {
-  profileSubscriptionHost,
-  profileTrafficLine,
-  profileTrafficPair,
-} from '../utils/subscription'
+import { profileSubscriptionHost } from '../utils/subscription'
 import { friendlyErrorMessage } from '../utils/yaml'
 
 export type ProfileMenuTarget = {
@@ -36,143 +34,107 @@ export function ProfilesPage({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="panel">
-      <div className="profilesHeader">
-        <h2 className="profilesPageTitle">{t('ui.profiles.title')}</h2>
-        <p className="muted profilesLead">{t('ui.profiles.lead')}</p>
-      </div>
-      <div className="profilesToolbar">
+    <div className="panel profilesPanel">
+      <div className="pageActions">
         <button type="button" className="btn primary" onClick={onImport}>
-          {t('ui.profiles.importSubscription')}
+          <MaterialSymbol name="add" />
+          {t('expressive.addProfile')}
         </button>
       </div>
       <div className="profileList">
-        {profiles.map((p) => {
-          const active = activeProfileId === p.id
-          const trafficPair = profileTrafficPair(p)
-          const trafficTitle = profileTrafficLine(p)
-          const host = profileSubscriptionHost(String(p.url ?? ''))
-          const ago = formatProfileAgo(Number(p.lastUpdated ?? 0))
+        {profiles.map((profile) => {
+          const active = activeProfileId === profile.id
+          const menu = (x: number, y: number) =>
+            onContextMenu({ id: profile.id, name: profile.name, x, y })
           return (
-            <div
-              key={p.id}
+            <article
               className={`profileCard${active ? ' profileCardActive' : ''}`}
-              role="button"
-              tabIndex={0}
-              onClick={() => {
-                if (active) return
-                onActivate(p.id)
-              }}
-              onKeyDown={(e) => {
-                if (active) return
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  onActivate(p.id)
-                }
-              }}
-              onContextMenu={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onContextMenu({
-                  id: p.id,
-                  name: p.name,
-                  x: e.clientX,
-                  y: e.clientY,
-                })
+              key={profile.id}
+              onContextMenu={(event) => {
+                event.preventDefault()
+                menu(event.clientX, event.clientY)
               }}
             >
-              <div className="profileCardInner">
-                <div className="profileCardTopRow">
-                  <div className="profileTitle" title={String(p.name ?? '')}>
-                    {p.name}
-                  </div>
-                  {String(p.scriptError ?? '').trim() ? (
-                    <span
-                      className="profileScriptBadge"
-                      title={t('ui.profiles.scriptModal.badgeTitle')}
-                      aria-label={t('ui.profiles.scriptModal.badgeTitle')}
-                    >
-                      JS
-                    </span>
-                  ) : null}
-                  <button
-                    type="button"
-                    className={`profileRefreshIcon${refreshBusyId === p.id ? ' isBusy' : ''}`}
-                    aria-label={t('ui.profiles.refreshSubscription')}
-                    title={t('ui.profiles.refreshSubscription')}
-                    disabled={
-                      !String(p.url ?? '').trim() || refreshBusyId === p.id
-                    }
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      if (!String(p.url ?? '').trim()) return
-                      onRefresh(p.id)
-                    }}
-                  >
-                    <svg
-                      className="profileRefreshSvg"
-                      viewBox="0 0 24 24"
-                      width="18"
-                      height="18"
-                      aria-hidden
-                    >
-                      <path
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21 12a9 9 0 1 1-3-6.7"
-                      />
-                      <path
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21 3v6h-6"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <div className="profileHostRow">
-                  <span
-                    className="profileHost"
-                    title={p.url ? String(p.url) : undefined}
-                  >
-                    {host ||
-                      (p.url
-                        ? t('ui.common.subscription')
-                        : t('ui.profiles.localNoUrl'))}
-                  </span>
-                  {ago ? <span className="profileUpdated">{ago}</span> : null}
-                </div>
-                {trafficPair ? (
-                  <div
-                    className="profileTrafficPair"
-                    title={trafficTitle || trafficPair}
-                  >
-                    {trafficPair}
-                  </div>
-                ) : null}
-                <div className="profileCardFoot">
-                  <span className="profileTypeChip">{p.type}</span>
-                  {active ? (
-                    <span className="profileBadge">
-                      {t('ui.profiles.active')}
-                    </span>
-                  ) : (
-                    <span className="profileClickHint">
-                      {t('ui.profiles.activate')}
-                    </span>
-                  )}
-                </div>
+              <div className="profileCardHeading">
+                <button
+                  className="profileChoose"
+                  type="button"
+                  onClick={() => !active && onActivate(profile.id)}
+                  aria-pressed={active}
+                >
+                  <MaterialSymbol name="profiles" />
+                  <strong>{profile.name}</strong>
+                </button>
+                <button
+                  className="chromeIconButton"
+                  type="button"
+                  aria-label={t('expressive.profileActions')}
+                  title={t('expressive.profileActions')}
+                  onClick={(event) => {
+                    const box = event.currentTarget.getBoundingClientRect()
+                    menu(box.right, box.bottom)
+                  }}
+                >
+                  <MaterialSymbol name="more" />
+                </button>
               </div>
-            </div>
+              <button
+                type="button"
+                className="profileStatsButton"
+                onClick={() => !active && onActivate(profile.id)}
+                aria-label={profile.name}
+                aria-pressed={active}
+              >
+                <SubscriptionStats profile={profile} compact />
+              </button>
+              {profile.scriptError ? (
+                <p className="profileScriptError" title={profile.scriptError}>
+                  {t('ui.profiles.scriptModal.badgeTitle')}
+                </p>
+              ) : null}
+              <div className="profileCardFoot">
+                <span title={profileSubscriptionHost(profile.url || '')}>
+                  {formatProfileAgo(Number(profile.lastUpdated ?? 0)) ||
+                    (profile.type === 'subscription'
+                      ? t('ui.common.subscription')
+                      : t('ui.common.local'))}
+                </span>
+                {profile.type === 'subscription' ? (
+                  <button
+                    className="chromeIconButton"
+                    type="button"
+                    disabled={refreshBusyId === profile.id}
+                    onClick={() => onRefresh(profile.id)}
+                    title={t('ui.connections.refresh')}
+                    aria-label={t('ui.connections.refresh')}
+                  >
+                    <MaterialSymbol
+                      name="refresh"
+                      className={
+                        refreshBusyId === profile.id ? 'iconRefreshing' : ''
+                      }
+                    />
+                  </button>
+                ) : (
+                  <MaterialSymbol name="rules" />
+                )}
+              </div>
+            </article>
           )
         })}
       </div>
+      {!profiles.length ? (
+        <div className="emptyState">
+          <span className="emptyStateIcon">
+            <MaterialSymbol name="profiles" />
+          </span>
+          <h2>{t('expressive.start')}</h2>
+          <p>{t('expressive.importBody')}</p>
+          <button className="btn primary" type="button" onClick={onImport}>
+            {t('expressive.addProfile')}
+          </button>
+        </div>
+      ) : null}
       {error ? <p className="error">{friendlyErrorMessage(error)}</p> : null}
     </div>
   )

@@ -50,7 +50,10 @@ func fetchSubscriptionBody(ctx context.Context, rawURL string, ageKey string) ([
 
 	client := &http.Client{
 		Timeout: 50 * time.Second,
-		CheckRedirect: func(_ *http.Request, via []*http.Request) error {
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) > 0 && via[0].URL.Scheme == "https" && req.URL.Scheme != "https" {
+				return errors.New("subscription redirect must retain HTTPS")
+			}
 			if len(via) >= 12 {
 				return errors.New("too many redirects")
 			}

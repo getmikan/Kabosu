@@ -66,9 +66,9 @@ type App struct {
 	// waits on it so it never races a half-started boot core or the boot's own
 	// late config sync — the source of the "green but not actually connected on
 	// first launch, reconnect fixes it" bug. nil until startup wires it.
-	bootDone    chan struct{}
-	closeToTray bool
-	quitRequested       bool
+	bootDone      chan struct{}
+	closeToTray   bool
+	quitRequested bool
 
 	emitStateMu           sync.Mutex
 	emitStateTimer        *time.Timer
@@ -165,7 +165,7 @@ func (a *App) startup(ctx context.Context) {
 	}()
 	// Deep link may arrive before the webview attaches EventsOn — short delay on cold start only.
 	args := os.Args[1:]
-	if len(args) > 0 && findSlothclashInstallConfigURL(args) != "" {
+	if len(args) > 0 && findInstallConfigURL(args) != "" {
 		go func() {
 			time.Sleep(450 * time.Millisecond)
 			a.tryInstallConfigFromArgs(args)
@@ -537,7 +537,7 @@ func (a *App) OnSecondInstance(data options.SecondInstanceData) {
 }
 
 func (a *App) tryInstallConfigFromArgs(args []string) {
-	raw := findSlothclashInstallConfigURL(args)
+	raw := findInstallConfigURL(args)
 	if raw == "" {
 		return
 	}
@@ -711,6 +711,10 @@ func (a *App) SetMode(mode string) (AppState, error) {
 	}
 
 	a.mu.Lock()
+	if i := a.activeProfileIndexLocked(); mode != "rule" && i >= 0 && profileGlobalLocked(a.profiles[i]) {
+		a.mu.Unlock()
+		return a.GetAppState(), errors.New("operator policy requires rule mode")
+	}
 	connected := a.state.Connection.Status == "connected"
 	listen := a.effectiveCoreEndpointLocked()
 	secret := a.coreSecret
@@ -903,12 +907,13 @@ func (a *App) ImportProfileFromURL(name string, rawURL string) (AppState, error)
 		Name:                      finalName,
 		Type:                      "subscription",
 		URL:                       norm,
+		Panel:                     peek.Panel,
 		SubscriptionInfo:          subInfo,
 		SubscriptionSupportURL:    supportURL,
 		SubscriptionAnnouncement:  announce,
 		LastUpdated:               time.Now().Unix(),
 		AutoUpdateEnabled:         true,
-		AutoUpdateIntervalMinutes: defaultProfileAutoUpdateMinutes,
+		AutoUpdateIntervalMinutes: panelUpdateInterval(peek.Panel),
 	}
 	a.profiles = append(a.profiles, p)
 	a.state.Profile.Profiles = a.profiles
@@ -1014,6 +1019,10 @@ func (a *App) ActivateProfile(profileID string) (AppState, error) {
 	connected := a.state.Connection.Status == "connected"
 	profileChanged := a.state.Profile.ActiveProfileID != profileID
 	a.state.Profile.ActiveProfileID = profileID
+	if i := a.activeProfileIndexLocked(); i >= 0 && profileGlobalLocked(a.profiles[i]) {
+		a.state.Mode.Current = "rule"
+		a.state.Mode.LastNonDirectMode = "rule"
+	}
 	if profileChanged {
 		// ActiveGroup + cached /proxies belong to the previous profile —
 		// drop them so the UI doesn't briefly highlight a group that
@@ -1113,16 +1122,27 @@ func (a *App) UpdateProfileInfo(profileID string, displayName string, subscripti
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	found := false
+	sourceChanged := false
 	for i := range a.profiles {
 		if a.profiles[i].ID != profileID {
 			continue
 		}
 		found = true
+		if panel := profilePanel(a.profiles[i]); panel != nil && panel.ShareLinksLocked && subscriptionURL != "" && subscriptionURL != a.profiles[i].URL {
+			return a.state, errors.New("subscription URL is locked by operator policy")
+		}
 		a.profiles[i].Name = displayName
 		if subscriptionURL != "" {
 			norm, err := normalizeSubscriptionURL(subscriptionURL)
 			if err != nil {
 				return a.state, err
+			}
+			if norm != a.profiles[i].URL {
+				sourceChanged = true
+				a.profiles[i].Panel = nil
+				a.profiles[i].SubscriptionInfo = ""
+				a.profiles[i].SubscriptionSupportURL = ""
+				a.profiles[i].SubscriptionAnnouncement = ""
 			}
 			a.profiles[i].URL = norm
 		}
@@ -1136,6 +1156,14 @@ func (a *App) UpdateProfileInfo(profileID string, displayName string, subscripti
 	a.state.UpdatedAt = time.Now().Unix()
 	if err := a.persistProfilesLocked(); err != nil {
 		return a.state, err
+	}
+	if sourceChanged {
+		if root, err := slothDataRoot(); err == nil {
+			dir := filepath.Join(root, "runtime", profileID)
+			for _, name := range []string{"subscription.panel.json", "subscription.cache.yaml", "brand.manifest.json", "brand.logo", "brand.logo.light"} {
+				_ = os.Remove(filepath.Join(dir, name))
+			}
+		}
 	}
 	return a.state, nil
 }
@@ -1438,9 +1466,9 @@ func (a *App) InstallService() (TunSetupResult, error) {
 	a.refreshServiceStatus()
 
 	_ = os.RemoveAll(tmpDir)
-	msg := "Service installed. If you also use another Clash client, stop its Windows service while using Sloth TUN to avoid conflicts."
+	msg := "Service installed. If you also use another Clash client, stop its Windows service while using Kabosu TUN to avoid conflicts."
 	if strings.Contains(strings.ToLower(filepath.Base(installPath)), "sloth-clash-service") {
-		msg = "Service installed (Sloth IPC helper). Stop the other Clash service if both are registered and you only want Sloth handling TUN."
+		msg = "Service installed (Kabosu IPC helper). Stop the other Clash service if both are registered and you only want Kabosu handling TUN."
 	}
 	return TunSetupResult{
 		Success:       true,
@@ -1805,7 +1833,7 @@ func (a *App) RefreshSlothServiceStatus() ServiceState {
 	return a.state.Service
 }
 
-// FetchRulesOverview reads rules from the embedded Sloth core when connected; otherwise
+// FetchRulesOverview reads rules from the embedded Kabosu core when connected; otherwise
 // falls back to SLOTH_CLASH_CONTROLLER / SLOTH_CLASH_SECRET (e.g. external Verge).
 func (a *App) FetchRulesOverview() RulesOverview {
 	a.mu.RLock()
@@ -1821,7 +1849,7 @@ func (a *App) FetchRulesOverview() RulesOverview {
 
 	base := strings.TrimSpace(os.Getenv("SLOTH_CLASH_CONTROLLER"))
 	if base == "" {
-		return RulesOverview{LastError: "connect Sloth or set SLOTH_CLASH_CONTROLLER for external core"}
+		return RulesOverview{LastError: "connect Kabosu or set SLOTH_CLASH_CONTROLLER for external core"}
 	}
 	if !strings.HasPrefix(base, "http://") && !strings.HasPrefix(base, "https://") {
 		base = "http://" + base
@@ -1945,7 +1973,7 @@ func installServiceElevatedWindows(installPath, workDir, coreHashes string) ([]b
 	// and only honours it when it resolves inside Program Files, so a
 	// dev/portable exe dir is simply ignored in favour of its own fallback.
 	// NOTE: Start-Process joins -ArgumentList with spaces WITHOUT re-quoting,
-	// so the path (…\Sloth Clash) must carry its own double quotes or it would
+	// so the path (…\Kabosu) must carry its own double quotes or it would
 	// reach the installer split across two argv entries.
 	if exe, err := os.Executable(); err == nil {
 		if dir := filepath.Dir(exe); dir != "" {
@@ -2006,7 +2034,7 @@ func findServiceInstaller(dir string) (string, error) {
 	if len(candidates) == 0 {
 		return "", errors.New("installer not found in embedded bundle")
 	}
-	// Prefer Sloth-named installer, then legacy Verge upstream bundle.
+	// Prefer Kabosu-named installer, then legacy Verge upstream bundle.
 	for _, c := range candidates {
 		if strings.EqualFold(filepath.Base(c), "sloth-clash-service-install.exe") {
 			return c, nil

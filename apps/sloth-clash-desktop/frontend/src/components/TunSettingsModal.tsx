@@ -5,6 +5,7 @@ import type { main } from '../api/models'
 type TunDrafts = { dnsHijack?: string; mtu?: string; device?: string }
 
 export function TunSettingsModal({
+  panelStack,
   open,
   tunPrefs,
   trafficPrefs,
@@ -19,6 +20,7 @@ export function TunSettingsModal({
   onCommitTrafficPrefs,
   onClose,
 }: {
+  panelStack?: string
   open: boolean
   tunPrefs: main.TunSettings
   trafficPrefs: main.TrafficSettings
@@ -39,7 +41,7 @@ export function TunSettingsModal({
   const { t } = useTranslation()
   if (!open) return null
 
-  const tunStackValue = tunPrefs.stack ?? ''
+  const tunStackValue = panelStack || tunPrefs.stack || ''
   const findProcessModeValue: string = trafficPrefs.findProcessMode ?? ''
 
   const tunStackOptions: { id: string; label: string }[] = [
@@ -102,6 +104,11 @@ export function TunSettingsModal({
           {t('settings.tun.title')}
         </h3>
         <p className="muted small">{t('settings.tun.hint')}</p>
+        {panelStack ? (
+          <p className="muted small" role="status">
+            {t('panel.stack', { stack: panelStack })}
+          </p>
+        ) : null}
         <div className="tunModalBody">
           <label className="field modalField">
             <span className="fieldLab">{t('settings.tun.stackLabel')}</span>
@@ -113,7 +120,7 @@ export function TunSettingsModal({
                   className={
                     tunStackValue === opt.id ? 'pillOpt active' : 'pillOpt'
                   }
-                  disabled={tunPrefsSaving}
+                  disabled={tunPrefsSaving || Boolean(panelStack)}
                   onClick={() => onCommitTunPrefs({ stack: opt.id })}
                 >
                   {opt.label}

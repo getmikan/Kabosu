@@ -44,10 +44,11 @@ type ModeState struct {
 }
 
 type Profile struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Type string `json:"type"`
-	URL  string `json:"url,omitempty"`
+	Panel *SubscriptionPanel `json:"panel,omitempty"`
+	ID    string             `json:"id"`
+	Name  string             `json:"name"`
+	Type  string             `json:"type"`
+	URL   string             `json:"url,omitempty"`
 	// AgeSecretKey is the optional age identity (AGE-SECRET-KEY-…) used to
 	// decrypt an age-encrypted subscription body; empty = plain subscription.
 	// Same trust domain as URL (both are bearer secrets in profiles.json).
@@ -142,6 +143,10 @@ type ProxyGroup struct {
 	// icon URL, passed through for future use / parity with dashboards.
 	Hidden bool   `json:"hidden,omitempty"`
 	Icon   string `json:"icon,omitempty"`
+	// Native Citrus Chain diagnostics. nil means the core has not checked it yet.
+	ChainAlive *bool  `json:"chainAlive,omitempty"`
+	FailedHop  string `json:"failedHop,omitempty"`
+	ChainError string `json:"chainError,omitempty"`
 }
 
 type ProxyState struct {

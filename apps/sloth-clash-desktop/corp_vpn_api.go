@@ -130,7 +130,7 @@ func parseCorpEnvelope(httpStatus int, body []byte) (CorpVpnStatus, error) {
 	// feature, so give the actionable remedy instead of a raw "HTTP 404". The
 	// global reinstall banner (expectedSlothServiceVersion) nudges the same fix.
 	if httpStatus == http.StatusNotFound {
-		return status, fmt.Errorf("the Sloth service is outdated and does not support Corporate VPN — reinstall the service (Settings → reinstall) to update it")
+		return status, fmt.Errorf("the Kabosu service is outdated and does not support Corporate VPN — reinstall the service (Settings → reinstall) to update it")
 	}
 	if httpStatus < 200 || httpStatus >= 300 {
 		msg := strings.TrimSpace(env.Message)

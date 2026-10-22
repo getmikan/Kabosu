@@ -1,9 +1,16 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -12,18 +19,17 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 )
 
 // ---------------------------------------------------------------------------
 // Panel-driven branding via subscription HTTP response headers.
 //
-// Desktop reads ONLY the `X-Brand-Desktop-*` namespace (the Android sibling
-// client owns `X-Brand-*`; the two are intentionally disjoint so a provider
-// tuning one platform can never restyle the other). The whole manifest is
-// gated on `X-Brand-Desktop-Enabled: true` and on the subscription being
-// fetched over HTTPS. Grammar (value formats, validation, caps) is shared
-// with the Android implementation — see architecture/brand-headers-protocol.md.
+// Android X-Brand-* headers are supported directly. An explicit desktop gate
+// selects the legacy X-Brand-Desktop-* namespace for platform-specific overrides.
+// Operator policies apply independently from the visual branding gate.
+// All metadata is scoped to an HTTPS subscription profile.
 //
 // Trust boundary: a manifest may hide non-critical UI, recolor, and add
 // operator links. It has no reach into connection security, updates, or the
@@ -79,7 +85,12 @@ const (
 // BrandManifest is the validated, ready-to-render branding for one profile.
 // Field values are already sanitized; the frontend applies them as-is.
 type BrandManifest struct {
-	Enabled bool `json:"enabled"`
+	ShowOperatorTab   bool   `json:"showOperatorTab,omitempty"`
+	HideRouting       bool   `json:"hideRouting,omitempty"`
+	LockConfigScript  bool   `json:"lockConfigScript,omitempty"`
+	PrimaryProxyGroup string `json:"primaryProxyGroup,omitempty"`
+	ProxyGroupLayout  string `json:"proxyGroupLayout,omitempty"`
+	Enabled           bool   `json:"enabled"`
 
 	Name         string `json:"name,omitempty"`
 	Tagline      string `json:"tagline,omitempty"`
@@ -124,7 +135,17 @@ func brandRawValue(v string) string {
 	if !utf8.ValidString(v) {
 		v = strings.ToValidUTF8(v, "")
 	}
-	return v
+	if strings.HasPrefix(strings.ToLower(v), "base64:") {
+		if b, err := decodeBase64Flexible(strings.TrimSpace(v[7:])); err == nil && utf8.Valid(b) {
+			v = string(b)
+		}
+	}
+	return strings.TrimSpace(strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return -1
+		}
+		return r
+	}, v))
 }
 
 // brandParseBool accepts the shared protocol's truthy spellings; anything
@@ -159,18 +180,27 @@ func brandCleanURL(v string) string {
 	if v == "" || len(v) > brandMaxURLLen {
 		return ""
 	}
+	if strings.HasPrefix(strings.ToLower(v), "t.me/") {
+		v = "https://" + v
+	}
 	u, err := url.Parse(v)
 	if err != nil {
 		return ""
 	}
 	switch strings.ToLower(u.Scheme) {
 	case "https":
-		if u.Host == "" {
+		if u.Host == "" || u.User != nil {
 			return ""
 		}
 		return v
 	case "tg":
-		return v
+		if u.Host != "" {
+			return v
+		}
+	case "mailto":
+		if u.Opaque != "" && !strings.ContainsAny(u.Opaque, "\r\n") {
+			return v
+		}
 	}
 	return ""
 }
@@ -190,7 +220,7 @@ func brandCleanCount(v string) int {
 // (absent) rather than truncating — a cap violation is a protocol violation.
 func brandCleanString(v string, maxLen int) string {
 	v = brandRawValue(v)
-	if v == "" || len(v) > maxLen {
+	if v == "" || utf8.RuneCountInString(v) > maxLen {
 		return ""
 	}
 	return v
@@ -200,16 +230,50 @@ func brandCleanString(v string, maxLen int) string {
 // the branding gate is absent/false — callers treat nil as "no branding".
 // Invalid individual fields degrade to absent without poisoning the rest.
 func parseBrandManifest(get func(string) string) *BrandManifest {
+	original := get
+	desktop := strings.TrimSpace(original(brandHdrEnabled)) != ""
+	get = func(key string) string {
+		if desktop {
+			return original(key)
+		}
+		if key == brandHdrEnabled {
+			return original("X-Branding-Enabled")
+		}
+		return original(strings.Replace(key, "X-Brand-Desktop-", "X-Brand-", 1))
+	}
+	policy := &BrandManifest{
+		HideGlobalMode:    brandParseBool(get(brandHdrHideGlobalMode)),
+		LockConfigScript:  brandParseBool(get("X-Brand-Desktop-Lock-Config-Script")),
+		PrimaryProxyGroup: brandCleanString(get("X-Brand-Desktop-Primary-Proxy-Group"), 512),
+	}
+	if policy.PrimaryProxyGroup == "" {
+		policy.PrimaryProxyGroup = brandCleanString(get("X-Brand-Desktop-PrimaryProxyGroup"), 512)
+	}
+	layout := get("X-Brand-Desktop-Proxy-Group-Layout")
+	if layout == "" {
+		layout = get("X-Brand-Desktop-ProxyGroupLayout")
+	}
+	if layout == "tabs" || layout == "dropdown" {
+		policy.ProxyGroupLayout = layout
+	}
 	if !brandParseBool(get(brandHdrEnabled)) {
+		if policy.HideGlobalMode || policy.LockConfigScript || policy.PrimaryProxyGroup != "" || policy.ProxyGroupLayout != "" {
+			return policy
+		}
 		return nil
 	}
 	return &BrandManifest{
-		Enabled: true,
+		Enabled:           true,
+		ShowOperatorTab:   brandParseBool(get("X-Brand-Desktop-Show-Operator-Tab")),
+		HideRouting:       brandParseBool(get("X-Brand-Desktop-Hide-Routing")),
+		LockConfigScript:  policy.LockConfigScript,
+		PrimaryProxyGroup: policy.PrimaryProxyGroup,
+		ProxyGroupLayout:  policy.ProxyGroupLayout,
 
 		Name:         brandCleanString(get(brandHdrName), brandMaxNameLen),
 		Tagline:      brandCleanString(get(brandHdrTagline), brandMaxTaglineLen),
-		LogoURL:      brandCleanURL(get(brandHdrLogoURL)),
-		LogoLightURL: brandCleanURL(get(brandHdrLogoLightURL)),
+		LogoURL:      brandCleanLogoURL(get(brandHdrLogoURL)),
+		LogoLightURL: brandCleanLogoURL(get(brandHdrLogoLightURL)),
 		AccentColor:  brandCleanHexColor(get(brandHdrAccentColor)),
 
 		WebsiteURL:  brandCleanURL(get(brandHdrWebsiteURL)),
@@ -255,6 +319,7 @@ func persistBrandManifestFromHeaders(dataDir, subURL string, hdr http.Header) {
 	if u, err := url.Parse(strings.TrimSpace(subURL)); err != nil || !strings.EqualFold(u.Scheme, "https") {
 		return
 	}
+	persistSubscriptionPanel(dataDir, subURL, hdr)
 	prev := readBrandManifest(dataDir)
 	m := parseBrandManifest(hdr.Get)
 	if m == nil {
@@ -284,7 +349,7 @@ func readBrandManifest(dataDir string) *BrandManifest {
 		return nil
 	}
 	var m BrandManifest
-	if err := json.Unmarshal(b, &m); err != nil || !m.Enabled {
+	if err := json.Unmarshal(b, &m); err != nil {
 		return nil
 	}
 	return &m
@@ -333,14 +398,51 @@ func refreshBrandLogos(dataDir string, prev, cur *BrandManifest) {
 				continue
 			}
 		}
+		// An old operator image must not survive a changed or unavailable URL.
+		_ = os.Remove(path)
 		if b := fetchBrandLogo(v.url); b != nil {
+			latest := readBrandManifest(dataDir)
+			if latest == nil || (v.light && latest.LogoLightURL != v.url) || (!v.light && latest.LogoURL != v.url) {
+				continue
+			}
 			_ = atomicWriteFile(path, b, 0o600)
 		}
 	}
 }
 
 func fetchBrandLogo(rawURL string) []byte {
-	client := &http.Client{Timeout: 15 * time.Second}
+	if brandCleanLogoURL(rawURL) == "" {
+		return nil
+	}
+	// Resolve and dial the checked address directly: a second DNS lookup would
+	// reintroduce rebinding between validation and the actual connection.
+	transport := &http.Transport{DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
+		host, port, err := net.SplitHostPort(address)
+		if err != nil {
+			return nil, err
+		}
+		ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
+		if err != nil {
+			return nil, err
+		}
+		if len(ips) == 0 {
+			return nil, errors.New("logo hostname has no public address")
+		}
+		for _, ip := range ips {
+			if !ip.IP.IsGlobalUnicast() || hostIsPrivateTarget(ip.IP.String()) {
+				return nil, errors.New("private logo address rejected")
+			}
+		}
+		dialer := net.Dialer{Timeout: 10 * time.Second}
+		return dialer.DialContext(ctx, network, net.JoinHostPort(ips[0].IP.String(), port))
+	}}
+	defer transport.CloseIdleConnections()
+	client := &http.Client{Timeout: 15 * time.Second, Transport: transport, CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		if len(via) > 3 || brandCleanLogoURL(req.URL.String()) == "" {
+			return errors.New("unsafe logo redirect")
+		}
+		return nil
+	}}
 	resp, err := client.Get(rawURL)
 	if err != nil {
 		return nil
@@ -353,10 +455,46 @@ func fetchBrandLogo(rawURL string) []byte {
 	if err != nil || len(b) == 0 || len(b) > brandLogoMaxBytes {
 		return nil
 	}
-	if !strings.HasPrefix(http.DetectContentType(b), "image/") {
+	if !validBrandLogoImage(b) {
 		return nil
 	}
 	return b
+}
+
+func validBrandLogoImage(b []byte) bool {
+	switch http.DetectContentType(b) {
+	case "image/png", "image/jpeg":
+		cfg, _, err := image.DecodeConfig(bytes.NewReader(b))
+		return err == nil && cfg.Width > 0 && cfg.Height > 0 && int64(cfg.Width)*int64(cfg.Height) <= 1<<20
+	case "image/webp":
+		// WebP frame headers carry dimensions without decompressing image data.
+		if len(b) < 30 {
+			return false
+		}
+		var width, height uint32
+		u24 := func(p []byte) uint32 { return uint32(p[0]) | uint32(p[1])<<8 | uint32(p[2])<<16 }
+		switch string(b[12:16]) {
+		case "VP8X":
+			width = 1 + u24(b[24:27])
+			height = 1 + u24(b[27:30])
+		case "VP8 ":
+			if string(b[23:26]) != "\x9d\x01\x2a" {
+				return false
+			}
+			width = (uint32(b[26]) | uint32(b[27])<<8) & 0x3fff
+			height = (uint32(b[28]) | uint32(b[29])<<8) & 0x3fff
+		case "VP8L":
+			if b[20] != 0x2f {
+				return false
+			}
+			width = 1 + ((uint32(b[21]) | uint32(b[22])<<8) & 0x3fff)
+			height = 1 + ((uint32(b[22])>>6 | uint32(b[23])<<2 | uint32(b[24])<<10) & 0x3fff)
+		default:
+			return false
+		}
+		return width > 0 && height > 0 && uint64(width)*uint64(height) <= 1<<20
+	}
+	return false
 }
 
 // readBrandLogoDataURI returns the cached logo as a data: URI (empty when no
@@ -367,4 +505,13 @@ func readBrandLogoDataURI(dataDir string, light bool) string {
 		return ""
 	}
 	return "data:" + http.DetectContentType(b) + ";base64," + base64.StdEncoding.EncodeToString(b)
+}
+
+func brandCleanLogoURL(raw string) string {
+	value := brandCleanURL(raw)
+	u, err := url.Parse(value)
+	if err != nil || u.Scheme != "https" || hostIsPrivateTarget(u.Hostname()) {
+		return ""
+	}
+	return value
 }

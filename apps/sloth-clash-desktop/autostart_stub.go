@@ -51,7 +51,7 @@ func setLaunchOnStartupDarwin(exe string, enabled bool) error {
 	if err != nil {
 		return err
 	}
-	plist := filepath.Join(home, "Library", "LaunchAgents", "dev.slothclash.desktop.autostart.plist")
+	plist := filepath.Join(home, "Library", "LaunchAgents", "io.github.getmikan.kabosu.autostart.plist")
 	if !enabled {
 		if err := os.Remove(plist); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
@@ -66,7 +66,7 @@ func setLaunchOnStartupDarwin(exe string, enabled bool) error {
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>dev.slothclash.desktop.autostart</string>
+  <string>io.github.getmikan.kabosu.autostart</string>
   <key>ProgramArguments</key>
   <array>
     <string>%s</string>
@@ -87,7 +87,7 @@ func getLaunchOnStartupDarwin(exe string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	plist := filepath.Join(home, "Library", "LaunchAgents", "dev.slothclash.desktop.autostart.plist")
+	plist := filepath.Join(home, "Library", "LaunchAgents", "io.github.getmikan.kabosu.autostart.plist")
 	b, err := os.ReadFile(plist)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -103,7 +103,7 @@ func setLaunchOnStartupLinux(exe string, enabled bool) error {
 	if err != nil {
 		return err
 	}
-	desktop := filepath.Join(home, ".config", "autostart", "sloth-clash.desktop")
+	desktop := filepath.Join(home, ".config", "autostart", "kabosu.desktop")
 	if !enabled {
 		if err := os.Remove(desktop); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
@@ -116,8 +116,8 @@ func setLaunchOnStartupLinux(exe string, enabled bool) error {
 	content := fmt.Sprintf(`[Desktop Entry]
 Type=Application
 Version=1.0
-Name=Sloth Clash
-Comment=Sloth Clash desktop client
+Name=Kabosu
+Comment=Kabosu desktop client
 Exec="%s" --minimized
 Terminal=false
 X-GNOME-Autostart-enabled=true
@@ -130,7 +130,7 @@ func getLaunchOnStartupLinux(exe string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	desktop := filepath.Join(home, ".config", "autostart", "sloth-clash.desktop")
+	desktop := filepath.Join(home, ".config", "autostart", "kabosu.desktop")
 	b, err := os.ReadFile(desktop)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {

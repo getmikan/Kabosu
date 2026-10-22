@@ -58,6 +58,18 @@ var canonicalRuntimeKeyOrder = []string{
 	"find-process-mode",
 	"global-client-fingerprint",
 	"global-ua",
+	"log-format",
+	"log-timestamp-format",
+	"external-controller-allow-insecure",
+	"external-controller-allow-legacy-websocket-token",
+	"external-ui-sha256",
+	"external-ui-allow-insecure",
+	"user-stats",
+	"health-without-auth",
+	"tcp-connect-timeout",
+	"user-limits",
+	"metrics",
+	"geox-sha256",
 	// Controller / API.
 	"external-controller",
 	"external-controller-tls",
@@ -90,7 +102,7 @@ var canonicalRuntimeKeyOrder = []string{
 	"geosite",
 	"hosts",
 	"experimental",
-	// SlothClash core keys (core patch 0003) — see slothRuntimeKeys.
+	// Legacy profile inputs; applyRealitySettings translates and removes these.
 	"reality-mlkem",
 	"reality-client-version",
 	// Inbound listener APIs (mihomo's modern way to expose multiple inbounds
@@ -113,12 +125,9 @@ var canonicalRuntimeKeyOrder = []string{
 	"script",
 }
 
-// slothRuntimeKeys are top-level keys that only the SlothClash core reads
-// (core/patches/mihomo, docs/core-patches.md); an unpatched mihomo ignores them.
-// They sit in canonicalRuntimeKeyOrder for layout, but are not upstream keys:
-// the upstream-coverage guard skips them and separately fails if mihomo ever
-// declares a key of the same name (its semantics would then have to be checked).
-var slothRuntimeKeys = []string{
+// legacyRealityKeys are accepted from older profiles and translated into native
+// Citrus reality-opts before core validation. They are never emitted to Citrus.
+var legacyRealityKeys = []string{
 	"reality-mlkem",
 	"reality-client-version",
 }
@@ -318,7 +327,7 @@ func shareLinksToClashMap(text string) (map[string]any, []string, bool) {
 }
 
 // subscriptionDocIsFullProfile reports whether the downloaded document should be used as the
-// main mihomo config (Verge-style full profile) instead of Sloth's minimal proxy-provider wrapper.
+// main mihomo config (Verge-style full profile) instead of Kabosu's minimal proxy-provider wrapper.
 func subscriptionDocIsFullProfile(m map[string]any) bool {
 	if m == nil {
 		return false

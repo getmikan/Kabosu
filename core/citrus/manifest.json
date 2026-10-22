@@ -1,0 +1,28 @@
+{
+  "$comment": "Citrus dev source pinned to an immutable commit. Built and verified for each desktop release; no upstream Mihomo patch series is applied.",
+  "name": "Citrus",
+  "upstream": "https://github.com/getmikan/Citrus",
+  "branch": "dev",
+  "tag": "dev-ca8204d95c32",
+  "commit": "ca8204d95c32664303a00ba917a45df8254adb1f",
+  "assets": {
+    "windows-amd64": {
+      "file": "citrus-windows-amd64.exe"
+    },
+    "windows-arm64": {
+      "file": "citrus-windows-arm64.exe"
+    },
+    "darwin-amd64": {
+      "file": "citrus-darwin-amd64"
+    },
+    "darwin-arm64": {
+      "file": "citrus-darwin-arm64"
+    },
+    "linux-amd64": {
+      "file": "citrus-linux-amd64"
+    },
+    "linux-arm64": {
+      "file": "citrus-linux-arm64"
+    }
+  }
+}

@@ -82,6 +82,7 @@ func applySubscriptionIdentityHeaders(req *http.Request) {
 	if req == nil {
 		return
 	}
+	req.Header.Set("x-mikan-features", "groups")
 	id := subscriptionDeviceIdentityCurrent()
 	if id.HWID != "" && currentDesktopPrefs().Privacy.IsHwidEnabled() {
 		req.Header.Set("x-hwid", id.HWID)

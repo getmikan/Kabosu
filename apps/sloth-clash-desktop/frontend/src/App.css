@@ -1,89 +1,4 @@
-.shell {
-  --nav-w: 220px;
-  display: grid;
-  grid-template-columns: var(--nav-w) 1fr;
-  grid-template-rows: 1fr;
-  grid-template-areas: "nav content";
-  /* `height` (not `min-height`) clamps the shell to the window so the inner
-     .content owns scrolling on its own. With `min-height` a tall page could
-     push the whole shell — including the sidebar — past the viewport and the
-     user lost reach to nav buttons.
-     Percentage (not a viewport unit) so Interface scale works: see style.css —
-     `zoom` does not affect viewport units, so a vh-based height under-filled the
-     window below 100% scale and overflowed above it. */
-  height: 100%;
-  overflow: hidden;
-  --accent: #c9a86c;
-  --accent-dim: rgba(201, 168, 108, 0.24);
-  --accent-muted: rgba(201, 168, 108, 0.42);
-  --panel: rgba(30, 28, 26, 0.94);
-  --panel-deep: rgba(18, 17, 16, 0.92);
-  --text-muted: #a39e96;
-  --hairline: rgba(255, 255, 255, 0.1);
-  --hairline-strong: rgba(255, 255, 255, 0.14);
-
-  /* === design tokens (visual-polish) ===
-     Additive layer — mapped to the existing palette so the look is unchanged.
-     New/refactored CSS should consume these instead of hard-coded values. */
-  /* spacing — rem-based (1rem = 16px at default root) so the whole UI scales
-     proportionally when window-scaling adjusts the root font-size. */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-7: 2rem;
-  /* radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
-  --radius-pill: 999px;
-  /* elevation */
-  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --elev-2: 0 4px 16px rgba(0, 0, 0, 0.35);
-  --elev-3: 0 12px 40px rgba(0, 0, 0, 0.45);
-  /* typography scale (rem) */
-  --font-size-xs: 0.6875rem;
-  --font-size-sm: 0.8125rem;
-  --font-size-md: 0.9375rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.5rem;
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
-  --weight-regular: 400;
-  --weight-medium: 500;
-  --weight-semibold: 600;
-  /* semantic roles over the existing palette */
-  --surface: var(--panel);
-  --surface-deep: var(--panel-deep);
-  --border: var(--hairline);
-  --border-strong: var(--hairline-strong);
-  --text: #f2efe8;
-  /* state colors, tuned to the bronze identity */
-  --ok: #7fb069;
-  --warn: #d9a441;
-  --danger: #d97356;
-  /* motion */
-  --dur-fast: 120ms;
-  --dur-base: 200ms;
-  --dur-slow: 320ms;
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  /* scrollbars — themed (bronze) instead of stark white */
-  --scrollbar-thumb: color-mix(in srgb, var(--accent) 30%, transparent);
-  --scrollbar-thumb-hover: color-mix(in srgb, var(--accent) 50%, transparent);
-
-  background: radial-gradient(
-    circle at 18% 10%,
-    #242220 0,
-    #1a1918 45%,
-    #121110 100%
-  );
-  color: #f2efe8;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
+/* Component layouts share the Material role tokens defined in material.css. */
 .shell input,
 .shell textarea,
 .shell select,
@@ -92,13 +7,6 @@
   -webkit-user-select: text;
   user-select: text;
 }
-
-.shell.navCollapsed {
-  --nav-w: 72px;
-}
-
-/* Accessibility: honor reduced-motion — neutralize non-essential animation
-   and transitions when the OS requests it (visual-polish). */
 @media (prefers-reduced-motion: reduce) {
   .shell *,
   .shell *::before,
@@ -119,22 +27,17 @@
   min-height: 44px;
   justify-content: space-between;
   border-bottom: 1px solid var(--hairline);
-  background: linear-gradient(
-    180deg,
-    rgba(42, 39, 36, 0.72) 0%,
-    rgba(28, 26, 24, 0.82) 45%,
-    rgba(20, 19, 18, 0.92) 100%
-  );
+  background: var(--surface-container);
   backdrop-filter: blur(14px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: var(--elev-1);
   user-select: none;
 }
 
 .titleBarLeft {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 14px;
+  gap: 12px;
+  padding: 0 16px;
   flex: 1;
   min-width: 0;
   height: 100%;
@@ -162,8 +65,8 @@
 .titleBarWin {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px 0 4px;
+  gap: 8px;
+  padding: 0 12px 0 4px;
 }
 
 .winBtnIcon {
@@ -172,10 +75,10 @@
   height: 32px;
   min-width: 32px;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 10%, transparent);
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.22);
-  color: #c9c4bc;
+  background: color-mix(in srgb, var(--surface-container) 22%, transparent);
+  color: var(--on-surface);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -189,9 +92,9 @@
 }
 
 .winBtnIcon:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: color-mix(in srgb, var(--surface-container) 10%, transparent);
+  border-color: color-mix(in srgb, var(--outline-variant) 16%, transparent);
+  color: var(--on-surface);
 }
 
 .winBtnIcon:active {
@@ -208,13 +111,13 @@
 }
 
 .winBtnIcon.winClose:hover {
-  background: rgba(190, 55, 55, 0.42);
-  border-color: rgba(255, 130, 130, 0.35);
-  color: #fff;
+  background: color-mix(in srgb, var(--primary-container) 42%, transparent);
+  border-color: color-mix(in srgb, var(--outline-variant) 35%, transparent);
+  color: var(--on-surface);
 }
 
 .winBtnIcon.winClose:active {
-  background: rgba(200, 45, 45, 0.55);
+  background: color-mix(in srgb, var(--primary-container) 55%, transparent);
 }
 
 .winIcon {
@@ -235,36 +138,6 @@
 .noDrag,
 .noDrag button {
   --wails-draggable: no-drag;
-}
-
-.shell[data-theme="light"] {
-  /* Milky-coffee (latte) light theme — the warm opposite of dark, not stark
-     white (visual-polish). */
-  color: #2b2317;
-  --accent: #936b38;
-  --accent-dim: rgba(147, 107, 56, 0.18);
-  --accent-muted: rgba(147, 107, 56, 0.34);
-  --panel: rgba(247, 240, 228, 0.96);
-  --panel-deep: rgba(238, 229, 213, 0.98);
-  --text: #2b2317;
-  --text-muted: #6f6450;
-  --hairline: rgba(70, 52, 28, 0.1);
-  --hairline-strong: rgba(70, 52, 28, 0.16);
-  --scrollbar-thumb: color-mix(in srgb, var(--accent) 34%, transparent);
-  --scrollbar-thumb-hover: color-mix(in srgb, var(--accent) 55%, transparent);
-  background: radial-gradient(
-    circle at 18% 10%,
-    #f2ebdc 0,
-    #e9dec8 50%,
-    #ddccb0 100%
-  );
-}
-
-/* Themed scrollbars everywhere inside the app (WebView2 / Chromium) so they
-   blend with the palette instead of the stark default white bar. */
-.shell {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .shell ::-webkit-scrollbar {
@@ -292,349 +165,25 @@
   background: transparent;
 }
 
-.shell[data-theme="light"] .nav {
-  border-right-color: var(--hairline-strong);
-}
-
-.shell[data-theme="light"] .navItem {
-  color: #45423d;
-}
-
-.shell[data-theme="light"] .navItem.active {
-  background: var(--accent-dim);
-  color: #2a2215;
-}
-
-.shell[data-theme="light"] .segment,
-.shell[data-theme="light"] .statusCard,
-.shell[data-theme="light"] .homeCard,
-.shell[data-theme="light"] .profileCard,
-.shell[data-theme="light"] .proxyGroupCard {
-  background: var(--panel);
-  border-color: var(--hairline-strong);
-}
-
-.shell[data-theme="light"] .profileCardFoot {
-  border-top-color: rgba(0, 0, 0, 0.07);
-}
-
-.shell[data-theme="light"] .profileTrafficPair {
-  color: #2d6a45;
-}
-
-.shell[data-theme="light"] .profileRefreshIcon {
-  border-color: rgba(154, 115, 64, 0.35);
-  background: rgba(154, 115, 64, 0.08);
-  color: var(--accent);
-}
-
-.shell[data-theme="light"] .profileRefreshIcon:hover:not(:disabled) {
-  box-shadow: 0 0 14px rgba(154, 115, 64, 0.22);
-  border-color: rgba(154, 115, 64, 0.5);
-}
-
-.shell[data-theme="light"] .profileCardActive {
-  border-left-color: var(--accent);
-}
-
-.shell[data-theme="light"] .input,
-.shell[data-theme="light"] .selectModern {
-  background: #fdf9f0;
-  color: var(--text);
-  border-color: var(--hairline-strong);
-}
-
-.shell[data-theme="light"] .mono {
-  background: #f0ebe4;
-  color: #2a2622;
-}
-
-.shell[data-theme="light"] .modalCard {
-  background: linear-gradient(165deg, #f7f0e3, #e9ddc8);
-  border-color: var(--hairline-strong);
-}
-
-.shell[data-theme="light"] .vergeCard {
-  background: rgba(247, 240, 228, 0.7);
-}
-
-.shell[data-theme="light"] .ctxMenu {
-  background: #f5ecdb;
-  border-color: var(--hairline-strong);
-  box-shadow: 0 16px 40px rgba(60, 45, 25, 0.22);
-}
-
-.shell[data-theme="light"] .ctxTitle {
-  color: #2b2317;
-  border-bottom-color: var(--hairline);
-}
-
-.shell[data-theme="light"] .ctxItem {
-  color: #3a3120;
-}
-
-.shell[data-theme="light"] .ctxItem:hover:not(:disabled) {
-  background: rgba(74, 55, 30, 0.08);
-}
-
-.shell[data-theme="light"] .pillOpt {
-  color: #45423d;
-}
-
-.shell[data-theme="light"] .trafficKnob {
-  color: #45423d;
-  background: rgba(0, 0, 0, 0.04);
-}
-
-/* Light theme: subtle/ghost-ish buttons used white washes that vanish on the
-   cream surface — give them a visible warm fill + readable text. */
-.shell[data-theme="light"] .btn.subtle {
-  background: rgba(70, 52, 28, 0.06);
-  border-color: var(--hairline-strong);
-  color: #3c3320;
-}
-
-.shell[data-theme="light"] .btn.subtle:hover {
-  background: rgba(70, 52, 28, 0.1);
-}
-
-/* Light theme: base buttons were dark (#3d3834 / ghost #3d2c3e) and read as
-   heavy dark blobs on the cream surface. Make them soft warm chips with dark
-   text; .primary keeps the bronze fill, .subtle keeps its own override above. */
-.shell[data-theme="light"] .btn {
-  background: rgba(74, 55, 30, 0.08);
-  color: #3a3120;
-}
-
-.shell[data-theme="light"] .btn:hover {
-  background: rgba(74, 55, 30, 0.14);
-}
-
-.shell[data-theme="light"] .btn.ghost {
-  background: rgba(74, 55, 30, 0.05);
-}
-
-.shell[data-theme="light"] .btn.ghost:hover {
-  background: rgba(74, 55, 30, 0.1);
-}
-
-.shell[data-theme="light"] .btn.primary {
-  background: #b9955a;
-  color: #2a2012;
-}
-
-.shell[data-theme="light"] .btn.primary:hover {
-  background: #c5a062;
-}
-
-.shell[data-theme="light"] .rulesSummaryChip {
-  background: rgba(74, 55, 30, 0.06);
-  color: #5f5340;
-}
-
-.shell[data-theme="light"] .homeSupportHeaderBtn {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  border-color: var(--accent-muted);
-  color: #7a5828;
-}
-
-/* Light theme: dark popups / washed-out accent text → readable on cream. */
-.shell[data-theme="light"] .statusNodeMenuList {
-  background: rgba(247, 240, 228, 0.98);
-  border-color: var(--hairline-strong);
-  box-shadow: 0 14px 42px rgba(60, 45, 25, 0.22);
-}
-
-.shell[data-theme="light"] .rulesPolicyProxy {
-  color: #0f766e;
-}
-
-.shell[data-theme="light"] .proxyTypeChip {
-  background: rgba(90, 80, 60, 0.1);
-  border-color: rgba(90, 80, 60, 0.28);
-  color: var(--text-muted);
-}
-
-.shell[data-theme="light"] .proxyCountChip {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
-  color: #6e5025;
-}
-
-.shell[data-theme="light"] .titleBar {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 252, 248, 0.92) 0%,
-    rgba(244, 240, 234, 0.9) 55%,
-    rgba(235, 230, 223, 0.95) 100%
-  );
-  backdrop-filter: blur(12px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
-  border-bottom-color: var(--hairline-strong);
-}
-
-.shell[data-theme="light"] .winBtnIcon {
-  color: #45423d;
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-.shell[data-theme="light"] .winBtnIcon:hover {
-  background: rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 0, 0, 0.14);
-  color: #1c1b19;
-}
-
-.shell[data-theme="light"] .winBtnIcon.winClose:hover {
-  background: rgba(200, 60, 60, 0.2);
-  border-color: rgba(180, 50, 50, 0.35);
-  color: #7a1515;
-}
-
-.nav {
-  grid-area: nav;
-  border-right: 1px solid var(--hairline);
-  padding: 12px 10px 10px;
-  backdrop-filter: blur(6px);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.navList {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-height: 0;
-  overflow: auto;
-}
-
-.navCollapseBtn {
-  margin-top: 8px;
-  border: 1px solid var(--hairline);
-  border-radius: 10px;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  color: #d2cdc4;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navCollapseBtn:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.navChevronWrap {
-  display: flex;
-  transition: transform 0.2s ease;
-}
-
-.navChevronWrap.collapsed {
-  transform: rotate(180deg);
-}
-
-.shell.navCollapsed .navItem {
-  justify-content: center;
-  padding-left: 8px;
-  padding-right: 8px;
-}
-
-.navIcon {
-  display: flex;
-  flex-shrink: 0;
-  opacity: 0.92;
-}
-
-.navItem.active .navIcon {
-  opacity: 1;
-}
-
-.navLabel {
-  text-align: left;
-}
-
-.shell.navCollapsed .navLabel {
-  display: none;
-}
-
 .brand {
   font-weight: 700;
   font-size: var(--font-size-lg);
   margin-bottom: 16px;
 }
 
-.navItem {
-  position: relative;
-  width: 100%;
-  text-align: left;
-  border: 0;
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 2px;
-  background: transparent;
-  color: #d4dfee;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.navItem:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.navItem.active {
-  background: var(--accent-dim);
-  color: #ffffff;
-}
-
-.content {
-  grid-area: content;
-  padding: 22px 26px;
-  min-height: 0;
-  overflow-x: hidden;
-  /* default: classic scrollbar */
-  overflow-y: auto;
-}
-
-.content > .home,
-.content > .panel {
-  margin-left: auto;
-  margin-right: auto;
-  width: min(100%, 1100px);
-}
-
-/* Chromium/WebView2: overlay scrollbars don't steal the right inner edge from the window resize hit-area */
-@supports (overflow: overlay) {
-  .content {
-    overflow-y: overlay;
-  }
-}
-
 .compatDetails {
-  margin: 14px 0 0;
-  padding: 10px 12px;
+  margin: 16px 0 0;
+  padding: 12px 12px;
   border-radius: 12px;
   border: 1px solid var(--hairline);
-  background: rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--surface-container) 15%, transparent);
 }
 
 .compatSummary {
   cursor: pointer;
   font-weight: 600;
   font-size: var(--font-size-md);
-  color: #e0dbd4;
-}
-
-.shell[data-theme="light"] .compatDetails {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-.shell[data-theme="light"] .compatSummary {
-  color: #2a2622;
+  color: var(--on-surface);
 }
 
 .home {
@@ -645,18 +194,13 @@
 
 .homeLinkToast {
   margin: 0 0 12px;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border-radius: 10px;
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: #efe8dc;
+  color: var(--on-surface);
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   border: 1px solid var(--accent-muted);
-}
-
-.shell[data-theme="light"] .homeLinkToast {
-  color: #2a2215;
-  background: rgba(154, 115, 64, 0.12);
 }
 
 .homeHeader {
@@ -671,13 +215,13 @@
   letter-spacing: 0.08em;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
-  margin: 0 0 6px;
+  margin: 0 0 8px;
 }
 
 .homeTitleWithAlert {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -697,24 +241,17 @@
   font-size: var(--font-size-md);
   line-height: 1;
   cursor: help;
-  color: #1a1816;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--accent) 72%, #fff),
-    var(--accent)
-  );
+  color: var(--error);
+  background: var(--error-container);
   border: 1px solid var(--accent-muted);
-  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: var(--elev-1);
 }
-
-/* "Update available" pill — reads as an action, not an alarm. Uses the accent
-   so it follows the user's custom / brand colour instead of a fixed green. */
 .homeUpdatePill {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
   cursor: pointer;
   font-size: var(--font-size-xs);
@@ -754,10 +291,6 @@
   outline-offset: 2px;
 }
 
-.shell[data-theme="light"] .homeAlertBadge {
-  color: #2a2215;
-}
-
 .homeHeader h2 {
   margin: 0;
   font-size: 26px;
@@ -771,38 +304,9 @@
 .linkish {
   border: 0;
   background: transparent;
-  color: #d4b896;
+  color: var(--primary);
   cursor: pointer;
   text-decoration: underline;
-}
-
-.connectArea {
-  margin: 28px 0 18px;
-  text-align: center;
-}
-
-.connectRow {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 12px 20px;
-  flex-wrap: wrap;
-}
-
-.connectCenter {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 0 0 auto;
-}
-
-.connectSide {
-  flex: 1 1 160px;
-  max-width: 228px;
-  min-width: 148px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .connectSideLeft {
@@ -813,57 +317,9 @@
   text-align: center;
 }
 
-.sideLabel {
-  display: block;
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
-
 .sideLabelCentered {
   width: 100%;
   text-align: center;
-}
-
-/* Inset segmented control (slider thumb) */
-.segmentInset {
-  position: relative;
-  display: flex;
-  width: 100%;
-  max-width: 216px;
-  padding: 3px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.32);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow:
-    inset 0 2px 10px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.shell[data-theme="light"] .segmentInset {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.1);
-  box-shadow:
-    inset 0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 250, 240, 0.45);
-}
-
-.segmentGlider {
-  position: absolute;
-  top: 3px;
-  bottom: 3px;
-  left: 3px;
-  z-index: 0;
-  border-radius: 9px;
-  pointer-events: none;
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
-  border: 1px solid var(--accent-muted);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
-  transition:
-    left 0.22s cubic-bezier(0.33, 1, 0.68, 1),
-    width 0.22s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 .segmentInset3 .segmentGlider {
@@ -875,63 +331,25 @@
   width: calc((100% - 6px) / 2);
   left: calc(3px + (100% - 6px) / 2 * var(--seg-i, 0));
 }
-
-/* Single-option segment: brand hide-flags can drop one choice (e.g. Global or
-   Proxy), leaving the control as a read-only state indicator. */
 .segmentInset1 .segmentGlider {
   width: calc(100% - 6px);
   left: 3px;
 }
 
-.segmentInsetBtn {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  min-width: 0;
-  padding: 7px 5px;
-  border: 0;
-  border-radius: 8px;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  color: var(--text-muted);
-  background: transparent;
-  transition: color 0.18s ease;
-}
-
-.segmentInsetBtn:hover {
-  color: #e8e4dc;
-}
-
-.segmentInsetBtn.isOn {
-  color: #f6f3ed;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-
-.shell[data-theme="light"] .segmentInsetBtn.isOn {
-  color: #2a2215;
-  text-shadow: none;
-}
-
 .protectedLine {
   margin-top: 12px;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .homeTrafficHealth {
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: rgba(230, 225, 215, 0.55);
+  color: color-mix(in srgb, var(--on-surface) 55%, transparent);
   text-align: center;
   letter-spacing: 0.04em;
   max-width: 280px;
   line-height: 1.35;
-}
-
-.shell[data-theme="light"] .homeTrafficHealth {
-  color: rgba(42, 34, 21, 0.58);
 }
 
 .protectedBadge {
@@ -940,24 +358,16 @@
   gap: 8px;
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: #b8c9b4;
+  color: var(--error);
   letter-spacing: 0.03em;
 }
-
-.shell[data-theme="light"] .protectedBadge {
-  color: #4a6b4e;
-}
-
-/* Same sage family as .connectBtn[data-visual='connected'] */
 .protectedDot {
   width: 9px;
   height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: linear-gradient(145deg, #7a9a7d, #556b58);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background: var(--surface-container);
+  box-shadow: 0 0 0 1px var(--outline-variant);
 }
 
 .statusLineSolo {
@@ -966,17 +376,6 @@
 }
 
 @media (max-width: 720px) {
-  .connectRow {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .connectSide {
-    max-width: 320px;
-    width: 100%;
-    text-align: center;
-  }
-
   .connectSideLeft,
   .connectSideRight {
     text-align: center;
@@ -996,85 +395,6 @@
   }
 }
 
-.connectBtn {
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  border: 0;
-  background: linear-gradient(
-    145deg,
-    var(--accent),
-    color-mix(in srgb, var(--accent) 68%, #000)
-  );
-  color: #ffffff;
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
-  transition:
-    background 180ms ease,
-    box-shadow 180ms ease,
-    transform 140ms ease,
-    color 180ms ease,
-    opacity 140ms ease;
-}
-
-.connectBtn:hover {
-  transform: translateY(-1px);
-}
-
-.connectBtn:disabled {
-  opacity: 0.85;
-  cursor: wait;
-}
-
-.connectBtn[data-visual="connected"] {
-  /* Muted sage / bronze-green — matches dark UI vs neon #22c55e */
-  background: linear-gradient(145deg, #6f8f72, #4d654f);
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.38);
-  color: #f4f1ea;
-}
-
-.connectBtn[data-visual="degraded"] {
-  /* Still "on", but visibly different from fully-ready sage */
-  background: linear-gradient(145deg, #b8893a, #8a6324);
-  box-shadow: 0 16px 36px rgba(184, 137, 58, 0.22);
-  color: #fffaf1;
-}
-
-.connectBtn[data-visual="warming"] {
-  background: linear-gradient(145deg, #6b7c92, #4a5666);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.32);
-  color: #f4f1ea;
-}
-
-.connectBtn[data-visual="broken"] {
-  background: linear-gradient(145deg, #b45309, #7c2d12);
-  box-shadow: 0 16px 34px rgba(180, 83, 9, 0.22);
-  color: #fff7ed;
-}
-
-.connectBtn[data-visual="connecting"] {
-  background: linear-gradient(145deg, #f59e0b, #d97706);
-  box-shadow: 0 18px 36px rgba(245, 158, 11, 0.22);
-  animation: connectPulse 1.6s ease-in-out infinite;
-}
-
-.connectBtn[data-visual="error"] {
-  background: linear-gradient(145deg, #ef4444, #b91c1c);
-  box-shadow: 0 18px 36px rgba(239, 68, 68, 0.28);
-}
-
-@keyframes connectPulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.01);
-  }
-}
-
 .monoTight {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
@@ -1089,7 +409,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .proxyModeInset {
@@ -1100,7 +420,7 @@
   background: var(--panel);
   border: 1px solid var(--hairline);
   border-radius: 12px;
-  padding: 8px 10px;
+  padding: 8px 12px;
 }
 
 .proxyGroupHead {
@@ -1125,73 +445,49 @@
 .proxyGroupMeta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .proxyTypeChip {
   display: inline-flex;
   align-items: center;
-  padding: 1px 7px;
+  padding: 0px 8px;
   border-radius: var(--radius-pill);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  /* default (unknown type) — neutral; per-type colours override below */
-  background: rgba(150, 150, 150, 0.14);
-  border: 1px solid rgba(150, 150, 150, 0.32);
+  background: color-mix(
+    in srgb,
+    var(--surface-container-highest) 14%,
+    transparent
+  );
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 32%, transparent);
   color: var(--text-muted);
 }
-
-/* Per-type colours (no blue): url-test=emerald, selector=purple,
-   fallback=turquoise, load-balance=olive. */
 .proxyType-urltest {
-  background: rgba(46, 204, 113, 0.16);
-  border-color: rgba(46, 204, 113, 0.4);
-  color: #7ee0a8;
+  background: color-mix(in srgb, var(--primary-container) 16%, transparent);
+  border-color: color-mix(in srgb, var(--outline-variant) 40%, transparent);
+  color: var(--primary);
 }
 
 .proxyType-selector {
-  background: rgba(167, 139, 250, 0.16);
-  border-color: rgba(167, 139, 250, 0.42);
-  color: #c4b5fd;
+  background: color-mix(in srgb, var(--primary-container) 16%, transparent);
+  border-color: color-mix(in srgb, var(--outline-variant) 42%, transparent);
+  color: var(--primary);
 }
 
 .proxyType-fallback {
-  background: rgba(45, 212, 191, 0.16);
-  border-color: rgba(45, 212, 191, 0.4);
-  color: #5eead4;
+  background: color-mix(in srgb, var(--primary-container) 16%, transparent);
+  border-color: color-mix(in srgb, var(--outline-variant) 40%, transparent);
+  color: var(--primary);
 }
 
 .proxyType-loadbalance {
-  background: rgba(170, 170, 70, 0.18);
-  border-color: rgba(170, 170, 70, 0.45);
-  color: #d2d27a;
-}
-
-.shell[data-theme="light"] .proxyType-urltest {
-  background: rgba(34, 150, 84, 0.14);
-  border-color: rgba(34, 150, 84, 0.34);
-  color: #1f7a44;
-}
-
-.shell[data-theme="light"] .proxyType-selector {
-  background: rgba(124, 92, 214, 0.14);
-  border-color: rgba(124, 92, 214, 0.34);
-  color: #6a45b8;
-}
-
-.shell[data-theme="light"] .proxyType-fallback {
-  background: rgba(20, 150, 135, 0.14);
-  border-color: rgba(20, 150, 135, 0.34);
-  color: #0f766e;
-}
-
-.shell[data-theme="light"] .proxyType-loadbalance {
-  background: rgba(120, 120, 40, 0.16);
-  border-color: rgba(120, 120, 40, 0.42);
-  color: #5f5f1e;
+  background: color-mix(in srgb, var(--primary-container) 18%, transparent);
+  border-color: color-mix(in srgb, var(--outline-variant) 45%, transparent);
+  color: var(--primary);
 }
 
 .proxyCountChip {
@@ -1205,7 +501,7 @@
   font-weight: 700;
   background: color-mix(in srgb, var(--accent) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  color: #ecd7b2;
+  color: var(--primary);
 }
 
 .proxyExpandBtn {
@@ -1218,7 +514,7 @@
 .proxySelectedInline {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   max-width: min(58%, 560px);
 }
@@ -1235,10 +531,11 @@
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 2px;
+  gap: 8px;
+  margin-bottom: 4px;
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--outline-variant) 8%, transparent);
 }
 
 .proxyToolbarIconBtn {
@@ -1250,7 +547,7 @@
   padding: 0;
   border-radius: 999px;
   border: 1px solid var(--hairline);
-  background: rgba(0, 0, 0, 0.22);
+  background: color-mix(in srgb, var(--surface-container) 22%, transparent);
   color: var(--accent);
   cursor: pointer;
 }
@@ -1272,23 +569,20 @@
 
 .proxyNodesGrid {
   display: grid;
-  /* Fixed-track columns + start alignment: a single-node group ("Без VPN" →
-     DIRECT) no longer stretches a lone card across the whole pane. Cards
-     keep a sensible 220px width regardless of how many fit per row. */
   grid-template-columns: repeat(auto-fill, minmax(200px, 240px));
   justify-content: start;
   align-content: start;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .proxyNodeCard {
   border: 1px solid var(--hairline);
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.18);
+  background: color-mix(in srgb, var(--surface-container) 18%, transparent);
   color: inherit;
   text-align: left;
-  padding: 6px 7px;
+  padding: 8px 8px;
   cursor: pointer;
   min-height: 44px;
 }
@@ -1298,8 +592,8 @@
 }
 
 .proxyNodeCard.active {
-  border-color: rgba(90, 184, 120, 0.55);
-  background: rgba(90, 184, 120, 0.15);
+  border-color: color-mix(in srgb, var(--outline-variant) 55%, transparent);
+  background: color-mix(in srgb, var(--primary-container) 15%, transparent);
 }
 
 .proxyNodeCard.proxyNodeDisabled {
@@ -1321,7 +615,7 @@
 .proxyNodeTop {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   width: 100%;
 }
@@ -1359,8 +653,8 @@
 .proxyDelayBox {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 6px;
+  gap: 8px;
+  margin-left: 8px;
 }
 
 .proxyDelayText {
@@ -1374,17 +668,17 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  margin: 10px 0 8px;
+  gap: 12px;
+  margin: 12px 0 8px;
 }
 
 .logsSearchInput {
   flex: 1;
   min-width: 200px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid var(--hairline);
-  background: rgba(0, 0, 0, 0.25);
+  background: color-mix(in srgb, var(--surface-container) 25%, transparent);
   color: var(--text);
   font: inherit;
   font-size: var(--font-size-sm);
@@ -1398,16 +692,20 @@
 .logsLevelChips {
   display: inline-flex;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.18);
+  background: color-mix(
+    in srgb,
+    var(--surface-container-highest) 18%,
+    transparent
+  );
   border-radius: 999px;
-  padding: 2px;
+  padding: 4px;
   border: 1px solid var(--hairline);
 }
 
 .logsLevelChip {
   font-size: var(--font-size-xs);
   letter-spacing: 0.04em;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
@@ -1426,20 +724,20 @@
 }
 
 .logsLevelChip-warn.active {
-  color: #e5b860;
-  border-color: rgba(220, 180, 100, 0.55);
-  background: rgba(220, 180, 100, 0.1);
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 55%, transparent);
+  background: color-mix(in srgb, var(--warning-container) 10%, transparent);
 }
 .logsLevelChip-error.active {
-  color: #ff9b8e;
-  border-color: rgba(220, 120, 120, 0.55);
-  background: rgba(220, 120, 120, 0.1);
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 55%, transparent);
+  background: color-mix(in srgb, var(--error-container) 10%, transparent);
 }
 
 .logsTailToggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--font-size-sm);
   color: var(--text-muted);
   cursor: pointer;
@@ -1449,9 +747,6 @@
 .logsTailToggle input {
   margin: 0;
 }
-
-/* Proxies fills the viewport: header is fixed, the split grows and scrolls
-   internally so the page itself never scrolls (visual-polish UX fix). */
 .proxiesPanel {
   display: flex;
   flex-direction: column;
@@ -1483,7 +778,7 @@
   border: 1px solid var(--hairline);
   border-radius: 12px;
   padding: 8px;
-  background: rgba(0, 0, 0, 0.18);
+  background: color-mix(in srgb, var(--surface-container) 18%, transparent);
   min-height: 0;
   overflow: hidden;
 }
@@ -1496,10 +791,14 @@
 .proxySplitNodeSearch {
   width: 100%;
   box-sizing: border-box;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid var(--hairline);
-  background: rgba(0, 0, 0, 0.25);
+  background: color-mix(
+    in srgb,
+    var(--surface-container-highest) 25%,
+    transparent
+  );
   color: var(--text);
   font: inherit;
   font-size: var(--font-size-sm);
@@ -1524,15 +823,15 @@
 }
 
 .proxySplitEmpty {
-  padding: 6px 8px;
+  padding: 8px 8px;
 }
 
 .proxySplitGroupItem {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 6px 10px;
+  gap: 4px;
+  padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
@@ -1545,7 +844,7 @@
 }
 
 .proxySplitGroupItem:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--surface-container) 8%, transparent);
   border-color: var(--hairline);
 }
 
@@ -1575,7 +874,7 @@
 .proxySplitGroupItemBottom {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
@@ -1592,11 +891,11 @@
 .proxySplitDetail {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   border: 1px solid var(--hairline);
   border-radius: 12px;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.12);
+  background: color-mix(in srgb, var(--surface-container) 12%, transparent);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -1645,7 +944,7 @@
 }
 
 .proxyDelayText.proxyDelayFail {
-  color: #ff8d8d;
+  color: var(--error);
   font-size: var(--font-size-xs);
   letter-spacing: 0.02em;
 }
@@ -1653,15 +952,15 @@
 .proxyNodeTag {
   font-size: var(--font-size-xs);
   line-height: 1;
-  padding: 2px 5px;
+  padding: 4px 4px;
   border-radius: 999px;
   border: 1px solid var(--hairline-strong);
   color: var(--text-muted);
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--surface-container) 20%, transparent);
 }
 
 .proxyTopSwitches {
-  margin-top: 10px;
+  margin-top: 12px;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -1670,7 +969,7 @@
 .proxyGroupTitle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-weight: 700;
   font-size: var(--font-size-sm);
   white-space: nowrap;
@@ -1681,25 +980,12 @@
   line-height: 1;
 }
 
-.shell[data-theme="light"] .proxyGroupCard {
-  background: var(--panel);
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-.shell[data-theme="light"] .proxyNodeCard {
-  background: rgba(255, 255, 255, 0.7);
-}
-
-.shell[data-theme="light"] .proxySelectedNode {
-  background: rgba(255, 255, 255, 0.75);
-}
-
 .statusLine {
-  margin-top: 14px;
+  margin-top: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .serviceIssueText {
@@ -1709,16 +995,16 @@
 }
 
 .pill {
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--surface-container) 8%, transparent);
 }
 
 .segmentRow {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 18px 0;
+  margin: 20px 0;
   align-items: stretch;
 }
 
@@ -1739,7 +1025,7 @@
   flex: 0 1 auto;
   flex-grow: 0;
   min-width: 0;
-  padding: 8px 14px;
+  padding: 8px 16px;
 }
 
 .segment {
@@ -1766,31 +1052,31 @@
   border: 0;
   border-radius: 10px;
   padding: 8px 12px;
-  background: #3d3834;
-  color: #f2efe8;
+  background: var(--surface-container);
+  color: var(--on-surface);
   cursor: pointer;
 }
 
 .segBtn.on {
   background: var(--accent-dim);
-  color: #ffffff;
+  color: var(--on-surface);
 }
 
 .statusCard {
   background: var(--panel);
   border: 1px solid var(--hairline);
   border-radius: 16px;
-  padding: 12px 14px;
+  padding: 12px 16px;
 }
 
 .homeStatusGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 22px;
+  gap: 16px 24px;
   align-items: stretch;
   max-width: 720px;
   margin: var(--space-2) auto 0;
-  padding: 0 6px;
+  padding: 0 8px;
 }
 
 @media (max-width: 760px) {
@@ -1808,7 +1094,6 @@
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  /* Extra height is split between row gaps, not stacked under Core/Speed */
   justify-content: space-between;
 }
 
@@ -1816,8 +1101,6 @@
   padding-top: 4px;
   padding-bottom: 4px;
 }
-
-/* Same chevron + padding for Pick group `<select>` and Active node trigger — avoids mismatched OS glyph vs ▾ */
 .homeStatusGrid .statusRowNode select.selectModern.selectInline.selectCompact,
 .homeStatusGrid
   .statusRowNode
@@ -1826,33 +1109,19 @@
   -moz-appearance: none;
   appearance: none;
   margin: 0;
-  padding: 2px 26px 2px 6px;
+  padding: 4px 28px 4px 8px;
   font-size: var(--font-size-xs);
   line-height: 1.2;
   min-height: 26px;
   max-height: 28px;
-  background-color: rgba(12, 11, 10, 0.75);
+  background-color: var(--surface-container-highest);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23b8aea0' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round' d='M2.5 4.25 6 7.75 9.5 4.25'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 7px center;
   background-size: 10px 10px;
 }
-
-.shell[data-theme="light"]
-  .homeStatusGrid
-  .statusRowNode
-  select.selectModern.selectInline.selectCompact,
-.shell[data-theme="light"]
-  .homeStatusGrid
-  .statusRowNode
-  button.statusNodeMenuTrigger.selectModern.selectInline.selectCompact {
-  background-color: #fdf9f0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23585048' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round' d='M2.5 4.25 6 7.75 9.5 4.25'/%3E%3C/svg%3E");
-}
-
-/* Tighter label column; rows share vertical space evenly when cards stretch */
 .homeStatusGrid .statusCardCompact .statusRow {
-  padding: 3px 0;
+  padding: 4px 0;
   gap: 8px;
   align-items: center;
   min-height: 0;
@@ -1874,8 +1143,6 @@
 .homeStatusGrid .statusCardCompact .speedChip {
   line-height: 1.25;
 }
-
-/* Home insight: country flags only; full geo / IPs in native tooltip */
 .homeStatusGrid .insightFlagCell {
   display: inline-flex;
   align-items: center;
@@ -1889,18 +1156,18 @@
   gap: var(--space-2);
   max-width: 720px;
   margin: var(--space-2) auto 0;
-  padding: 0 6px;
+  padding: 0 8px;
 }
 
 .homeSubscriptionCard {
   border: 1px solid var(--hairline);
   border-radius: 12px;
-  padding: 10px 12px;
-  background: rgba(0, 0, 0, 0.14);
+  padding: 12px 12px;
+  background: color-mix(in srgb, var(--surface-container) 14%, transparent);
 }
 
 .homeSubscriptionCardTitle {
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
   font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1914,9 +1181,6 @@
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
-  /* Cap height + scroll inside the card so a multi-paragraph announcement
-     stays compact on Home (the rest of the page would otherwise push the
-     sidebar nav out of reach on small windows). */
   max-height: 96px;
   overflow-y: auto;
 }
@@ -1926,7 +1190,7 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid var(--hairline-strong);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
@@ -1953,7 +1217,7 @@
   font-size: var(--font-size-sm);
   word-break: break-all;
   min-width: 0;
-  color: #e8dfd0;
+  color: var(--on-surface);
 }
 
 .statusNodePickWithFlag {
@@ -1982,7 +1246,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
   max-width: 100%;
   text-align: right;
@@ -1992,7 +1256,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 8px;
   max-width: 100%;
 }
 
@@ -2001,7 +1265,7 @@
   width: 14px;
   height: 11px;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 1px var(--outline-variant);
   object-fit: cover;
 }
 
@@ -2033,7 +1297,7 @@
 .statusCardCompact .speedRow {
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 6px 12px;
+  gap: 8px 12px;
 }
 
 .statusCardCompact .speedChip {
@@ -2053,13 +1317,13 @@
 
 .statusCardCompact {
   max-width: 400px;
-  margin: 14px auto 0;
+  margin: 16px auto 0;
   padding: 8px 12px;
 }
 
 .statusCardCompact .statusRow {
-  padding: 5px 0;
-  gap: 10px;
+  padding: 4px 0;
+  gap: 12px;
   align-items: center;
 }
 
@@ -2121,7 +1385,8 @@
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--outline-variant) 8%, transparent);
 }
 
 .statusRow:last-child {
@@ -2131,7 +1396,7 @@
 .statusRowValue {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
   text-align: right;
@@ -2187,7 +1452,7 @@
 .statusNodeMenuTriggerInner {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   flex: 1;
 }
@@ -2201,14 +1466,12 @@
 
 .statusNodeMenuList {
   position: absolute;
-  /* Opens upward: this menu sits low in the Home status card, so opening down
-     pushed past the viewport and forced a page scroll (visual-polish fix). */
   bottom: calc(100% + 3px);
   top: auto;
   right: 0;
   left: auto;
   margin: 0;
-  padding: 2px;
+  padding: 4px;
   list-style: none;
   min-width: min(100%, 260px);
   max-width: min(calc(calc(100vw / var(--ui-zoom, 1)) - 48px), 400px);
@@ -2217,10 +1480,11 @@
   z-index: 45;
   border-radius: 10px;
   border: 1px solid var(--hairline-strong);
-  background: rgba(12, 11, 10, 0.96);
-  box-shadow: 0 14px 42px rgba(0, 0, 0, 0.48);
+  background: var(--surface-container);
+  box-shadow: var(--elev-1);
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: color-mix(in srgb, var(--on-surface) 18%, transparent)
+    transparent;
   font-family: var(--font-sans);
 }
 
@@ -2230,14 +1494,14 @@
 
 .statusNodeMenuList::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--surface-container) 18%, transparent);
 }
 
 .statusNodeMenuItem {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 5px;
+  gap: 4px;
+  padding: 4px 4px;
   border-radius: 6px;
   cursor: pointer;
   font-size: var(--font-size-xs);
@@ -2268,34 +1532,20 @@
   display: inline-block;
   vertical-align: middle;
 }
-
-/* Readable but still flat — slightly brighter than panel text */
 .statusDotOk {
-  background: rgba(120, 165, 132, 0.92);
-  border: 1px solid rgba(160, 200, 170, 0.55);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25) inset;
+  background: var(--surface-container);
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 55%, transparent);
+  box-shadow: 0 0 0 1px var(--outline-variant);
 }
 
 .statusDotBad {
-  background: rgba(200, 120, 120, 0.88);
-  border: 1px solid rgba(230, 170, 170, 0.45);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) inset;
-}
-
-.shell[data-theme="light"] .statusDotOk {
-  background: rgba(72, 130, 88, 0.85);
-  border-color: rgba(50, 100, 65, 0.45);
-  box-shadow: none;
-}
-
-.shell[data-theme="light"] .statusDotBad {
-  background: rgba(190, 85, 85, 0.75);
-  border-color: rgba(140, 50, 50, 0.4);
-  box-shadow: none;
+  background: var(--error-container);
+  border: 1px solid color-mix(in srgb, var(--error) 45%, transparent);
+  box-shadow: 0 0 0 1px var(--outline-variant);
 }
 
 .btnCompact {
-  padding: 5px 11px;
+  padding: 4px 12px;
   font-size: var(--font-size-sm);
   border-radius: 10px;
   white-space: nowrap;
@@ -2303,22 +1553,20 @@
 
 .selectInline {
   font-size: var(--font-size-sm);
-  padding: 8px 10px;
+  padding: 8px 12px;
 }
 
 .banner {
   margin-top: 12px;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border-radius: 12px;
-  background: rgba(255, 193, 7, 0.12);
-  color: #ffe7a3;
+  background: color-mix(in srgb, var(--primary-container) 12%, transparent);
+  color: var(--primary);
 }
-
-/* Status banner with a close button (auto-retires after a few seconds too). */
 .bannerDismissable {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
 }
 
 .bannerDismissable > span {
@@ -2334,7 +1582,7 @@
   cursor: pointer;
   font-size: var(--font-size-sm);
   line-height: 1;
-  padding: 2px 4px;
+  padding: 4px 4px;
   border-radius: var(--radius-sm);
 }
 
@@ -2344,8 +1592,8 @@
 }
 
 .error {
-  margin-top: 10px;
-  color: #ff8d8d;
+  margin-top: 12px;
+  color: var(--error);
 }
 
 .panel {
@@ -2358,31 +1606,9 @@
 
 .row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
   margin: 12px 0;
-}
-
-.btn {
-  border: 0;
-  border-radius: 11px;
-  padding: 8px 12px;
-  background: #3d3834;
-  color: #f2efe8;
-  cursor: pointer;
-}
-
-.btn:hover {
-  background: #524b45;
-}
-
-.btn.primary {
-  background: #b9955a;
-  color: #1a1612;
-}
-
-.btn.ghost {
-  background: #3d2c3e;
 }
 
 .profilesHeader {
@@ -2402,13 +1628,13 @@
 }
 
 .profilesToolbar {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .profileList {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
+  gap: 12px;
   margin-top: 4px;
 }
 
@@ -2417,18 +1643,12 @@
   flex-direction: column;
   align-items: stretch;
   gap: 0;
-  padding: 10px 12px 10px 9px;
+  padding: 12px 12px 12px 8px;
   border-radius: 16px;
   border: 1px solid var(--hairline);
   border-left: 3px solid transparent;
-  background: linear-gradient(
-    155deg,
-    rgba(34, 32, 29, 0.96) 0%,
-    rgba(18, 17, 16, 0.98) 100%
-  );
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--surface-container);
+  box-shadow: var(--elev-1);
   transition:
     border-color 0.16s ease,
     box-shadow 0.16s ease,
@@ -2438,19 +1658,13 @@
 
 .profileCard:hover {
   border-color: color-mix(in srgb, var(--accent) 28%, transparent);
-  box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: var(--elev-1);
 }
 
 .profileCardActive {
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
   border-left-color: var(--accent);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
-    0 14px 40px color-mix(in srgb, var(--accent) 12%, transparent),
-    0 12px 36px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 1px var(--outline-variant);
 }
 
 .profileCardActive .profileTitle {
@@ -2460,7 +1674,7 @@
 .profileCardInner {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -2509,7 +1723,7 @@
 .profileTrafficPair {
   font-size: var(--font-size-xs);
   line-height: 1.35;
-  color: #b8d8be;
+  color: var(--on-surface);
   opacity: 0.95;
   font-variant-numeric: tabular-nums;
 }
@@ -2519,15 +1733,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 2px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid
+    color-mix(in srgb, var(--outline-variant) 8%, transparent);
 }
 
 .profileTypeChip {
   font-size: var(--font-size-xs);
   text-transform: lowercase;
-  padding: 2px 7px;
+  padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid var(--hairline);
   color: var(--text-muted);
@@ -2554,7 +1769,7 @@
 
 .profileRefreshIcon:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 16%, transparent);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 28%, transparent);
+  box-shadow: var(--elev-1);
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
@@ -2576,7 +1791,7 @@
 .profileCardMain {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
   flex: 1;
 }
@@ -2603,7 +1818,7 @@
 .profileTrafficHint {
   margin-top: 4px;
   font-size: var(--font-size-xs);
-  color: #b8d8be;
+  color: var(--on-surface);
   opacity: 0.92;
 }
 
@@ -2619,7 +1834,7 @@
   color: var(--text-muted);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -2659,8 +1874,8 @@
 .rulesSummaryRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin: 8px 0 10px;
+  gap: 8px;
+  margin: 8px 0 12px;
 }
 
 .rulesSummaryChip {
@@ -2668,10 +1883,14 @@
   align-items: center;
   border: 1px solid var(--hairline-strong);
   border-radius: 999px;
-  padding: 3px 8px;
+  padding: 4px 8px;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(
+    in srgb,
+    var(--surface-container-highest) 20%,
+    transparent
+  );
 }
 
 .rulesFilterRow {
@@ -2681,7 +1900,7 @@
       1fr
     );
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .rulesFilterSearch {
@@ -2695,8 +1914,6 @@
 .diagList {
   margin-top: 8px;
 }
-
-/* Advanced panel typography — aligned with settingsPanel / visual-polish tokens */
 .advancedPanel {
   font-family: var(--font-sans);
   font-size: var(--font-size-md);
@@ -2745,20 +1962,15 @@
 }
 
 .advancedPanel .advancedGrid .row {
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .advancedPanel .advancedGrid .btn.ghost,
 .advancedPanel .btnCompact {
-  padding: 5px 10px;
+  padding: 4px 12px;
   font-size: var(--font-size-xs);
 }
-
-/* Masonry packing (like Settings) so every card flows into two balanced
-   columns instead of a tall vertical stack — fits one screen (visual-polish). */
-/* Stable 2-column grid (not column-count masonry) so expanding a collapsible
-   card doesn't make the others jump between columns. */
 .advancedGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2782,7 +1994,7 @@
 .advancedDeviceIdentityCard .deviceIdentityHwidRow {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
   margin-top: 4px;
 }
@@ -2794,10 +2006,10 @@
   font-size: var(--font-size-xs);
   line-height: var(--leading-normal);
   word-break: break-all;
-  padding: 6px 8px;
+  padding: 8px 8px;
   border-radius: 10px;
   border: 1px solid var(--hairline-strong);
-  background: rgba(0, 0, 0, 0.22);
+  background: color-mix(in srgb, var(--surface-container) 22%, transparent);
   color: var(--text);
 }
 
@@ -2808,10 +2020,6 @@
   align-items: center;
   flex-shrink: 0;
 }
-
-/* Dim the HWID block when the user has turned off x-hwid sending so it is
-   visually clear that the value displayed is not currently transmitted. The
-   number is still readable for copy-and-paste support cases. */
 .advancedDeviceIdentityCard
   .deviceIdentityHwidRow[data-hwid-disabled="true"]
   .deviceIdentityHwid {
@@ -2843,7 +2051,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   min-height: 32px;
 }
 
@@ -2879,7 +2087,7 @@
 .collapsibleCardActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
 }
 
@@ -2898,7 +2106,7 @@
 .advancedPathsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 6px;
+  gap: 8px;
   margin-top: 8px;
 }
 
@@ -2910,14 +2118,14 @@
 .advancedPowerGrid {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 6px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .advancedPowerRow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -2943,8 +2151,8 @@
   overflow-y: auto;
   border: 1px solid var(--hairline);
   border-radius: 8px;
-  padding: 6px 8px;
-  background: rgba(0, 0, 0, 0.16);
+  padding: 8px 8px;
+  background: color-mix(in srgb, var(--surface-container) 16%, transparent);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   line-height: var(--leading-normal);
@@ -2954,7 +2162,7 @@
   display: grid;
   grid-template-columns: 64px 180px 1fr;
   gap: 8px;
-  padding: 1px 0;
+  padding: 0px 0;
   align-items: baseline;
 }
 
@@ -2996,16 +2204,16 @@
   pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px 8px 12px;
+  gap: 12px;
+  padding: 8px 12px 8px 12px;
   border-radius: 10px;
   border: 1px solid var(--hairline);
-  background: rgba(24, 23, 22, 0.96);
+  background: var(--surface-container);
   backdrop-filter: blur(6px);
   color: var(--text);
   font-size: var(--font-size-sm);
   line-height: 1.35;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--elev-1);
   animation: toastEnter 180ms ease-out;
 }
 
@@ -3024,13 +2232,13 @@
   border-color: var(--hairline-strong);
 }
 .toast-success {
-  border-color: rgba(120, 200, 140, 0.45);
+  border-color: color-mix(in srgb, var(--outline-variant) 45%, transparent);
 }
 .toast-warn {
-  border-color: rgba(220, 180, 100, 0.45);
+  border-color: color-mix(in srgb, var(--warning) 45%, transparent);
 }
 .toast-error {
-  border-color: rgba(220, 120, 120, 0.55);
+  border-color: color-mix(in srgb, var(--error) 55%, transparent);
 }
 
 .toastMsg {
@@ -3045,7 +2253,7 @@
   background: transparent;
   border: 1px solid var(--hairline-strong);
   border-radius: 8px;
-  padding: 2px 8px;
+  padding: 4px 8px;
   cursor: pointer;
 }
 
@@ -3074,17 +2282,17 @@
 .profileBadge {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 999px;
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: #f2efe8;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--error);
+  background: color-mix(in srgb, var(--error-container) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 10%, transparent);
 }
 
 .profileCardFoot .profileBadge {
-  padding: 3px 8px;
+  padding: 4px 8px;
   font-size: var(--font-size-xs);
 }
 
@@ -3094,7 +2302,7 @@
 
 .profileActivate {
   font-size: var(--font-size-sm);
-  padding: 7px 14px;
+  padding: 8px 16px;
   border-radius: 10px;
 }
 
@@ -3107,16 +2315,16 @@
   margin-top: 12px;
   padding: 12px;
   border-radius: 12px;
-  background: #141210;
-  color: #e8e4dc;
+  background: var(--surface-container);
+  color: var(--on-surface);
   overflow: auto;
   max-height: 320px;
   font-size: var(--font-size-sm);
 }
 
 .homeCard {
-  margin: 18px 0;
-  padding: 14px 16px;
+  margin: 20px 0;
+  padding: 16px 16px;
   border-radius: 16px;
   border: 1px solid var(--hairline-strong);
   background: var(--panel-deep);
@@ -3131,7 +2339,7 @@
 }
 
 .homeCardTitle {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: var(--font-size-lg);
 }
 
@@ -3150,7 +2358,7 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .fieldWide {
@@ -3166,9 +2374,9 @@
   box-sizing: border-box;
   border-radius: var(--radius-md);
   border: 1px solid var(--hairline-strong);
-  background: rgba(12, 11, 10, 0.75);
-  color: #f2efe8;
-  padding: 7px 11px;
+  background: var(--surface-container-highest);
+  color: var(--on-surface);
+  padding: 8px 12px;
   font-size: var(--font-size-sm);
 }
 
@@ -3176,8 +2384,6 @@
   outline: 2px solid var(--accent-dim);
   outline-offset: 1px;
 }
-
-/* Visible placeholders in both themes (browser default gray vanishes on cream). */
 .input::placeholder,
 .inputModern::placeholder,
 .proxySplitNodeSearch::placeholder,
@@ -3210,19 +2416,19 @@
 }
 
 .detailsBlock {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .detailsBlock summary {
   cursor: pointer;
-  color: #c9c3bb;
+  color: var(--on-surface);
   font-size: var(--font-size-sm);
 }
 
 .code {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
-  color: #d8d2c9;
+  color: var(--on-surface);
 }
 
 .homeHeaderActions {
@@ -3238,7 +2444,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 999px;
   border: 1px solid var(--hairline-strong);
   background: color-mix(in srgb, var(--accent) 10%, transparent);
@@ -3260,23 +2466,14 @@
   opacity: 0.95;
 }
 
-.btn.subtle {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--hairline-strong);
-}
-
-.btn.subtle:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
 @keyframes pulseGlow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow: 0 0 0 1px var(--outline-variant);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent);
+    box-shadow: 0 0 0 1px var(--outline-variant);
     transform: scale(1.02);
   }
 }
@@ -3284,44 +2481,40 @@
 .pulseBeacon {
   border: 0;
   border-radius: 999px;
-  padding: 10px 18px;
+  padding: 12px 20px;
   font-weight: 600;
   cursor: pointer;
-  color: #ffffff;
-  background: linear-gradient(
-    135deg,
-    var(--accent),
-    color-mix(in srgb, var(--accent) 62%, #000)
-  );
+  color: var(--on-surface);
+  background: var(--surface-container);
   animation: pulseGlow 1.8s ease-in-out infinite;
 }
 
 .segment.modern {
-  padding: 14px;
+  padding: 16px;
 }
 
 .segPill {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
   padding: 4px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.22);
+  background: color-mix(in srgb, var(--surface-container) 22%, transparent);
 }
 
 .pillOpt {
   border: 0;
   border-radius: 999px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   cursor: pointer;
   background: transparent;
-  color: #d2cdc4;
+  color: var(--on-surface);
   font-size: var(--font-size-sm);
 }
 
 .pillOpt.active {
   background: var(--accent-dim);
-  color: #ffffff;
+  color: var(--on-surface);
 }
 
 .trafficSwitch {
@@ -3335,24 +2528,26 @@
   min-width: 120px;
   border-radius: 12px;
   border: 1px solid var(--hairline-strong);
-  padding: 10px 12px;
+  padding: 12px 12px;
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.18);
-  color: #d2cdc4;
+  background: color-mix(
+    in srgb,
+    var(--surface-container-highest) 18%,
+    transparent
+  );
+  color: var(--on-surface);
   font-size: var(--font-size-sm);
 }
 
 .trafficKnob.on {
   border-color: var(--accent-muted);
   background: var(--accent-dim);
-  color: #ffffff;
+  color: var(--on-surface);
 }
 
 .policyBlock {
   margin-top: 4px;
 }
-
-/* Proxies header — compact single-row toolbar (visual-polish) */
 .proxiesLead {
   margin: var(--space-1) 0 var(--space-3);
   max-width: 78ch;
@@ -3387,14 +2582,10 @@
   gap: var(--space-2);
   margin-left: auto;
 }
-
-/* Compact toolbar controls so the whole row fits on one line (no wrap). */
 .proxyToolbar .btn {
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-sm);
 }
-
-/* === Proxies single-open accordion (proxies-redesign) === */
 .proxyAccordion {
   flex: 1 1 auto;
   min-height: 0;
@@ -3414,7 +2605,7 @@
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--hairline-strong);
-  background: rgba(0, 0, 0, 0.22);
+  background: color-mix(in srgb, var(--surface-container) 22%, transparent);
   color: var(--text);
   font: inherit;
   font-size: var(--font-size-sm);
@@ -3423,10 +2614,6 @@
 
 .proxyAccGroupSearch:focus {
   border-color: var(--accent-muted);
-}
-
-.shell[data-theme="light"] .proxyAccGroupSearch {
-  background: #fdf9f0;
 }
 
 .proxyAccActionEmoji {
@@ -3471,12 +2658,8 @@
   height: 3px;
   margin-top: var(--space-1);
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--surface-container) 8%, transparent);
   overflow: hidden;
-}
-
-.shell[data-theme="light"] .proxyDelayBar {
-  background: rgba(74, 55, 30, 0.1);
 }
 
 .proxyDelayBarFill {
@@ -3510,16 +2693,12 @@
   flex: 0 0 auto;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.14);
+  background: color-mix(in srgb, var(--surface-container) 14%, transparent);
   overflow: hidden;
 }
 
 .proxyAccGroup.open {
   border-color: var(--accent-muted);
-}
-
-.shell[data-theme="light"] .proxyAccGroup {
-  background: rgba(74, 55, 30, 0.04);
 }
 
 .proxyAccHeader {
@@ -3537,9 +2716,6 @@
   font: inherit;
   outline: none;
 }
-
-/* Kill the default full-width focus rectangle (showed as a stray white stripe
-   on click); keep an inset accent ring for keyboard users only. */
 .proxyAccHeader:focus-visible {
   outline: 2px solid var(--accent-muted);
   outline-offset: -2px;
@@ -3547,11 +2723,7 @@
 }
 
 .proxyAccHeader:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.shell[data-theme="light"] .proxyAccHeader:hover {
-  background: rgba(74, 55, 30, 0.05);
+  background: color-mix(in srgb, var(--surface-container) 8%, transparent);
 }
 
 .proxyAccName {
@@ -3561,8 +2733,6 @@
   text-overflow: ellipsis;
   max-width: 40%;
 }
-
-/* Proxy group icon (mihomo proxy-groups `icon`): small, rounded, before name. */
 .proxyGroupIcon {
   width: 18px;
   height: 18px;
@@ -3576,31 +2746,24 @@
   line-height: 1;
   flex: 0 0 auto;
 }
-
-/* Screen error-boundary fallback. */
 .errorBoundaryTitle {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: var(--font-size-md);
 }
 
 .errorBoundaryDetails {
   max-height: 240px;
   overflow: auto;
-  margin: 10px 0;
-  padding: 10px 12px;
+  margin: 12px 0;
+  padding: 12px 12px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--error-container) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 8%, transparent);
   font-family: var(--font-mono);
   font-size: 12px;
   white-space: pre-wrap;
   word-break: break-word;
-  color: #d4dfee;
-}
-
-.shell[data-theme="light"] .errorBoundaryDetails {
-  background: rgba(0, 0, 0, 0.05);
-  color: #374151;
+  color: var(--error);
 }
 
 .proxyAccCurrent {
@@ -3635,9 +2798,6 @@
 .proxyAccBody {
   padding: 0 var(--space-3) var(--space-3);
 }
-
-/* Nodes scroll inside the open group so collapsed groups below stay reachable
-   instead of pushing the accordion into a long scroll. */
 .proxyAccBody .proxyNodesGrid {
   max-height: clamp(180px, calc(38vh / var(--ui-zoom, 1)), 420px);
   overflow-y: auto;
@@ -3684,20 +2844,17 @@
 }
 
 .policyHint {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 }
 
 .selectModern {
-  /* Full-width like .input so form fields are a consistent size project-wide.
-     Context-specific widths (Proxies focus group, Home compact pickers) keep
-     their own narrower overrides. */
   width: 100%;
   box-sizing: border-box;
   border-radius: var(--radius-md);
   border: 1px solid var(--hairline-strong);
-  background: rgba(12, 11, 10, 0.75);
-  color: #f2efe8;
-  padding: 7px 32px 7px 11px;
+  background: var(--surface-container-highest);
+  color: var(--on-surface);
+  padding: 8px 32px 8px 12px;
   font-size: var(--font-size-sm);
   font-family: var(--font-sans);
 }
@@ -3709,23 +2866,12 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(5, 10, 18, 0.62);
+  background: color-mix(in srgb, var(--surface-container) 62%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 55;
   padding: 20px;
-}
-
-.modalCard {
-  width: min(520px, 100%);
-  border-radius: 18px;
-  padding: 20px 22px;
-  background: linear-gradient(165deg, #2c2926, #1c1a18);
-  border: 1px solid var(--hairline-strong);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  box-sizing: border-box;
-  overflow: hidden;
 }
 
 .modalCardWide {
@@ -3750,8 +2896,6 @@
   min-height: min(calc(84vh / var(--ui-zoom, 1)), 760px);
   overflow: auto;
 }
-
-/* === Edit rules — compact add-bar + two columns (rules-editor-rework) === */
 .rulesEditorModal {
   display: flex;
   flex-direction: column;
@@ -3781,11 +2925,7 @@
   padding: var(--space-2);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.12);
-}
-
-.shell[data-theme="light"] .rulesAddBar {
-  background: rgba(74, 55, 30, 0.04);
+  background: color-mix(in srgb, var(--surface-container) 12%, transparent);
 }
 
 .rulesAddType {
@@ -3863,12 +3003,8 @@
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.12);
+  background: color-mix(in srgb, var(--surface-container) 12%, transparent);
   font-size: var(--font-size-sm);
-}
-
-.shell[data-theme="light"] .ruleRow {
-  background: rgba(74, 55, 30, 0.04);
 }
 
 .ruleRowDeleted {
@@ -3881,10 +3017,14 @@
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   letter-spacing: 0.04em;
-  padding: 1px 6px;
+  padding: 0px 8px;
   border-radius: var(--radius-pill);
-  background: rgba(150, 150, 150, 0.14);
-  border: 1px solid rgba(150, 150, 150, 0.3);
+  background: color-mix(
+    in srgb,
+    var(--surface-container-highest) 14%,
+    transparent
+  );
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 30%, transparent);
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -3929,8 +3069,6 @@
 .rulesYamlErr {
   color: var(--danger);
 }
-
-/* === Edit proxy groups — form left, baseline lists right (proxy-groups-modal-redesign) === */
 .proxyEditorCols {
   align-items: stretch;
 }
@@ -3940,12 +3078,8 @@
   padding: var(--space-2);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.12);
+  background: color-mix(in srgb, var(--surface-container) 12%, transparent);
   overflow-y: auto;
-}
-
-.shell[data-theme="light"] .proxyFormCol {
-  background: rgba(74, 55, 30, 0.04);
 }
 
 .proxyFormCol > .eyebrow {
@@ -4026,7 +3160,7 @@
 
 .vergeToggle.btn {
   font-size: var(--font-size-sm);
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 999px;
 }
 
@@ -4061,7 +3195,7 @@
     border-left: 0;
     padding-left: 0;
     border-top: 1px solid var(--hairline);
-    padding-top: 14px;
+    padding-top: 16px;
   }
 }
 
@@ -4075,7 +3209,7 @@
 }
 
 .vergeCardReadOnly {
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--surface-container) 8%, transparent);
   border-style: dashed;
   border-color: var(--hairline);
 }
@@ -4100,8 +3234,6 @@
 .modalMonacoWrap .overflow-guard {
   border-radius: 12px;
 }
-
-/* Monaco uses div/contenteditable internals (not plain textarea); allow selection/focus in shell. */
 .monacoEditorHost,
 .monacoEditorHost * {
   -webkit-user-select: text;
@@ -4122,11 +3254,11 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 12px 12px;
   border-radius: 12px;
   border: 1px solid var(--hairline);
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--surface-container) 20%, transparent);
 }
 
 .vergeCardTitle {
@@ -4141,7 +3273,7 @@
 
 .vergeTrash {
   flex-shrink: 0;
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: var(--font-size-lg);
   line-height: 1;
 }
@@ -4157,11 +3289,6 @@
   gap: 8px;
 }
 
-.modalTitle {
-  margin: 0 0 8px;
-  font-size: 20px;
-}
-
 .modalField {
   margin-top: 12px;
 }
@@ -4170,7 +3297,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .modalFooter {
@@ -4188,7 +3315,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-left: auto;
 }
 
@@ -4196,7 +3323,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .importModeTabs {
@@ -4205,7 +3332,7 @@
   margin: var(--space-1) 0 var(--space-4);
   padding: var(--space-1);
   border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.22);
+  background: color-mix(in srgb, var(--surface-container) 22%, transparent);
 }
 
 .importModeTabs .btn {
@@ -4235,21 +3362,21 @@
 }
 
 .importDetect-unknown {
-  color: #d98c6a;
+  color: var(--primary);
 }
 
 .btnModalSecondary {
   font-size: var(--font-size-sm);
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.28);
+  background: color-mix(in srgb, var(--surface-container) 28%, transparent);
   border: 1px solid var(--hairline-strong);
-  color: #e8e4dc;
+  color: var(--on-surface);
 }
 
 .btnModalSecondary:hover {
   border-color: var(--accent-muted);
-  color: #fff;
+  color: var(--on-surface);
 }
 
 .optional {
@@ -4267,17 +3394,18 @@
   min-width: 220px;
   border-radius: 12px;
   padding: 8px 0;
-  background: #1e1c1a;
+  background: var(--surface-container);
   border: 1px solid var(--hairline-strong);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--elev-1);
 }
 
 .ctxTitle {
   padding: 4px 12px 8px;
   font-weight: 600;
   font-size: var(--font-size-sm);
-  color: #eaf0f8;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--on-surface);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--outline-variant) 8%, transparent);
 }
 
 .ctxItem {
@@ -4286,14 +3414,14 @@
   text-align: left;
   border: 0;
   background: transparent;
-  color: #f2efe8;
-  padding: 10px 14px;
+  color: var(--on-surface);
+  padding: 12px 16px;
   font-size: var(--font-size-sm);
   cursor: pointer;
 }
 
 .ctxItem:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--surface-container) 8%, transparent);
 }
 
 .ctxItem:disabled {
@@ -4302,7 +3430,7 @@
 }
 
 .ctxSection {
-  padding: 8px 14px 4px;
+  padding: 8px 16px 4px;
   font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -4315,7 +3443,7 @@
 
 .ctxHint {
   margin: 0;
-  padding: 6px 14px 4px;
+  padding: 8px 16px 4px;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
 }
@@ -4324,7 +3452,7 @@
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: rgba(4, 6, 10, 0.55);
+  background: color-mix(in srgb, var(--surface-container) 55%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4334,15 +3462,10 @@
 .onboardingCard {
   width: min(440px, 100%);
   border-radius: 18px;
-  padding: 18px 20px 16px;
-  background: linear-gradient(165deg, #1a222c, #12171e);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
-}
-
-.shell[data-theme="light"] .onboardingCard {
-  background: linear-gradient(165deg, #ffffff, #eef1f6);
-  border-color: rgba(0, 0, 0, 0.08);
+  padding: 20px 20px 16px;
+  background: var(--surface-container);
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 10%, transparent);
+  box-shadow: var(--elev-1);
 }
 
 .onboardingStep {
@@ -4382,19 +3505,14 @@
   transform: translateX(-50%);
   width: min(440px, calc(calc(100vw / var(--ui-zoom, 1)) - 32px));
   border-radius: 18px;
-  padding: 16px 18px 14px;
-  background: linear-gradient(165deg, #1a222c, #12171e);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
-}
-
-.shell[data-theme="light"] .spotlightCard {
-  background: linear-gradient(165deg, #ffffff, #eef1f6);
-  border-color: rgba(0, 0, 0, 0.08);
+  padding: 16px 20px 16px;
+  background: var(--surface-container);
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 10%, transparent);
+  box-shadow: var(--elev-1);
 }
 
 .spotlightStep {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
@@ -4414,7 +3532,7 @@
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .rulesTableWrap {
@@ -4432,7 +3550,7 @@
 .rulesPanel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .rulesPanelHead {
@@ -4449,13 +3567,9 @@
 .rulesProvidersGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 4px;
 }
-
-/* Rule providers modal — full-list scroll, opened from the "Rule providers (N)"
- * trigger in the Rules screen header. Keeps a wide layout so 4-column grid
- * still fits on the typical 1200px window. */
 .ruleProvidersModalCard {
   max-height: calc(80vh / var(--ui-zoom, 1));
   display: flex;
@@ -4463,24 +3577,23 @@
 }
 .ruleProvidersModalScroll {
   overflow-y: auto;
-  margin-top: 10px;
+  margin-top: 12px;
   padding-right: 4px;
-  /* leave room for the scrollbar without shifting the card edge */
 }
 .rulesProvidersTriggerWarn {
-  outline: 1px solid #d97706;
+  outline: 1px solid var(--outline-variant);
 }
 .rulesProvidersFailBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-left: 6px;
+  margin-left: 8px;
   min-width: 18px;
   height: 18px;
-  padding: 0 6px;
+  padding: 0 8px;
   border-radius: 9px;
-  background: #d97706;
-  color: #fff;
+  background: var(--error-container);
+  color: var(--error);
   font-size: var(--font-size-xs);
   font-weight: 600;
   line-height: 1;
@@ -4490,22 +3603,16 @@
   border-radius: 16px;
   border: 1px solid var(--hairline);
   border-left: 3px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  background: linear-gradient(
-    155deg,
-    rgba(34, 32, 29, 0.96) 0%,
-    rgba(18, 17, 16, 0.98) 100%
-  );
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  padding: 10px 12px 10px 9px;
+  background: var(--surface-container);
+  box-shadow: var(--elev-1);
+  padding: 12px 12px 12px 8px;
   min-width: 0;
 }
 
 .ruleProviderCardInner {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -4539,7 +3646,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .ruleProviderUpdated {
@@ -4559,7 +3666,7 @@
   height: 34px;
   border-radius: 999px;
   border: 1px solid var(--hairline);
-  background: rgba(0, 0, 0, 0.22);
+  background: color-mix(in srgb, var(--surface-container) 22%, transparent);
   color: var(--accent);
   display: inline-flex;
   align-items: center;
@@ -4594,40 +3701,30 @@
 
 .rulesTable th,
 .rulesTable td {
-  padding: 8px 10px;
+  padding: 8px 12px;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--outline-variant) 8%, transparent);
 }
 
 .rulesTable th {
-  color: #b9c5d6;
+  color: var(--on-surface);
   font-weight: 600;
   position: sticky;
   top: 0;
-  background: rgba(12, 16, 22, 0.95);
-}
-
-.shell[data-theme="light"] .rulesTable th {
-  background: rgba(238, 229, 213, 0.96);
-  color: #5a5142;
+  background: var(--surface-container);
 }
 
 .rulesPayload {
   max-width: 540px;
   word-break: break-all;
-  color: #d4dfee;
-}
-
-.shell[data-theme="light"] .rulesPayload {
-  color: #374151;
+  color: var(--on-surface);
 }
 
 .rulesPolicyProxy {
-  color: #5eead4;
+  color: var(--primary);
   font-weight: 600;
 }
-
-/* Rules dashboard enable/disable toggle column. */
 .rulesToggleCol {
   width: 44px;
   text-align: center;
@@ -4641,16 +3738,13 @@
   width: 15px;
   height: 15px;
   cursor: pointer;
-  accent-color: #5eead4;
+  accent-color: var(--primary);
 }
 
 .ruleToggleBox:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
-
-/* A rule the user has disabled: dimmed + struck so it reads as "off" while
-   staying visible for re-enabling. */
 .ruleRowDisabled td {
   opacity: 0.5;
 }
@@ -4662,18 +3756,16 @@
 .ruleRowDisabled .ruleToggleBox {
   opacity: 1;
 }
-
-/* "hidden" chip on revealed hidden proxy groups (subscription hidden:true). */
 .proxyHiddenChip {
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  padding: 1px 6px;
+  padding: 0px 8px;
   border-radius: 999px;
-  color: #c9a86c;
-  background: rgba(201, 168, 108, 0.14);
-  border: 1px solid rgba(201, 168, 108, 0.35);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary-container) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 35%, transparent);
   white-space: nowrap;
 }
 
@@ -4697,7 +3789,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
 }
 
 .settingsTopBar h2 {
@@ -4708,13 +3800,6 @@
   margin: 0 0 8px;
   font-size: var(--font-size-sm);
 }
-
-/* Masonry-style packing so cards fill each column by height instead of being
-   locked to ragged grid rows (visual-polish: fixes the uneven-columns / dead
-   space the user flagged). */
-/* Two explicit columns, each a tight flex stack: cards keep a fixed column
-   (no jumping when one grows) AND pack top-down with no inter-card gaps (unlike
-   a row-major grid). Columns may differ in length — that's fine. */
 .settingsGridCompact {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4743,7 +3828,7 @@
 }
 
 .settingsCardCompact {
-  padding: 6px 10px;
+  padding: 8px 12px;
 }
 
 .settingsCardCompact .homeCardTitle {
@@ -4765,12 +3850,12 @@
 }
 
 .settingsCardCompact .segPill {
-  padding: 2px;
+  padding: 4px;
   gap: 4px;
 }
 
 .settingsCardCompact .pillOpt {
-  padding: 5px 10px;
+  padding: 4px 12px;
   font-size: var(--font-size-xs);
 }
 
@@ -4782,7 +3867,7 @@
 .settingsTunSummary {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 12px;
+  gap: 8px 12px;
   margin: 4px 0 8px;
   font-size: var(--font-size-xs);
 }
@@ -4804,8 +3889,8 @@
 .settingsInlineActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .tunSettingsModal {
@@ -4816,7 +3901,7 @@
 .tunModalBody {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   max-height: calc(60vh / var(--ui-zoom, 1));
   overflow-y: auto;
   padding-right: 4px;
@@ -4832,7 +3917,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   min-height: 22px;
-  padding: 1px 0;
+  padding: 0px 0;
   font-size: var(--font-size-sm);
 }
 
@@ -4849,12 +3934,10 @@
 .settingsToggleRow .trafficKnob {
   flex: 0 0 auto;
   min-width: 48px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: var(--font-size-xs);
   border-radius: 999px;
 }
-
-/* Dev-only brand header injector (Advanced). */
 .brandDebugPanel {
   margin-top: 12px;
 }
@@ -4873,7 +3956,7 @@
 
 .brandDebugResult {
   margin-top: 8px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--hairline);
   background: var(--surface-deep);
@@ -4883,13 +3966,9 @@
   white-space: pre-wrap;
   word-break: break-all;
 }
-
-/* Operator (brand) card — panel-driven branding, Settings top. */
 .operatorCard {
   margin-bottom: 12px;
 }
-
-/* Operator entry point in the Home header (left of "Add subscription"). */
 .homeOperatorBtn {
   display: inline-flex;
   align-items: center;
@@ -4908,14 +3987,12 @@
 }
 
 .operatorHost {
-  margin-top: 2px;
+  margin-top: 4px;
   opacity: 0.75;
 }
-
-/* Subscription usage block: what the user actually opened this dialog for. */
 .operatorUsage {
-  margin: 14px 0 4px;
-  padding: 10px 12px;
+  margin: 16px 0 4px;
+  padding: 12px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--hairline);
   background: color-mix(in srgb, var(--accent) 6%, transparent);
@@ -4935,7 +4012,7 @@
 }
 
 .operatorUsageWarn {
-  color: #ffb4b4;
+  color: var(--primary);
 }
 
 .operatorUsageBar {
@@ -4981,8 +4058,6 @@
   padding: 4px 12px;
   font-size: var(--font-size-xs);
 }
-
-/* Custom accent color field (Settings → General). */
 .accentRow {
   display: flex;
   align-items: center;
@@ -4993,7 +4068,7 @@
   flex: 0 0 auto;
   width: 34px;
   height: 30px;
-  padding: 2px;
+  padding: 4px;
   border: 1px solid var(--hairline-strong);
   border-radius: var(--radius-sm);
   background: transparent;
@@ -5006,28 +4081,26 @@
 }
 
 .accentHexInput.invalid {
-  border-color: rgba(190, 55, 55, 0.65);
+  border-color: color-mix(in srgb, var(--outline-variant) 65%, transparent);
 }
 
 .accentHexInput.invalid:focus {
-  outline-color: rgba(190, 55, 55, 0.35);
+  outline-color: color-mix(in srgb, var(--outline-variant) 35%, transparent);
 }
-
-/* REALITY client version (x.y.z): same invalid styling as the accent hex. */
 .realityVersionInput {
   width: 120px;
   font-family: var(--font-mono, monospace);
 }
 
 .realityVersionInput.invalid {
-  border-color: rgba(190, 55, 55, 0.65);
+  border-color: color-mix(in srgb, var(--outline-variant) 65%, transparent);
 }
 
 .settingsCoreBuild {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 10px;
+  gap: 4px 12px;
 }
 
 .settingsCoreBuild .linkBtn {
@@ -5040,63 +4113,22 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-
-/* Per-theme applied previews: left swatch on a dark chip, right on a light
-   chip, so the contrast-guard adjustment is visible at pick time. */
 .accentSwatch {
   flex: 0 0 auto;
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 2px solid #1a1918;
-  box-shadow: 0 0 0 1px var(--hairline-strong);
+  border: 2px solid var(--outline-variant);
+  box-shadow: 0 0 0 1px var(--outline-variant);
 }
 
 .accentSwatchLight {
-  border-color: #e9dec8;
+  border-color: var(--outline-variant);
 }
 
 .accentResetBtn {
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: var(--font-size-xs);
-}
-
-/* iOS-style switch toggle (Settings booleans). */
-.settingsSwitch {
-  flex: 0 0 auto;
-  position: relative;
-  width: 40px;
-  height: 22px;
-  padding: 0;
-  border: 1px solid var(--hairline-strong);
-  border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.28);
-  cursor: pointer;
-  transition:
-    background var(--dur-base) var(--ease-standard),
-    border-color var(--dur-base) var(--ease-standard);
-}
-
-.shell[data-theme="light"] .settingsSwitch {
-  background: rgba(74, 55, 30, 0.2);
-  border-color: rgba(74, 55, 30, 0.32);
-}
-
-/* On = sage green (same family as the Home connect button) — intuitive
-   "enabled", and more legible than bronze on the light theme. */
-.settingsSwitch.on {
-  background: #6f8f72;
-  border-color: #5d7a60;
-}
-
-.shell[data-theme="light"] .settingsSwitch.on {
-  background: #5f8567;
-  border-color: #527456;
-}
-
-.settingsSwitch:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .settingsSwitchKnob {
@@ -5106,17 +4138,11 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #f4efe6;
+  background: var(--surface-container-highest);
   transform: translateY(-50%);
   transition: left var(--dur-base) var(--ease-standard);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--elev-1);
 }
-
-.settingsSwitch.on .settingsSwitchKnob {
-  left: 20px;
-}
-
-/* Section icons in card headers. */
 .settingsCardIcon {
   margin-right: var(--space-2);
   font-size: 0.95em;
@@ -5128,17 +4154,11 @@
   color: var(--ok);
   font-weight: var(--weight-medium);
 }
-
-/* Update changelog ("What's new") */
 .settingsChangelog {
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   padding: var(--space-1) var(--space-2);
-  background: rgba(0, 0, 0, 0.12);
-}
-
-.shell[data-theme="light"] .settingsChangelog {
-  background: rgba(74, 55, 30, 0.04);
+  background: color-mix(in srgb, var(--surface-container) 12%, transparent);
 }
 
 .settingsChangelog > summary {
@@ -5159,8 +4179,6 @@
   line-height: 1.5;
   color: var(--text-muted);
 }
-
-/* Update download progress */
 .updateProgress {
   display: flex;
   flex-direction: column;
@@ -5170,12 +4188,8 @@
 .updateProgressTrack {
   height: 8px;
   border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.28);
+  background: color-mix(in srgb, var(--surface-container) 28%, transparent);
   overflow: hidden;
-}
-
-.shell[data-theme="light"] .updateProgressTrack {
-  background: rgba(74, 55, 30, 0.14);
 }
 
 .updateProgressBar {
@@ -5207,12 +4221,12 @@
 }
 
 .settingsPanel .row {
-  margin: 6px 0 0;
-  gap: 6px;
+  margin: 8px 0 0;
+  gap: 8px;
 }
 
 .settingsPanel .btn {
-  padding: 5px 10px;
+  padding: 4px 12px;
   font-size: var(--font-size-xs);
   border-radius: 9px;
 }
@@ -5229,13 +4243,13 @@
 }
 
 .settingsInfoDevTitle {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .settingsInfoDevBody {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .settingsKpiGrid {
@@ -5254,7 +4268,7 @@
 .settingsKpi {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -5275,7 +4289,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 8px;
 }
 
 .settingsGithubBtn {
@@ -5286,7 +4300,7 @@
   height: 40px;
   border-radius: 12px;
   border: 1px solid var(--hairline-strong);
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--surface-container) 20%, transparent);
   color: var(--accent);
   cursor: pointer;
   align-self: flex-end;
@@ -5296,21 +4310,15 @@
   align-self: center;
 }
 
-.shell[data-theme="light"] .settingsGithubBtn {
-  background: rgba(0, 0, 0, 0.04);
-}
-
 .settingsGithubBtn:hover {
   border-color: var(--accent-muted);
   background: var(--accent-dim);
-  color: #fff;
+  color: var(--on-surface);
 }
 
 .settingsGithubSvg {
   display: block;
 }
-
-/* ── LAN companion (Remote / Devices) ───────────────────────────── */
 .devices .devicesHeader {
   display: flex;
   align-items: center;
@@ -5372,8 +4380,8 @@
   margin-bottom: var(--space-2);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.02);
-  color: #f2efe8;
+  background: color-mix(in srgb, var(--surface-container) 8%, transparent);
+  color: var(--on-surface);
   cursor: pointer;
   transition:
     border-color 0.12s ease,
@@ -5399,7 +4407,7 @@
   flex-shrink: 0;
 }
 .devicesRowMeta .pill {
-  padding: 2px 8px;
+  padding: 4px 8px;
   font-size: var(--font-size-xs);
 }
 .devicesGroupLabel {
@@ -5427,7 +4435,7 @@
 }
 .devicesUnpair {
   margin-top: var(--space-2);
-  color: #e6a39a;
+  color: var(--primary);
 }
 @media (max-width: 720px) {
   .devicesBody {
@@ -5448,13 +4456,11 @@
   border-radius: var(--radius-md);
   background: var(--panel-deep);
 }
-
-/* Deep-link subscription confirmation (see InstallConfigConfirmModal). */
 .installConfigDetails {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 14px 0;
+  margin: 16px 0;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -5462,7 +4468,7 @@
 }
 .installConfigRow {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: baseline;
 }
 .installConfigRow .fieldLab {
@@ -5480,17 +4486,15 @@
 .installConfigWarn {
   margin: 0 0 4px;
   font-size: 0.88rem;
-  color: var(--warn, #d8a657);
+  color: var(--warn, var(--primary));
 }
-
-/* Connections: the exit node a connection actually egressed through. */
 .connNodeChip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   max-width: 240px;
   vertical-align: bottom;
-  padding: 2px 10px;
+  padding: 4px 12px;
   border-radius: 999px;
   font-size: 0.82rem;
   font-weight: 600;
@@ -5515,17 +4519,15 @@
   font-size: 0.82rem;
   color: var(--muted);
 }
-
-/* Privileged helper service: outdated-version nudge (security update). */
 .serviceUpdateBanner {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 10px 0 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--warn, #d8a657);
+  margin: 12px 0 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--warn, var(--outline-variant));
   border-radius: var(--radius-sm);
-  background: rgba(216, 166, 87, 0.1);
+  background: color-mix(in srgb, var(--primary-container) 10%, transparent);
 }
 .serviceUpdateIcon {
   font-size: 1.3rem;
@@ -5534,7 +4536,7 @@
 .serviceUpdateBody {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   font-size: 0.88rem;
   flex: 1;
   min-width: 0;
@@ -5545,18 +4547,15 @@
 .serviceUpdateBanner .btn {
   flex: none;
 }
-
-/* App-wide "update the helper service" bar — shown on every screen while the
-   privileged service is outdated (security), until dismissed for the session. */
 .serviceUpdateBar {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 14px;
-  padding: 10px 14px;
-  border: 1px solid var(--warn, #d8a657);
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--warn, var(--outline-variant));
   border-radius: var(--radius-sm);
-  background: rgba(216, 166, 87, 0.12);
+  background: color-mix(in srgb, var(--primary-container) 12%, transparent);
 }
 .serviceUpdateBarIcon {
   font-size: 1.15rem;
@@ -5578,22 +4577,19 @@
   color: var(--muted);
   font-size: 0.9rem;
   cursor: pointer;
-  padding: 4px 6px;
+  padding: 4px 8px;
   border-radius: 6px;
 }
 .serviceUpdateBarClose:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--surface-container) 8%, transparent);
 }
-
-/* Top-level ErrorBoundary fallback (last-resort UI when a render throws). */
 .appErrorFallback {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  /* Fills the window like .shell — percentage, not a viewport unit (zoom). */
   height: 100%;
   padding: 32px;
   text-align: center;
@@ -5615,7 +4611,7 @@
   max-width: 520px;
   max-height: 160px;
   overflow: auto;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--panel-2);
@@ -5626,11 +4622,9 @@
 }
 .appErrorActions {
   display: flex;
-  gap: 10px;
-  margin-top: 6px;
+  gap: 12px;
+  margin-top: 8px;
 }
-
-/* ── Company VPN (corp-vpn-coexistence) ─────────────────────────── */
 .corp .corpHeader {
   display: flex;
   align-items: center;
@@ -5638,7 +4632,7 @@
   gap: var(--space-3);
 }
 .corpPillOn {
-  color: var(--ok, #16a34a);
+  color: var(--ok, var(--primary));
   border-color: currentColor;
 }
 .corpCard {
@@ -5678,7 +4672,7 @@
   justify-content: flex-end;
 }
 .corpWarn {
-  color: var(--warn, #d97706);
+  color: var(--warn, var(--primary));
   margin: 0;
 }
 .corpFingerprint {
@@ -5691,11 +4685,6 @@
   word-break: break-all;
   font-size: var(--font-size-sm);
 }
-
-/* Corporate VPN — live indicators + log view */
-.navIcon {
-  position: relative;
-}
 .navActiveDot {
   position: absolute;
   top: -2px;
@@ -5703,16 +4692,16 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--ok, #16a34a);
-  box-shadow: 0 0 0 2px var(--panel, #111);
+  background: var(--ok, var(--primary-container));
+  box-shadow: 0 0 0 1px var(--outline-variant);
 }
 .homeCorpPill {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   align-self: flex-start;
-  padding: 4px 10px;
-  margin-top: 6px;
+  padding: 4px 12px;
+  margin-top: 8px;
   border: 1px solid var(--hairline);
   border-radius: 999px;
   background: var(--panel-deep);
@@ -5721,13 +4710,13 @@
   cursor: pointer;
 }
 .homeCorpPill:hover {
-  border-color: var(--ok, #16a34a);
+  border-color: var(--ok, var(--outline-variant));
 }
 .homeCorpDot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--ok, #16a34a);
+  background: var(--ok, var(--primary-container));
 }
 .corpLogs {
   gap: var(--space-2);
@@ -5761,8 +4750,6 @@
 .corpRemember input {
   cursor: pointer;
 }
-
-/* Corporate VPN — two-column layout (form + info) */
 .corpGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
@@ -5803,7 +4790,7 @@
 }
 .corpHow li {
   position: relative;
-  padding-left: 18px;
+  padding-left: 20px;
   font-size: var(--font-size-sm);
   color: var(--text);
 }
@@ -5815,15 +4802,13 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--accent, #c9a86c);
+  background: var(--accent, var(--primary-container));
 }
 .corpAside .corpProtocols {
   margin: 0;
   padding-top: var(--space-3);
   border-top: 1px solid var(--hairline);
 }
-
-/* === Per-profile JavaScript override (js-script-override) === */
 .scriptEditorModal {
   gap: var(--space-2);
 }
@@ -5840,9 +4825,6 @@
   flex: 0 0 auto;
   margin: 0 0 var(--space-2);
 }
-
-/* Failure line: same red as the YAML error, but it carries a line:column so it
-   needs to wrap instead of clipping a long engine message. */
 .scriptErrorLine {
   margin: 0;
   padding: var(--space-1) 0;
@@ -5870,23 +4852,17 @@
   font-size: var(--font-size-xs);
   line-height: 1.5;
   color: var(--text-muted);
-  background: rgba(0, 0, 0, 0.18);
+  background: color-mix(in srgb, var(--surface-container) 18%, transparent);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
   white-space: pre-wrap;
   word-break: break-word;
 }
-
-.shell[data-theme="light"] .scriptConsoleOut {
-  background: rgba(74, 55, 30, 0.05);
-}
-
-/* "JS" badge on a profile card whose script failed on the last generation. */
 .profileScriptBadge {
   flex: 0 0 auto;
   align-self: center;
   margin-left: var(--space-1);
-  padding: 0 6px;
+  padding: 0 8px;
   border-radius: var(--radius-sm, 6px);
   border: 1px solid var(--danger);
   color: var(--danger);

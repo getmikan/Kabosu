@@ -49,7 +49,7 @@ func windowsEnsureSlothIPCReachable(ctx context.Context) error {
 	// Wording matters: isServiceUnreachableError keys the reinstall banner on
 	// "socket unreachable".
 	return fmt.Errorf(
-		"Sloth service socket unreachable at %s (unit %s loaded=%v active=%v): %w [%s]",
+		"Kabosu service socket unreachable at %s (unit %s loaded=%v active=%v): %w [%s]",
 		slothServiceSocketPath,
 		slothLinuxServiceUnit,
 		loaded,

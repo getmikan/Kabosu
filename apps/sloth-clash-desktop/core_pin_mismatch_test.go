@@ -54,7 +54,7 @@ func TestIsServiceUnreachableError(t *testing.T) {
 		},
 		{
 			"linux unit present but socket never came up",
-			errors.New("Sloth service socket unreachable at /tmp/slothclash/sloth-clash-service.sock (unit sloth-clash-service loaded=true active=false): dial unix: connect: no such file or directory [socket-stat=...]"),
+			errors.New("Kabosu service socket unreachable at /tmp/slothclash/sloth-clash-service.sock (unit sloth-clash-service loaded=true active=false): dial unix: connect: no such file or directory [socket-stat=...]"),
 			true,
 		},
 		{"pin mismatch is not unreachable", errors.New("does not match any pinned hash"), false},

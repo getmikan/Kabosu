@@ -12,7 +12,7 @@ scripts/_env.sh
 .vscode
 .tool-versions
 # The Go release the mihomo core is built with (read by scripts/core-build.mjs and CI).
-!core/mihomo/.tool-versions
+!core/citrus/.tool-versions
 .idea
 .old
 .eslintcache

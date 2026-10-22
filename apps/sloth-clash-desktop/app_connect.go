@@ -417,6 +417,11 @@ func (a *App) connectAfterCoreStarts(gen uint64) error {
 	}
 	secret = a.coreSecret
 	mode = strings.TrimSpace(a.state.Mode.Current)
+	if i := a.activeProfileIndexLocked(); i >= 0 && profileGlobalLocked(a.profiles[i]) {
+		mode = "rule"
+		a.state.Mode.Current = "rule"
+		a.state.Mode.LastNonDirectMode = "rule"
+	}
 	traffic = strings.TrimSpace(a.state.Traffic)
 	if mode != "rule" && mode != "global" && mode != "direct" {
 		mode = "rule"

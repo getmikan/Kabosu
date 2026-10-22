@@ -16,7 +16,7 @@ import {
   coreBuildKey,
   readManifest as readCoreManifest,
   verifyBuiltCore,
-  verifyPatchSeries,
+  verifyCoreManifest,
 } from './core-build.mjs'
 import { log_debug, log_error, log_info, log_success } from './utils.mjs'
 
@@ -100,7 +100,7 @@ const SIDECAR_HOST = target
 const desktopRoot = path.join(cwd, 'apps', 'sloth-clash-desktop')
 if (!fs.existsSync(desktopRoot)) {
   throw new Error(
-    `[prebuild] Missing ${desktopRoot}. Clone or add the Sloth Wails app (apps/sloth-clash-desktop).`,
+    `[prebuild] Missing ${desktopRoot}. Clone or add the Kabosu Wails app (apps/sloth-clash-desktop).`,
   )
 }
 
@@ -169,18 +169,16 @@ async function updateHashCache(targetPath) {
 // Meta maps (stable)
 // =======================
 
-// The shipped core is the patched mihomo described by core/mihomo/manifest.json
-// (upstream tag + core/patches/mihomo), built by scripts/core-build.mjs:
+// The shipped core is the Citrus described by core/citrus/manifest.json
+// (upstream tag + core/citrus), built by scripts/core-build.mjs:
 //   - release CI: the "core" job of desktop-artifacts.yml builds every target
 //     and runs the REALITY lab; app jobs get it as SLOTH_CORE_DIR and prebuild
 //     only checks it against the manifest (CI without it is an error);
 //   - local: prebuild builds the host target (git + Go, no tests), cached by
-//     upstream commit + patch hashes + Go version under node_modules/.verge/core.
+//     source commit + builder + Go version under node_modules/.verge/core.
 // See docs/core-patches.md for the bump flow.
 //
-// Escape hatches (both log loudly and are never used by release CI):
-//   SLOTH_CORE_FILE=<path>        use a locally built core as-is
-//   MIHOMO_CORE_VERSION=<vX.Y.Z>  stock, unpatched upstream build (comparison/rollback)
+// Unverified core overrides are rejected; all resources use the pinned Citrus source.
 const CORE_MANIFEST = readCoreManifest()
 const CORE_TARGETS = {
   'win32-x64': 'windows-amd64',
@@ -190,46 +188,12 @@ const CORE_TARGETS = {
   'linux-x64': 'linux-amd64',
   'linux-arm64': 'linux-arm64',
 }
-const META_VERSION_PINNED = CORE_MANIFEST.tag
-const META_URL_PREFIX = `https://github.com/MetaCubeX/mihomo/releases/download`
-let META_VERSION
-
-const META_MAP = {
-  'win32-x64': 'mihomo-windows-amd64-v2',
-  'win32-ia32': 'mihomo-windows-386',
-  'win32-arm64': 'mihomo-windows-arm64',
-  'darwin-x64': 'mihomo-darwin-amd64-v2-go122',
-  'darwin-arm64': 'mihomo-darwin-arm64-go122',
-  'linux-x64': 'mihomo-linux-amd64-v2',
-  'linux-ia32': 'mihomo-linux-386',
-  'linux-arm64': 'mihomo-linux-arm64',
-  'linux-arm': 'mihomo-linux-armv7',
-  'linux-riscv64': 'mihomo-linux-riscv64',
-  'linux-loong64': 'mihomo-linux-loong64',
+if (!CORE_TARGETS[`${platform}-${arch}`]) {
+  throw new Error(`Citrus unsupported platform "${platform}-${arch}"`)
 }
 
 // =======================
-// Resolve pinned core version
-// =======================
-async function getLatestReleaseVersion() {
-  const override = (process.env.MIHOMO_CORE_VERSION || '').trim()
-  META_VERSION = override || META_VERSION_PINNED
-  log_info(
-    override
-      ? `Using MIHOMO_CORE_VERSION override: ${META_VERSION}`
-      : `Using pinned mihomo core version: ${META_VERSION}`,
-  )
-}
-
-// =======================
-// Validate availability
-// =======================
-if (!META_MAP[`${platform}-${arch}`]) {
-  throw new Error(`clash meta unsupported platform "${platform}-${arch}"`)
-}
-
-// =======================
-// Patched core (default)
+// Pinned Citrus core
 // =======================
 async function sha256File(p) {
   return createHash('sha256')
@@ -238,23 +202,18 @@ async function sha256File(p) {
 }
 
 // core-build.json travels with the binary (main.go embeds build/sidecar) so
-// About can say exactly what core this build ships: upstream tag + patches.
-// ref = the commit the build came from (CI), so the patch links show exactly
-// that series; empty for local builds (links fall back to main).
+// About can say exactly what core this build ships: Citrus version + source commit.
+// ref = the commit the build came from (CI), for the source link shown in Settings.
 async function writeCoreBuildInfo(source, sha256) {
   await fsp.writeFile(
     path.join(SIDECAR_DIR, 'core-version.txt'),
-    `${source === 'stock' ? META_VERSION : CORE_MANIFEST.tag}\n`,
+    `${CORE_MANIFEST.tag}\n`,
   )
   const info = {
-    version: source === 'stock' ? META_VERSION : CORE_MANIFEST.tag,
-    source, // patched | stock | local
-    ref:
-      source === 'patched' &&
-      /^[0-9a-f]{40}$/.test(process.env.GITHUB_SHA || '')
-        ? process.env.GITHUB_SHA
-        : '',
-    patches: source === 'stock' ? [] : CORE_MANIFEST.patches.map((p) => p.file),
+    version: CORE_MANIFEST.tag,
+    source, // citrus
+    ref: source === 'citrus' ? CORE_MANIFEST.commit : '',
+    patches: [],
     sha256,
   }
   await fsp.writeFile(
@@ -269,8 +228,8 @@ async function installCore(from, sidecarPath, isWin) {
 }
 
 // Local build of the host target, reused while the inputs are unchanged.
-async function localPatchedCore(target) {
-  verifyPatchSeries(CORE_MANIFEST)
+async function localCitrusCore(target) {
+  verifyCoreManifest(CORE_MANIFEST)
   const key = coreBuildKey(CORE_MANIFEST, target)
   const cacheDir = path.join(TEMP_DIR, 'core', key)
   const cached = path.join(cacheDir, CORE_MANIFEST.assets[target].file)
@@ -278,7 +237,7 @@ async function localPatchedCore(target) {
     try {
       const { sha256 } = verifyBuiltCore(cacheDir, target, CORE_MANIFEST)
       log_success(
-        `[core] patched ${target} from the local build cache (${key})`,
+        `[core] Citrus ${target} from the local build cache (${key})`,
       )
       return { file: cached, sha256 }
     } catch (err) {
@@ -288,8 +247,8 @@ async function localPatchedCore(target) {
     }
   }
   log_info(
-    `[core] building mihomo ${CORE_MANIFEST.tag} + ${CORE_MANIFEST.patches.length} patches for ${target} ` +
-      '(git + Go; once per core/patch/Go change; release CI also runs the patch tests and the REALITY lab)',
+    `[core] building Citrus ${CORE_MANIFEST.tag} + Citrus dev for ${target} ` +
+      '(git + Go; cached per source/builder/Go change; release CI also runs native core tests)',
   )
   await fsp.rm(cacheDir, { recursive: true, force: true })
   buildCore({ outDir: cacheDir, targets: [target], skipTests: true })
@@ -304,50 +263,31 @@ async function resolveCore() {
     `sloth-mihomo-${SIDECAR_HOST}${isWin ? '.exe' : ''}`,
   )
 
-  const local = (process.env.SLOTH_CORE_FILE || '').trim()
-  if (local) {
-    await installCore(local, sidecarPath, isWin)
-    const sha = await sha256File(sidecarPath)
-    log_info(
-      `[core] SLOTH_CORE_FILE: using local core ${local} (sha256 ${sha}) — not for release`,
-    )
-    await writeCoreBuildInfo('local', sha)
-    return
-  }
-
-  if ((process.env.MIHOMO_CORE_VERSION || '').trim()) {
-    await getLatestReleaseVersion()
-    // resolveSidecar keeps an existing file; drop it so the label can't lie.
-    await fsp.rm(sidecarPath, { force: true })
-    log_info(
-      '[core] MIHOMO_CORE_VERSION set: STOCK upstream core, without the patch series',
-    )
-    await resolveSidecar(clashMeta())
-    await writeCoreBuildInfo('stock', await sha256File(sidecarPath))
-    return
+  if ((process.env.SLOTH_CORE_FILE || '').trim() || (process.env.MIHOMO_CORE_VERSION || '').trim()) {
+    throw new Error('Unverified core overrides are no longer supported; use SLOTH_CORE_DIR produced by the pinned Citrus builder')
   }
 
   const target = CORE_TARGETS[`${platform}-${arch}`]
   if (!target || !CORE_MANIFEST.assets[target]) {
     throw new Error(
-      `[core] no patched core for ${platform}-${arch} in core/mihomo/manifest.json`,
+      `[core] no pinned Citrus core for ${platform}-${arch} in core/citrus/manifest.json`,
     )
   }
 
   const dir = (process.env.SLOTH_CORE_DIR || '').trim()
   let core
   if (dir) {
-    // The core built and lab-tested earlier in this CI run.
-    verifyPatchSeries(CORE_MANIFEST)
+    // The core built and tested earlier in this CI run.
+    verifyCoreManifest(CORE_MANIFEST)
     core = verifyBuiltCore(path.resolve(dir), target, CORE_MANIFEST)
-    log_success(`[core] patched ${target} from ${dir} (matches the manifest)`)
+    log_success(`[core] Citrus ${target} from ${dir} (matches the manifest)`)
   } else if (process.env.GITHUB_ACTIONS === 'true') {
     throw new Error(
       '[core] SLOTH_CORE_DIR is not set: release CI must embed the core built and tested ' +
         'by the "core" job (core-build.yml), never an untested local build',
     )
   } else {
-    core = await localPatchedCore(target)
+    core = await localCitrusCore(target)
   }
 
   if (
@@ -355,29 +295,16 @@ async function resolveCore() {
     (await sha256File(sidecarPath)) !== core.sha256
   ) {
     await installCore(core.file, sidecarPath, isWin)
-    log_success(`[core] installed patched ${target} (sha256 ${core.sha256})`)
+    log_success(`[core] installed Citrus ${target} (sha256 ${core.sha256})`)
   } else {
-    log_success(`[core] patched ${target} already in place`)
+    log_success(`[core] Citrus ${target} already in place`)
   }
-  await writeCoreBuildInfo('patched', core.sha256)
+  await writeCoreBuildInfo('citrus', core.sha256)
 }
 
 // =======================
 // Build meta objects
 // =======================
-function clashMeta() {
-  const name = META_MAP[`${platform}-${arch}`]
-  const isWin = platform === 'win32'
-  const urlExt = isWin ? 'zip' : 'gz'
-  return {
-    name: 'sloth-mihomo',
-    targetFile: `sloth-mihomo-${SIDECAR_HOST}${isWin ? '.exe' : ''}`,
-    exeFile: `${name}${isWin ? '.exe' : ''}`,
-    zipFile: `${name}-${META_VERSION}.${urlExt}`,
-    downloadURL: `${META_URL_PREFIX}/${META_VERSION}/${name}-${META_VERSION}.${urlExt}`,
-  }
-}
-
 // =======================
 // download helper (增强：status + magic bytes)
 // =======================
@@ -440,13 +367,7 @@ async function resolveSidecar(binInfo) {
   // User-Agent: panels gate protocol output on it) without spawning it.
   // Written on every run, including cache hits, so the file can never lag
   // behind the pin.
-  if (name === 'sloth-mihomo') {
-    await fsp.writeFile(
-      path.join(SIDECAR_DIR, 'core-version.txt'),
-      `${META_VERSION}
-`,
-    )
-  }
+
 
   if (!FORCE && fs.existsSync(sidecarPath)) {
     log_success(`"${name}" already exists, skipping download`)
@@ -652,7 +573,7 @@ const resolveServicePermission = async () => {
 // =======================
 // Other resource resolvers (service, mmdb, geosite, geoip, enableLoopback)
 // =======================
-// Sloth Windows service IPC binaries (fork of clash-verge-service-ipc).
+// Kabosu Windows service IPC binaries (fork of clash-verge-service-ipc).
 // Release asset tag is usually the Rust host triple. GNU Windows hosts often
 // have no matching GitHub release — use MSVC triple for downloads instead.
 // Override with: SLOTH_SERVICE_RELEASE_TAG=v0.1.0 pnpm run prebuild

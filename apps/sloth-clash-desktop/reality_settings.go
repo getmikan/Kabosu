@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -34,16 +35,6 @@ func normalizeRealityMLKEM(v string) string {
 }
 
 // coreRealityMLKEM maps the app value to the core key value.
-func coreRealityMLKEM(v string) string {
-	switch normalizeRealityMLKEM(v) {
-	case "always":
-		return "on"
-	case "never":
-		return "off"
-	}
-	return "auto"
-}
-
 // parseRealityClientVersion validates "x.y.z" with each part 0..255 (the core
 // stores it in three bytes of the ClientHello) and returns it canonicalised.
 // "" is valid and means "core default".
@@ -95,17 +86,94 @@ func (a *App) SetRealitySettings(next RealitySettings) (DesktopPrefs, error) {
 // the core uses its default. A malformed subscription value is dropped: the
 // patched core rejects the whole config on it.
 func applyRealityOverlay(m map[string]any, r RealitySettings) {
-	m["reality-mlkem"] = coreRealityMLKEM(r.MLKEM)
-
 	version, _ := parseRealityClientVersion(r.ClientVersion)
+	userVersion := version != ""
 	if version == "" {
 		if raw, ok := m["reality-client-version"]; ok {
 			version, _ = parseRealityClientVersion(fmt.Sprint(raw))
 		}
 	}
-	if version == "" {
-		delete(m, "reality-client-version")
-		return
+	delete(m, "reality-client-version")
+	delete(m, "reality-mlkem")
+	policy := normalizeRealityMLKEM(r.MLKEM)
+	applyNode := func(node map[string]any) {
+		opts, ok := node["reality-opts"].(map[string]any)
+		if !ok {
+			return
+		}
+		if version != "" && (userVersion || strings.TrimSpace(fmt.Sprint(opts["client-version"])) == "" || opts["client-version"] == nil) {
+			opts["client-version"] = version
+		}
+		if policy != "auto" {
+			opts["support-x25519mlkem768"] = policy == "always"
+		}
 	}
-	m["reality-client-version"] = version
+	applyNodes := func(raw any) {
+		switch nodes := raw.(type) {
+		case []any:
+			for _, rawNode := range nodes {
+				if node, ok := rawNode.(map[string]any); ok {
+					applyNode(node)
+				}
+			}
+		case []map[string]any:
+			for _, node := range nodes {
+				applyNode(node)
+			}
+		}
+	}
+	applyNodes(m["proxies"])
+	providers, _ := m["proxy-providers"].(map[string]any)
+	for _, rawProvider := range providers {
+		provider, ok := rawProvider.(map[string]any)
+		if !ok {
+			continue
+		}
+		applyNodes(provider["payload"])
+		override, ok := provider["override"].(map[string]any)
+		if !ok {
+			override = map[string]any{}
+		}
+		expressions := []any{}
+		switch raw := override["override-expr"].(type) {
+		case []any:
+			expressions = raw
+		case []string:
+			for _, expression := range raw {
+				expressions = append(expressions, expression)
+			}
+		case nil:
+		default:
+			continue // Keep malformed input for the core to reject; never erase it.
+		}
+		kept := []any{}
+		for _, expression := range expressions {
+			text, ok := expression.(string)
+			if !ok || !strings.HasSuffix(text, " # kabosu-reality") {
+				kept = append(kept, expression)
+			}
+		}
+		if version != "" {
+			condition := `has("reality-opts")`
+			if !userVersion {
+				condition += ` and (.reality-opts.client-version == null or .reality-opts.client-version == "")`
+			}
+			encoded, _ := json.Marshal(version)
+			kept = append(kept, `(select(`+condition+`) | .reality-opts.client-version) = `+string(encoded)+` # kabosu-reality`)
+		}
+		if policy != "auto" {
+			kept = append(kept, `(select(has("reality-opts")) | .reality-opts.support-x25519mlkem768) = `+strconv.FormatBool(policy == "always")+` # kabosu-reality`)
+		}
+		if len(kept) > 0 {
+			override["override-expr"] = kept
+			provider["override"] = override
+		} else {
+			delete(override, "override-expr")
+			if len(override) > 0 {
+				provider["override"] = override
+			} else {
+				delete(provider, "override")
+			}
+		}
+	}
 }

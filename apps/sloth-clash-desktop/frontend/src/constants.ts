@@ -2,12 +2,11 @@ export const LS_THEME = 'sloth-theme'
 // Raw user-picked accent hex (#rrggbb); absence = built-in per-theme accents.
 export const LS_ACCENT = 'sloth-accent-v1'
 export const LS_SPOTLIGHT = 'sloth-spotlight-tour-v2'
-export const LS_NAV_COLLAPSED = 'sloth-nav-collapsed-v1'
+export const LS_NAV_COLLAPSED = 'kabosu-nav-collapsed-v2'
 export const LS_SETTINGS = 'sloth-settings-v1'
 
-export const APP_REPO_URL = 'https://github.com/Nemu-x/SlothClash'
-export const APP_TELEGRAM_URL = 'https://t.me/nemux_dev'
-export const APP_DOWNLOADS_URL = 'https://nemu-x.github.io/SlothClash/'
+export const APP_REPO_URL = 'https://github.com/getmikan/Kabosu'
+export const APP_DOWNLOADS_URL = `${APP_REPO_URL}/releases`
 
 // Full mihomo (Clash.Meta) rule-type set, grouped: domain / IP / source-IP /
 // port / process / inbound / misc / rule-set & logical / MATCH last.

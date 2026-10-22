@@ -63,7 +63,7 @@ func windowsEnsureSlothIPCReachable(ctx context.Context) error {
 	}
 
 	return fmt.Errorf(
-		"Sloth IPC socket unreachable at %s (service id %s): %w [%s]",
+		"Kabosu IPC socket unreachable at %s (service id %s): %w [%s]",
 		slothServiceSocketPath,
 		slothDarwinServiceID,
 		origErr,

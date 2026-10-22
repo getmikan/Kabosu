@@ -31,7 +31,7 @@ fi
 
 if [ -n "$APPDIR" ] && command -v desktop-file-validate >/dev/null; then
   echo "== desktop file"
-  desktop-file-validate "$APPDIR/usr/share/applications/sloth-clash.desktop"
+  desktop-file-validate "$APPDIR/usr/share/applications/kabosu.desktop"
 fi
 if [ -n "$APPDIR" ] && command -v appstreamcli >/dev/null; then
   echo "== AppStream metainfo (warnings allowed, errors fail)"

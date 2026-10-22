@@ -1,7 +1,7 @@
 Unicode true
 
 ####
-## Sloth Clash — NSIS installer (Wails-compatible).
+## Kabosu — NSIS installer (Wails-compatible).
 ## Synced into build/windows/installer/project.nsi before `wails build` (see scripts/sync-desktop-packaging.mjs).
 ##
 ## Adds English / Russian / Simplified Chinese and shows the Modern UI language dialog so the
@@ -44,7 +44,7 @@ ManifestDPIAware true
 
 # Remember installer language; LangDLL picks a sensible default from the OS UI language.
 !define MUI_LANGDLL_REGISTRY_ROOT HKCU
-!define MUI_LANGDLL_REGISTRY_KEY "Software\Nemu-x\SlothClashDesktop\Installer"
+!define MUI_LANGDLL_REGISTRY_KEY "Software\getmikan\Kabosu\Installer"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "InstallerLanguage"
 
 !insertmacro MUI_RESERVEFILE_LANGDLL
@@ -72,9 +72,9 @@ LangString SL_UNINSTALL_CORE ${LANG_SIMPCHINESE} "删除应用程序文件"
 LangString SL_UNINSTALL_DATA ${LANG_ENGLISH} "Remove user data (profiles, runtime, logs)"
 LangString SL_UNINSTALL_DATA ${LANG_RUSSIAN} "Удалить пользовательские данные (профили, runtime, логи)"
 LangString SL_UNINSTALL_DATA ${LANG_SIMPCHINESE} "删除用户数据（配置、运行时、日志）"
-LangString SL_LAUNCH_APP ${LANG_ENGLISH} "Launch SlothClash"
-LangString SL_LAUNCH_APP ${LANG_RUSSIAN} "Запустить SlothClash"
-LangString SL_LAUNCH_APP ${LANG_SIMPCHINESE} "启动 SlothClash"
+LangString SL_LAUNCH_APP ${LANG_ENGLISH} "Launch Kabosu"
+LangString SL_LAUNCH_APP ${LANG_RUSSIAN} "Запустить Kabosu"
+LangString SL_LAUNCH_APP ${LANG_SIMPCHINESE} "启动 Kabosu"
 LangString SL_VCREDIST_INSTALLING ${LANG_ENGLISH} "Installing required runtime: Visual C++ 2015-2022 (one-time, please wait)..."
 LangString SL_VCREDIST_INSTALLING ${LANG_RUSSIAN} "Установка необходимого компонента: Visual C++ 2015-2022 (один раз, подождите)..."
 LangString SL_VCREDIST_INSTALLING ${LANG_SIMPCHINESE} "正在安装所需运行库: Visual C++ 2015-2022（一次性，请稍候）..."
@@ -171,12 +171,12 @@ Section "${INFO_PRODUCTNAME}" SecApp
     ; nsExec: first Pop = exit code. taskkill: 0 = terminated, 128 = image not found (not running).
     StrCmp $0 "0" KillExit0 KillNot0
   KillExit0:
-    DetailPrint 'Stopped running Sloth Clash (taskkill OK).'
+    DetailPrint 'Stopped running Kabosu (taskkill OK).'
     Goto AfterKillMsg
   KillNot0:
     StrCmp $0 "128" KillExit128 KillUnknown
   KillExit128:
-    DetailPrint 'Sloth Clash was not running (nothing to stop).'
+    DetailPrint 'Kabosu was not running (nothing to stop).'
     Goto AfterKillMsg
   KillUnknown:
     DetailPrint "taskkill exit $0 — continuing anyway."

@@ -231,7 +231,7 @@ func TestValidateRulePoliciesExistRejectsUnknownPolicy(t *testing.T) {
 }
 
 // Transient subscription fetch failures (TUN up-race, origin 5xx, captive
-// portal, VPN flap) must not regress a working full profile into Sloth's
+// portal, VPN flap) must not regress a working full profile into Kabosu's
 // bare `sub1 + Manual` fallback. The on-disk subscription body cache exists
 // exactly for this: tryWriteMergedFullProfile writes it after every good
 // fetch and reads it back when the HTTP call fails.
@@ -332,4 +332,3 @@ func containsAll(s string, parts []string) bool {
 	}
 	return true
 }
-

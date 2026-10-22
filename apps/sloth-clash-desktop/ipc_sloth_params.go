@@ -1,6 +1,6 @@
 package main
 
-// slothIPCStartParams is the JSON body shape for POST /clash/start on the Sloth Windows IPC service.
+// slothIPCStartParams is the JSON body shape for POST /clash/start on the Kabosu Windows IPC service.
 type slothIPCStartParams struct {
 	CorePath     string
 	ConfigPath   string

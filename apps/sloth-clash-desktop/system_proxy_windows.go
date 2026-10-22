@@ -98,7 +98,7 @@ func (a *App) clearSystemProxyLocked() {
 		return
 	}
 	// Process can restart with systemProxyLeased=false while HKCU proxy still points to old
-	// localhost mixed-port from previous Sloth run; clear that stale loopback proxy too.
+	// localhost mixed-port from previous Kabosu run; clear that stale loopback proxy too.
 	_ = clearStaleLoopbackUserProxy()
 }
 

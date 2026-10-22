@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Kabosu
+Comment=Clash Meta (Mihomo) desktop client
+Exec=kabosu-desktop %u
+Icon=kabosu
+Terminal=false
+Categories=Network;
+Keywords=Clash;Mihomo;Proxy;VPN;TUN;
+MimeType=x-scheme-handler/kabosu;
+StartupWMClass=Kabosu

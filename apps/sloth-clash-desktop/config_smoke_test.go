@@ -254,4 +254,3 @@ rules:
 		t.Fatalf("expected cache to be written after first fetch: %v", err)
 	}
 }
-

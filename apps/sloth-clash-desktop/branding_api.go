@@ -20,6 +20,15 @@ type ActiveBranding struct {
 func (a *App) GetActiveBranding() ActiveBranding {
 	a.mu.Lock()
 	id := strings.TrimSpace(a.state.Profile.ActiveProfileID)
+	var fallback *BrandManifest
+	knownMetadata := false
+	for _, p := range a.profiles {
+		if p.ID == id && p.Panel != nil {
+			fallback = p.Panel.Brand
+			knownMetadata = true
+			break
+		}
+	}
 	a.mu.Unlock()
 	if id == "" {
 		return ActiveBranding{}
@@ -30,6 +39,9 @@ func (a *App) GetActiveBranding() ActiveBranding {
 	}
 	dataDir := filepath.Join(root, "runtime", id)
 	m := readBrandManifest(dataDir)
+	if knownMetadata {
+		m = fallback
+	}
 	if m == nil {
 		return ActiveBranding{}
 	}

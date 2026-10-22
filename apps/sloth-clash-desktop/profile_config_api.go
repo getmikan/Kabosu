@@ -271,6 +271,22 @@ func (a *App) WriteProfileConfig(profileID string, content string) (AppState, er
 	if !validProfileID(profileID) {
 		return a.GetAppState(), errors.New("profile id is required")
 	}
+	a.mu.RLock()
+	var target *Profile
+	for _, profile := range a.profiles {
+		if profile.ID == profileID {
+			copy := profile
+			target = &copy
+			break
+		}
+	}
+	a.mu.RUnlock()
+	if target == nil {
+		return a.GetAppState(), errors.New("profile not found")
+	}
+	if panel := profilePanel(*target); panel != nil && panel.ShareLinksLocked {
+		return a.GetAppState(), errors.New("raw config editing is locked by operator policy")
+	}
 	content = strings.TrimSpace(content)
 	if content == "" {
 		return a.GetAppState(), errors.New("config body is empty")
@@ -445,6 +461,7 @@ func (a *App) reloadActiveProfileConfig() error {
 //     and merges it without restarting. Because the YAML reflects the caller's
 //     intent verbatim, tun.enable is stable across reloads that preserve the
 //     intent, so there is no PATCH-driven wintun flap.
+//
 // profileHasLocalConfig reports whether a profile supplies its own config
 // WITHOUT a subscription URL: a local/imported profile (Type "local" — its body
 // is seeded into the subscription body cache at import, see ImportProfileFromText)

@@ -173,81 +173,59 @@ export function RulesPage({
               })}
             </p>
           ) : null}
-          <div className="rulesTableWrap rulesTableWrapFull">
-            <table className="rulesTable">
-              <thead>
-                <tr>
-                  <th
-                    className="rulesToggleCol"
-                    title={t('ui.rules.toggleCol')}
-                  >
-                    {t('ui.rules.toggleCol')}
-                  </th>
-                  <th>#</th>
-                  <th>{t('ui.rules.type')}</th>
-                  <th>{t('ui.rules.match')}</th>
-                  <th>{t('ui.rules.policy')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRulesRows.map((r, i) => {
-                  const isDisabled = r.disabled === true
-                  const line = isDisabled ? r.line : ruleToggle.matchLine(r)
-                  const canToggle = togglesReady && Boolean(line)
-                  const busy = line ? ruleToggle.busyLines.has(line) : false
-                  const key = isDisabled
-                    ? `off-${r.line}`
-                    : `${r.idx}-${r.type}-${r.payload}-${i}`
-                  return (
-                    <tr
-                      key={key}
-                      className={isDisabled ? 'ruleRowDisabled' : undefined}
-                    >
-                      <td className="rulesToggleCell">
-                        <input
-                          type="checkbox"
-                          className="ruleToggleBox"
-                          checked={!isDisabled}
-                          disabled={!canToggle || busy}
-                          title={
-                            canToggle
-                              ? isDisabled
-                                ? t('ui.rules.toggleEnable')
-                                : t('ui.rules.toggleDisable')
-                              : rowHint(r)
-                          }
-                          aria-label={
-                            isDisabled
-                              ? t('ui.rules.toggleEnable')
-                              : t('ui.rules.toggleDisable')
-                          }
-                          onChange={() => {
-                            if (!canToggle || busy) return
-                            if (isDisabled) {
-                              if (r.line) ruleToggle.onEnable(r.line)
-                            } else {
-                              ruleToggle.onDisable(r)
-                            }
-                          }}
-                        />
-                      </td>
-                      <td>{isDisabled ? '—' : r.idx}</td>
-                      <td>{r.type}</td>
-                      <td className="rulesPayload">{r.payload || '—'}</td>
-                      <td
+          <div className="ruleCards">
+            {filteredRulesRows.map((r, i) => {
+              const isDisabled = r.disabled === true
+              const line = isDisabled ? r.line : ruleToggle.matchLine(r)
+              const canToggle = togglesReady && Boolean(line)
+              const busy = line ? ruleToggle.busyLines.has(line) : false
+              return (
+                <article
+                  className={`ruleCard${isDisabled ? ' ruleRowDisabled' : ''}`}
+                  key={
+                    isDisabled
+                      ? `off-${r.line}`
+                      : `${r.idx}-${r.type}-${r.payload}-${i}`
+                  }
+                >
+                  <div className="ruleCardContent">
+                    <strong>{r.payload || r.type}</strong>
+                    <div className="ruleCardMeta">
+                      <span>{r.type}</span>
+                      <span
                         className={
                           r.proxy && r.proxy !== 'DIRECT'
-                            ? 'rulesPolicy rulesPolicyProxy'
-                            : 'rulesPolicy'
+                            ? 'rulePolicyProxy'
+                            : ''
                         }
                       >
                         {r.proxy}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                      </span>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="ruleToggleBox"
+                    checked={!isDisabled}
+                    disabled={!canToggle || busy}
+                    title={
+                      canToggle
+                        ? isDisabled
+                          ? t('ui.rules.toggleEnable')
+                          : t('ui.rules.toggleDisable')
+                        : rowHint(r)
+                    }
+                    aria-label={`${isDisabled ? t('ui.rules.toggleEnable') : t('ui.rules.toggleDisable')}: ${r.payload || r.type}`}
+                    onChange={() => {
+                      if (!canToggle || busy) return
+                      if (isDisabled) {
+                        if (r.line) ruleToggle.onEnable(r.line)
+                      } else ruleToggle.onDisable(r)
+                    }}
+                  />
+                </article>
+              )
+            })}
           </div>
         </>
       ) : (

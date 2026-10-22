@@ -1,0 +1,6 @@
+World map: MapSVG, adapted by Victor Cazanave / svg-maps.
+Source: https://github.com/VictorCazanave/svg-maps/tree/master/packages/world
+Original: https://mapsvg.com/maps/world
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+Changes: metadata stripped; used as a tonal/dotted CSS mask in Kabosu.

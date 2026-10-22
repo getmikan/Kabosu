@@ -56,7 +56,7 @@ void SlothTrayConfigureLabels(const char *showWindow,
     if (gLabelConnect != nil) { [gLabelConnect release]; gLabelConnect = nil; }
     gLabelShowWindow = SlothCopyCString(showWindow, @"Show Window");
     gLabelSettings = SlothCopyCString(settings, @"Settings…");
-    gLabelQuit = SlothCopyCString(quit, @"Quit Sloth Clash");
+    gLabelQuit = SlothCopyCString(quit, @"Quit Kabosu");
     gLabelConnect = SlothCopyCString(connect, @"Connect");
 }
 
@@ -103,7 +103,7 @@ static NSImage *SlothTrayTemplateImage(void) {
     NSImage *icon = nil;
     if (@available(macOS 11.0, *)) {
         icon = [NSImage imageWithSystemSymbolName:@"pawprint"
-                         accessibilityDescription:@"Sloth Clash"];
+                         accessibilityDescription:@"Kabosu"];
         if (icon != nil) {
             NSImageSymbolConfiguration *cfg =
                 [NSImageSymbolConfiguration configurationWithPointSize:14
@@ -117,7 +117,7 @@ static NSImage *SlothTrayTemplateImage(void) {
     }
     if (@available(macOS 11.0, *)) {
         icon = [NSImage imageWithSystemSymbolName:@"network"
-                         accessibilityDescription:@"Sloth Clash"];
+                         accessibilityDescription:@"Kabosu"];
         if (icon != nil) {
             NSImageSymbolConfiguration *cfg =
                 [NSImageSymbolConfiguration configurationWithPointSize:14
@@ -182,11 +182,11 @@ static void SlothTrayCreateOnMain(NSUInteger generation) {
             gStatusItem.button.title = @"SC";
             gStatusItem.button.font = [NSFont menuBarFontOfSize:11];
         }
-        gStatusItem.button.toolTip = @"Sloth Clash";
+        gStatusItem.button.toolTip = @"Kabosu";
         gStatusItem.button.appearsDisabled = NO;
         gStatusItem.button.hidden = NO;
 
-        gMenu = [[[NSMenu alloc] initWithTitle:@"Sloth Clash"] retain];
+        gMenu = [[[NSMenu alloc] initWithTitle:@"Kabosu"] retain];
 
         // Minimal menu — every navigation/mode/traffic toggle has a dedicated
         // place in the main window already. Earlier 14-item variant turned
@@ -196,7 +196,7 @@ static void SlothTrayCreateOnMain(NSUInteger generation) {
         NSString *showLabel = gLabelShowWindow != nil ? gLabelShowWindow : @"Show Window";
         NSString *connectLabel = gLabelConnect != nil ? gLabelConnect : @"Connect";
         NSString *settingsLabel = gLabelSettings != nil ? gLabelSettings : @"Settings…";
-        NSString *quitLabel = gLabelQuit != nil ? gLabelQuit : @"Quit Sloth Clash";
+        NSString *quitLabel = gLabelQuit != nil ? gLabelQuit : @"Quit Kabosu";
 
         NSMenuItem *showItem = [[NSMenuItem alloc] initWithTitle:showLabel action:@selector(onShow:) keyEquivalent:@""];
         [showItem setTarget:gHandler];
@@ -262,7 +262,7 @@ void SlothTraySetIcon(const unsigned char *bytes, int length, int isTemplate) {
     });
 }
 
-// SlothTraySetToolTip updates the hover text ("Sloth Clash · TUN mode").
+// SlothTraySetToolTip updates the hover text ("Kabosu · TUN mode").
 void SlothTraySetToolTip(const char *tip) {
     if (tip == NULL) return;
     NSString *t = [NSString stringWithUTF8String:tip];

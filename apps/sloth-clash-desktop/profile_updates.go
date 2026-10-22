@@ -80,15 +80,14 @@ func (a *App) refreshProfileSubscription(profileID string, reconnectActive bool)
 			continue
 		}
 		found = true
-		if s := strings.TrimSpace(peek.SubscriptionInfo); s != "" {
-			a.profiles[i].SubscriptionInfo = s
+		oldPanel := a.profiles[i].Panel
+		a.profiles[i].Panel = peek.Panel
+		if peek.Panel != nil && peek.Panel.UpdateIntervalMinutes > 0 && (a.profiles[i].AutoUpdateIntervalMinutes <= 0 || (oldPanel != nil && oldPanel.UpdateIntervalMinutes == a.profiles[i].AutoUpdateIntervalMinutes)) {
+			a.profiles[i].AutoUpdateIntervalMinutes = peek.Panel.UpdateIntervalMinutes
 		}
-		if s := strings.TrimSpace(peek.SubscriptionSupportURL); s != "" {
-			a.profiles[i].SubscriptionSupportURL = s
-		}
-		if s := strings.TrimSpace(peek.SubscriptionAnnouncement); s != "" {
-			a.profiles[i].SubscriptionAnnouncement = s
-		}
+		a.profiles[i].SubscriptionInfo = strings.TrimSpace(peek.SubscriptionInfo)
+		a.profiles[i].SubscriptionSupportURL = strings.TrimSpace(peek.SubscriptionSupportURL)
+		a.profiles[i].SubscriptionAnnouncement = strings.TrimSpace(peek.SubscriptionAnnouncement)
 		if a.profiles[i].AutoUpdateIntervalMinutes <= 0 {
 			a.profiles[i].AutoUpdateIntervalMinutes = defaultProfileAutoUpdateMinutes
 		}

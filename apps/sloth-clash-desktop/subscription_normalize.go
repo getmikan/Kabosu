@@ -217,6 +217,11 @@ func normalizeProxyGroupRefs(m map[string]any) {
 			continue
 		}
 		hasValidProvider := false
+		// Citrus owns chain topology. Dropping an unknown hop would silently
+		// turn an invalid requested route into a different valid route.
+		if typ, _ := gm["type"].(string); strings.EqualFold(typ, "chain") {
+			continue
+		}
 		useRaw, hasUse := gm["use"]
 		if !hasUse || useRaw == nil {
 		} else if useArr, ok := useRaw.([]any); ok {
@@ -346,6 +351,13 @@ func pruneFallbackAutoManualIfCustom(m map[string]any) {
 	rawGroups, ok := m["proxy-groups"].([]any)
 	if !ok || len(rawGroups) == 0 {
 		return
+	}
+	for _, raw := range rawGroups {
+		if group, ok := raw.(map[string]any); ok {
+			if typ, _ := group["type"].(string); strings.EqualFold(typ, "chain") {
+				return
+			}
+		}
 	}
 	isDefaultAuto := func(gm map[string]any) bool {
 		name, _ := gm["name"].(string)

@@ -24,7 +24,7 @@ function findBuiltApp() {
 }
 
 function writeInstallNotes(stageDir, appName) {
-  const readme = `Sloth Clash macOS Install
+  const readme = `Kabosu macOS Install
 ========================
 
 1) Drag "${appName}" to "Applications".
@@ -45,7 +45,7 @@ if [ ! -d "$APP" ]; then
   exit 1
 fi
 sudo xattr -r -d com.apple.quarantine "$APP" || true
-osascript -e 'display dialog "Done. You can now open Sloth Clash." buttons {"OK"} default button "OK"'
+osascript -e 'display dialog "Done. You can now open Kabosu." buttons {"OK"} default button "OK"'
 `
   const cmdPath = path.join(stageDir, 'Fix Quarantine.command')
   fs.writeFileSync(cmdPath, command, 'utf8')
@@ -92,11 +92,11 @@ function main() {
   const appPath = findBuiltApp()
   const appName = path.basename(appPath)
   const arch = os.arch() === 'arm64' ? 'arm64' : os.arch()
-  const outName = `SlothClash-macOS-${arch}.dmg`
+  const outName = `Kabosu-macOS-${arch}.dmg`
   const outPath = path.join(binDir, outName)
-  const tempDmg = path.join(binDir, `SlothClash-macOS-${arch}-tmp.dmg`)
+  const tempDmg = path.join(binDir, `Kabosu-macOS-${arch}-tmp.dmg`)
   const stageDir = path.join(appDir, 'build', 'dmg-stage')
-  const volumeName = 'Sloth Clash'
+  const volumeName = 'Kabosu'
 
   fs.rmSync(stageDir, { recursive: true, force: true })
   fs.mkdirSync(stageDir, { recursive: true })
@@ -148,7 +148,7 @@ function main() {
       `failed to parse mounted device from hdiutil output:\n${attachOut}`,
     )
   }
-  // The mount point is the tail of the attach line (e.g. "/Volumes/SlothClash").
+  // The mount point is the tail of the attach line (e.g. "/Volumes/Kabosu").
   const mountPoint = deviceLine
     ? (deviceLine.match(/(\/Volumes\/[^\t]+)\s*$/)?.[1]?.trim() ?? '')
     : ''

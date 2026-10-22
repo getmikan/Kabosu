@@ -1,6 +1,6 @@
 package main
 
-// tunServiceTakeover records a third-party Windows service we stopped so Sloth can
+// tunServiceTakeover records a third-party Windows service we stopped so Kabosu can
 // bind TUN, and how to restore its SCM start type afterwards.
 type tunServiceTakeover struct {
 	Name            string

@@ -238,6 +238,15 @@ importers:
 
   apps/sloth-clash-desktop/frontend:
     dependencies:
+      '@fontsource-variable/roboto-flex':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@material-symbols/svg-400':
+        specifier: ^0.48.1
+        version: 0.48.1
+      '@material/material-color-utilities':
+        specifier: ^0.4.0
+        version: 0.4.0
       '@monaco-editor/react':
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.55.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -250,6 +259,9 @@ importers:
       monaco-editor:
         specifier: ^0.55.1
         version: 0.55.1
+      motion:
+        specifier: ^14.6.0
+        version: 14.6.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       react:
         specifier: 19.2.5
         version: 19.2.5
@@ -1036,6 +1048,9 @@ packages:
     resolution: {integrity: sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
+  '@fontsource-variable/roboto-flex@5.3.0':
+    resolution: {integrity: sha512-bOxckUy0qXNRjhV6e4pcHGSvptix4ZRD1uaj5Za8h+p3qrb2GL4U4TQdpVmPSy0SmqwldfD+JJqEKdF68EyiAw==}
+
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
     engines: {node: '>=18.18.0'}
@@ -1234,6 +1249,12 @@ packages:
 
   '@juggle/resize-observer@3.4.0':
     resolution: {integrity: sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==}
+
+  '@material-symbols/svg-400@0.48.1':
+    resolution: {integrity: sha512-l3zCJuHOtBdha7C3fZ/OXjt6N0pP+a7+TUtYJeWOLbsOh2hDn8weIPgj1a9hwvF7aI1U5lwuxi0to7JysAiBvg==}
+
+  '@material/material-color-utilities@0.4.0':
+    resolution: {integrity: sha512-dlq6VExJReb8dhjj3a/yTigr3ncNwoFmL5Iy2ENtbDX03EmNeOEdZ+vsaGrj7RTuO+mB7L58II4LCsl4NpM8uw==}
 
   '@monaco-editor/loader@1.7.0':
     resolution: {integrity: sha512-gIwR1HrJrrx+vfyOhYmCZ0/JcWqG5kbfG7+d3f/C1LXk2EvzAbHSg3MQ5lO2sMlo9izoAZ04shohfKLVT6crVA==}
@@ -2700,6 +2721,17 @@ packages:
   foxts@5.8.0:
     resolution: {integrity: sha512-lVNbi34bVy2ECGNzH8BZ/LGT+ROh0xPBAQsXuuq4HiJ57rKSWiTYWEGNY+eObJWdA38aa51xIFXntMeiMRyYKQ==}
 
+  framer-motion@14.6.0:
+    resolution: {integrity: sha512-MzBgZxGgoHPfSLEXmo4o5XlZvb+nVRFdHtGjVhm6LMIEJKTt/8hNO023euL5mYyzc8llV/hQTfjnN68tNRHalw==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -3298,6 +3330,23 @@ packages:
     resolution: {integrity: sha512-vLR1EoV7Au0tkuA9T6ZJr2q7CooRP69AvlqzWh9Gui6amuijdTsfCAQHtCFobRMwkhbuly6J1Q16NziTTiWtWQ==}
     peerDependencies:
       monaco-editor: '>=0.36'
+
+  motion-dom@14.6.0:
+    resolution: {integrity: sha512-lIojTl9aYSPIkeOOSzBliy1nNvpdO3JtVzW2WgTXQlOP4ZMuJhtWO3fP7OD4TVFwlRucdvxlDSMkL+fEQnQ52A==}
+
+  motion-utils@14.6.0:
+    resolution: {integrity: sha512-bZJo2AmQ2aOFkaato6VXrTbkPG0XhMzivWUWSaI59pxyllj8QMQUFZ84MYRQnPkK+7dr4KldyJwF2+RM0sdq/w==}
+
+  motion@14.6.0:
+    resolution: {integrity: sha512-qqaZbyubgk7x3zxjPgP1l3Br/KQXol/IIV1uqb358SoN4ApcqNuV7+wyDPg/XLErmuyQL5lL8JVI/fOmDsmBKQ==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -5139,6 +5188,8 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
+  '@fontsource-variable/roboto-flex@5.3.0': {}
+
   '@humanfs/core@0.19.2':
     dependencies:
       '@humanfs/types': 0.15.0
@@ -5280,6 +5331,10 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@juggle/resize-observer@3.4.0': {}
+
+  '@material-symbols/svg-400@0.48.1': {}
+
+  '@material/material-color-utilities@0.4.0': {}
 
   '@monaco-editor/loader@1.7.0':
     dependencies:
@@ -6720,6 +6775,15 @@ snapshots:
 
   foxts@5.8.0: {}
 
+  framer-motion@14.6.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
+    dependencies:
+      motion-dom: 14.6.0
+      motion-utils: 14.6.0
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.2.5
+      react-dom: 19.2.5(react@19.2.5)
+
   fsevents@2.3.3:
     optional: true
 
@@ -7488,6 +7552,20 @@ snapshots:
       vscode-languageserver-types: 3.18.0
       vscode-uri: 3.1.0
       yaml: 2.9.0
+
+  motion-dom@14.6.0:
+    dependencies:
+      motion-utils: 14.6.0
+
+  motion-utils@14.6.0: {}
+
+  motion@14.6.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
+    dependencies:
+      framer-motion: 14.6.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.2.5
+      react-dom: 19.2.5(react@19.2.5)
 
   ms@2.1.3: {}
 

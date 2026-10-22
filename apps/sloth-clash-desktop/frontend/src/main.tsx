@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
 import { I18nextProvider } from 'react-i18next'
 
+import '@fontsource-variable/roboto-flex'
 import './style.css'
 import App from './App'
 import { AppErrorFallback } from './components/AppErrorFallback'

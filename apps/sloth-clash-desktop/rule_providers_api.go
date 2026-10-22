@@ -32,7 +32,7 @@ func (a *App) UpdateRuleProvider(name string) error {
 	if ep == "" || (conn != "connected" && !running) {
 		base := strings.TrimSpace(os.Getenv("SLOTH_CLASH_CONTROLLER"))
 		if base == "" {
-			return errors.New("connect Sloth or set SLOTH_CLASH_CONTROLLER for external core")
+			return errors.New("connect Kabosu or set SLOTH_CLASH_CONTROLLER for external core")
 		}
 		if !strings.HasPrefix(base, "http://") && !strings.HasPrefix(base, "https://") {
 			base = "http://" + base

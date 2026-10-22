@@ -15,7 +15,7 @@ import (
 // Clash Verge Rev and most well-behaved desktop apps register autostart
 // on Windows.
 const windowsAutostartKey = `Software\Microsoft\Windows\CurrentVersion\Run`
-const windowsAutostartName = "SlothClash"
+const windowsAutostartName = "Kabosu"
 
 // setLaunchOnStartup writes or clears the Run key entry that launches the
 // currently running executable at sign-in. When enabled the value includes

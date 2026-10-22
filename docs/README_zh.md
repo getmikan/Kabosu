@@ -1,109 +1,72 @@
-<h1 align="center">
-  <img src="../apps/sloth-clash-desktop/build/appicon.png" alt="Sloth Clash" width="128" />
-  <br />
-  Sloth Clash
-  <br />
-</h1>
-
-<p align="center">
-  <b>Clash Meta（Mihomo）</b> 桌面客户端 — <b>Wails · Go · React</b><br />
-  Windows · macOS · Linux
-</p>
-
-<p align="center">
-  <a href="../README.md">English</a> ·
-  <a href="./README_en.md">English (docs)</a> ·
-  <a href="./README_ru.md">Русский</a> ·
-  <a href="./README_zh.md">简体中文</a>
-  ·
-  <a href="../Changelog.md">更新日志</a>
-</p>
-
-<p align="center"><sub>完整英文说明见仓库根目录 <a href="../README.md"><code>README.md</code></a>。</sub></p>
-
----
+<p align="center"><img src="readmelogo.png" alt="Kabosu — 深蓝色背景上的绿色香橙" width="192" height="192" /></p>
+<h1 align="center">Kabosu</h1>
+<p align="center">Citrus 桌面客户端，在一个应用中管理配置、路由规则与连接。<br />Windows · macOS · Linux</p>
+<p align="center"><a href="../README.md">English</a> · <a href="README_ru.md">Русский</a> · <a href="https://github.com/getmikan/Kabosu/releases">下载</a> · <a href="https://github.com/getmikan/Kabosu/issues">反馈问题</a></p>
 
 ## 简介
 
-**Sloth Clash** 是基于 **GPL-3.0** 的 **Mihomo（Clash Meta）** 图形客户端。本仓库提供 **Wails** 桌面应用（`apps/sloth-clash-desktop`）。Windows **系统服务 / IPC** 在独立仓库维护：[sloth-clash-service-ipc](https://github.com/Nemu-x/sloth-clash-service-ipc)（构建时由 `pnpm run prebuild` 拉取发行文件）。
+**Kabosu** 是 [getmikan](https://github.com/getmikan) 维护的 [Sloth Clash](https://github.com/Nemu-x/SlothClash) 分支，采用 [Citrus](https://github.com/getmikan/Citrus) 内核、Go/Wails 桌面框架与 React/TypeScript 界面，使用自己的名称、绿色香橙图标和发行地址。
 
-## 功能概览
+请自行提供订阅、节点链接或本地 YAML 配置。本项目不提供代理服务器或 VPN 订阅。
 
-- 配置项、代理、规则及 merge / 脚本类工作流  
-- 集成 Mihomo 内核（stable，可选 alpha 通道由 prebuild 提供）  
-- 一键切换 **Proxy** / **TUN** 流量模式，并显示实时连接健康状态  
-- 可视化 + YAML 规则编辑器、实时连接监视、诊断/高级面板  
-- 已签名、fail-closed 的**应用内更新**（Windows），通过 UAC 提权运行安装程序  
-- Windows 服务安装包与 Wails 打包兼容的 sidecar 布局  
-- Deep link：`slothclash://`（见 `wails.json`）
+## 功能
 
-## 截图
-
-<table>
-  <tr>
-    <td width="50%"><img src="screenshots/home.png" alt="主页 — 连接、模式、流量、状态" /><br /><sub><b>主页</b> — 连接、Rule/Global 模式、Proxy/TUN 流量、实时状态与速度</sub></td>
-    <td width="50%"><img src="screenshots/profiles.png" alt="配置 — 订阅" /><br /><sub><b>配置</b> — 导入与管理订阅、用量、自动更新</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/proxies.png" alt="代理 — selector 与 url-test 分组" /><br /><sub><b>代理</b> — selector / url-test 分组，含延迟与搜索</sub></td>
-    <td width="50%"><img src="screenshots/connections.png" alt="连接 — 实时流量" /><br /><sub><b>连接</b> — 按进程的实时流量、匹配规则、上行/下行</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/rules.png" alt="规则 — 路由表" /><br /><sub><b>规则</b> — 完整路由表，可按类型/策略筛选</sub></td>
-    <td width="50%"><img src="screenshots/edit_rules.png" alt="编辑规则 — 可视化与 YAML" /><br /><sub><b>编辑规则</b> — 可视化构建 + Advanced（YAML），订阅为只读基底</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/advanced.png" alt="高级 — 诊断与工具" /><br /><sub><b>高级</b> — 诊断、连通性探测、恢复工具</sub></td>
-    <td width="50%"><img src="screenshots/settings.png" alt="设置 — 运行时、更新、诊断" /><br /><sub><b>设置</b> — 主题、语言、连接、更新与诊断</sub></td>
-  </tr>
-</table>
+- 导入和管理订阅、节点链接及本地 YAML 配置。
+- 切换代理节点与分组、测试延迟、自动更新订阅。
+- 系统代理与 TUN 流量模式。
+- 实时连接、流量、路由规则与诊断日志。
+- 可视化及 YAML 规则编辑、配置合并和 JavaScript 钩子。
+- 简体中文、英语、俄语，浅色与深色主题。
+- 区分断开、Proxy 和 TUN 状态的托盘图标。
+- 通过 `kabosu://install-config` 导入订阅，导入前需要用户确认。
+- 从 `getmikan/Kabosu` 检查更新；Windows 安装更新前验证签名与校验和。
 
 ## 下载
 
-本应用发布：[SlothClash releases](https://github.com/Nemu-x/SlothClash/releases)。  
-构建时使用的服务程序：[sloth-clash-service-ipc releases](https://github.com/Nemu-x/sloth-clash-service-ipc/releases)。
+请前往 [Kabosu 发行页](https://github.com/getmikan/Kabosu/releases)。若目标平台尚无附件，请从源码构建。
 
-## 本地构建
+| 平台 | 构建格式 |
+| --- | --- |
+| Windows x64 / ARM64 | `Kabosu-windows-<arch>-installer.exe` |
+| macOS Apple Silicon / Intel | `Kabosu-macOS-<arch>.dmg` |
+| Linux x64 / ARM64 | AppImage、deb、rpm、Arch 包、tar.gz |
 
-需要：**Go 1.25+**、**Node 20+**、**pnpm**、Wails v2。
+TUN 需要特权辅助服务，可在设置中安装。Linux tar.gz 需要 GTK 3 和 WebKitGTK 4.1，AppImage 包含这些库。Windows 需要 WebView2。辅助服务二进制文件仍依赖 [上游服务项目](https://github.com/Nemu-x/sloth-clash-service-ipc)。
+
+## 从源码构建
+
+需要 **Go 1.26.7**、**Node.js 20.19+ 或 22.12+**、**pnpm 10.33.0** 及 [Wails 平台依赖](https://wails.io/docs/gettingstarted/installation)。Windows 安装包还需要 NSIS，Linux 需要 GTK/WebKit 开发包。脚本会查找或安装 Wails v2 CLI。
 
 ```bash
-pnpm install
+git clone https://github.com/getmikan/Kabosu.git
+cd Kabosu
+pnpm install --frozen-lockfile
 pnpm run desktop:resources
 pnpm run wails:dev
 ```
 
-`desktop:resources` 写入 `apps/sloth-clash-desktop/build/`（不提交到 git）。在 Windows 上包含 **`pnpm run icons:windows`**，从 `build/appicon.png` 更新 **`build/windows/icon.ico`**。
+`desktop:resources` 执行必要检查并下载内核、辅助服务和构建资源，需要网络连接。使用 `pnpm run wails:build` 构建当前平台；其他平台命令见 [主 README](../README.md#build-from-source)。
 
-## CI
+源码目录仍为 `apps/sloth-clash-desktop`，安装后的应用和包使用 Kabosu 名称。为兼容现有配置和辅助服务，部分内部存储及 IPC 标识保留上游名称，详见 [BRANDING.md](BRANDING.md)。
 
-GitHub Actions：`.github/workflows/desktop-artifacts.yml` — 标签 `v*` 或手动触发。
+## 图标
 
-## 贡献
+[`appicon-main.png`](appicon-main.png) 是主图标，同一图像用于文档、界面、应用图标和彩色托盘。macOS 单色模板采用同一果实与叶子的轮廓。
 
-见 [CONTRIBUTING.md](../CONTRIBUTING.md)。
+```bash
+pnpm run copy:desktop-appicon
+pnpm run icons:windows
+pnpm run desktop:packaging
+```
 
-## 支持本项目
+## 检查与发行
 
-Sloth Clash 免费且遵循 **GPL-3.0**。如果它对你有帮助，加密货币捐赠能让开发与发布持续下去。谢谢！🦥
+运行 `pnpm run test:required` 执行必要检查，`pnpm run lint` 检查前端代码。平台包由 [Desktop artifacts](../.github/workflows/desktop-artifacts.yml) 构建。
 
-| 资产 | 地址 |
-| --- | --- |
-| **USDT** (TRC20) | `TPACN1kJRm2FnFF1cSqYtBnJwAmZ3qGMni` |
-| **USDT** (Polygon / MATIC) | `0xD9333e859Fb74D885d22E27568589de61E4433b5` |
-| **BTC** | `bc1qkkcgpqym967k2x73al6f7fpvkx52q4rzkut3we` |
-| **ETH** | `0xD9333e859Fb74D885d22E27568589de61E4433b5` |
+发布自有签名更新前，必须按 [UPDATES.md](UPDATES.md) 配置 Kabosu 的 minisign 密钥和仓库 secrets。本次品牌修改保留了上游公钥；未签名或使用其他密钥签名的 Windows 更新仍会被拒绝。SignPath、winget、AUR 和 Pages 需要分支自己的配置，本文不表示这些服务已经上线。
 
-> 转账前请再次确认网络 — 选错网络的转账无法找回。
+## 贡献与许可
 
-## 致谢
+开发指南见 [CONTRIBUTING.md](../CONTRIBUTING.md)，安全问题请按 [SECURITY.md](../SECURITY.md) 私下报告。
 
-- **基础（上游 GUI 渊源）：** [clash-verge-rev](https://github.com/clash-verge-rev/clash-verge-rev)（Clash Verge Rev，Tauri）；本仓库用 **Wails + Go** 重新实现产品方向。
-- **代理内核（Clash Meta）：** [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo)。
-- **桌面壳：** [Wails](https://github.com/wailsapp/wails)。
-
-另：[zzzgydi/clash-verge](https://github.com/zzzgydi/clash-verge)（原版 Clash Verge）及 Clash 生态。
-
-## 许可证
-
-[GPL-3.0](../LICENSE)
+感谢 **Nemu-x 及 Sloth Clash 贡献者**，以及 [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)、[Clash Verge](https://github.com/zzzgydi/clash-verge)、[Mihomo](https://github.com/MetaCubeX/mihomo) 和 [Wails](https://github.com/wailsapp/wails)。原始许可和历史记录保留，Kabosu 使用 [GPL-3.0-only](../LICENSE)。

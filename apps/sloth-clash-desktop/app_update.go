@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	githubOwner = "Nemu-x"
-	githubRepo  = "SlothClash"
+	githubOwner = "getmikan"
+	githubRepo  = "Kabosu"
 
 	githubAPIHTTPTimeout  = 45 * time.Second
 	updateDownloadTimeout = 60 * time.Minute
@@ -180,7 +180,7 @@ func fetchReleaseAssets() ([]githubAsset, error) {
 		return nil, err
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("User-Agent", "SlothClashDesktop/"+AppVersion)
+	req.Header.Set("User-Agent", "Kabosu/"+AppVersion)
 	resp, err := githubAPIHTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func downloadAssetBytes(url string, limit int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "SlothClashDesktop/"+AppVersion)
+	req.Header.Set("User-Agent", "Kabosu/"+AppVersion)
 	resp, err := githubAPIHTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -305,7 +305,7 @@ func fetchLatestGitHubRelease() (tag, htmlURL, notes, assetName, assetURL string
 		return "", "", "", "", "", err
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("User-Agent", "SlothClashDesktop/"+AppVersion)
+	req.Header.Set("User-Agent", "Kabosu/"+AppVersion)
 
 	resp, err := githubAPIHTTPClient.Do(req)
 	if err != nil {
@@ -441,7 +441,7 @@ func (a *App) ApplyUpdate() error {
 		return errors.New("no installer URL — run Check for updates first")
 	}
 
-	tmp := filepath.Join(os.TempDir(), "SlothClash-desktop-update.exe")
+	tmp := filepath.Join(os.TempDir(), "Kabosu-desktop-update.exe")
 	if err := a.downloadUpdateAsset(url, tmp); err != nil {
 		return err
 	}
@@ -512,7 +512,7 @@ func (a *App) downloadUpdateAsset(url, dest string) error {
 		out.Close()
 		return err
 	}
-	req.Header.Set("User-Agent", "SlothClashDesktop/"+AppVersion)
+	req.Header.Set("User-Agent", "Kabosu/"+AppVersion)
 	resp, err := updateDownloadHTTPClient.Do(req)
 	if err != nil {
 		out.Close()

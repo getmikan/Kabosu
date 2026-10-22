@@ -4,4 +4,8 @@ export {
   EventsOn,
   Quit,
   WindowHide,
+  WindowMinimise,
+  WindowToggleMaximise,
+  WindowSetLightTheme,
+  WindowSetDarkTheme,
 } from '../../wailsjs/runtime/runtime'

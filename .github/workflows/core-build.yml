@@ -1,92 +1,58 @@
-# Builds the patched mihomo core (upstream tag + core/patches/mihomo) for every
-# desktop target and runs the REALITY lab against it.
-#
-# The release workflow (desktop-artifacts.yml) calls this on every tag: the app
-# is built only from the core-dist artifact produced here, so a patch that no
-# longer applies, a failing patch test or a REALITY lab regression stops the
-# release before any app build starts. On its own it runs on PRs and pushes
-# that touch the core, so a broken patch shows up long before a tag does.
-# Patch policy and bump flow: docs/core-patches.md.
-
 name: Core build
 
 on:
   workflow_call:
   workflow_dispatch:
   pull_request:
-    paths:
-      - 'core/**'
-      - 'scripts/core-build.mjs'
-      - 'tests/reality-lab/**'
-      - '.github/workflows/core-build.yml'
+    paths: ['core/**', 'scripts/core-build.mjs', 'tests/citrus-core.test.mjs', '.github/workflows/core-build.yml']
   push:
-    branches:
-      - main
-    paths:
-      - 'core/**'
-      - 'scripts/core-build.mjs'
-      - 'tests/reality-lab/**'
-      - '.github/workflows/core-build.yml'
+    branches: [main]
+    paths: ['core/**', 'scripts/core-build.mjs', 'tests/citrus-core.test.mjs', '.github/workflows/core-build.yml']
 
 permissions:
   contents: read
 
 jobs:
-  # Applies the series to the pinned tag and runs the patches' own tests once;
-  # the per-target builds below skip them.
-  patches:
-    name: patches (apply + vet + tests)
+  test:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
-      # The core's Go release is pinned in core/mihomo/.tool-versions (setup-go
-      # v5 cannot read that file); the script also forces it via GOTOOLCHAIN.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Core Go version
         id: go
-        run: echo "version=$(awk '$1 == "golang" { print $2 }' core/mihomo/.tool-versions)" >> "$GITHUB_OUTPUT"
-
+        run: echo "version=$(awk '$1 == "golang" { print $2 }' core/citrus/.tool-versions)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ steps.go.outputs.version }}
           cache: false
-
-      - name: Apply the series and test it
+      - name: Citrus native TLS, config and provider tests
+        env:
+          SKIP_INTEROP_TEST: '1'
         run: node scripts/core-build.mjs --test-only
+      - name: Artifact integrity regression
+        run: node --test tests/citrus-core.test.mjs
 
   build:
-    name: build (${{ matrix.target }})
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: true
       matrix:
-        # Must list every key of manifest.json "assets"; the dist job fails otherwise.
-        target:
-          - windows-amd64
-          - windows-arm64
-          - darwin-amd64
-          - darwin-arm64
-          - linux-amd64
-          - linux-arm64
+        target: [windows-amd64, windows-arm64, darwin-amd64, darwin-arm64, linux-amd64, linux-arm64]
     steps:
       - uses: actions/checkout@v4
-
-      # The core's Go release is pinned in core/mihomo/.tool-versions (setup-go
-      # v5 cannot read that file); the script also forces it via GOTOOLCHAIN.
       - name: Core Go version
         id: go
-        run: echo "version=$(awk '$1 == "golang" { print $2 }' core/mihomo/.tool-versions)" >> "$GITHUB_OUTPUT"
-
+        run: echo "version=$(awk '$1 == "golang" { print $2 }' core/citrus/.tool-versions)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ steps.go.outputs.version }}
           cache: false
-
-      # Fails naming the patch when one no longer applies (core bump), and on
-      # any drift between core/patches/mihomo and the manifest hashes.
-      - name: Build ${{ matrix.target }}
-        run: node scripts/core-build.mjs out ${{ matrix.target }} --skip-tests
-
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/core-build.mjs out ${{ matrix.target }} --skip-tests
       - uses: actions/upload-artifact@v4
         with:
           name: core-part-${{ matrix.target }}
@@ -95,86 +61,37 @@ jobs:
           retention-days: 1
 
   dist:
-    needs: [patches, build]
+    needs: [test, build]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: actions/download-artifact@v4
         with:
           pattern: core-part-*
           path: parts
-
-      # One directory with every target, one SHA256SUMS, one BUILDINFO. All
-      # parts must come from the same toolchain and flags (identical BUILDINFO),
-      # and every manifest target must be present and match its line.
-      - name: Assemble core-dist
+      - name: Assemble and verify every pinned Citrus target
         run: |
           mkdir -p dist
           first=""
           for d in parts/core-part-*; do
-            cp "$d"/mihomo-* dist/
+            cp "$d"/citrus-* dist/
             cat "$d/SHA256SUMS" >> sums.tmp
-            if [ -z "$first" ]; then
-              first="$d/BUILDINFO.txt"
-            elif ! cmp -s "$first" "$d/BUILDINFO.txt"; then
-              echo "::error::$d was built with a different toolchain or flags than $first"
-              diff "$first" "$d/BUILDINFO.txt" || true
-              exit 1
-            fi
+            if [ -z "$first" ]; then first="$d/BUILDINFO.txt"; elif ! cmp -s "$first" "$d/BUILDINFO.txt"; then echo "Build provenance differs"; exit 1; fi
           done
           cp "$first" dist/BUILDINFO.txt
           sort -k2 sums.tmp > dist/SHA256SUMS
-          node --input-type=module -e "
-            import { readManifest, verifyBuiltCore } from './scripts/core-build.mjs'
-            for (const t of Object.keys(readManifest().assets)) {
-              console.log(t, verifyBuiltCore('dist', t).sha256)
-            }
-          "
-          cat dist/BUILDINFO.txt
-
+          node --input-type=module -e "import {readManifest,verifyBuiltCore} from './scripts/core-build.mjs'; for (const t of Object.keys(readManifest().assets)) verifyBuiltCore('dist',t)"
+          chmod +x dist/citrus-linux-amd64
+      - name: Native controller interoperability
+        env:
+          CITRUS_TEST_BIN: ${{ github.workspace }}/dist/citrus-linux-amd64
+        run: node --test tests/citrus-core.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: core-dist
           path: dist/
           if-no-files-found: error
           retention-days: 7
-
-  reality-lab:
-    needs: dist
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-
-      # The core's Go release is pinned in core/mihomo/.tool-versions (setup-go
-      # v5 cannot read that file); the script also forces it via GOTOOLCHAIN.
-      - name: Core Go version
-        id: go
-        run: echo "version=$(awk '$1 == "golang" { print $2 }' core/mihomo/.tool-versions)" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ steps.go.outputs.version }}
-          cache: false
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: core-dist
-          path: dist
-
-      - name: Stock core of the same tag (comparison column)
-        run: |
-          TAG=$(node -p "require('./core/mihomo/manifest.json').tag")
-          curl -fsSL "https://github.com/MetaCubeX/mihomo/releases/download/$TAG/mihomo-linux-amd64-v2-$TAG.gz" | gunzip > stock-mihomo
-          chmod +x stock-mihomo dist/mihomo-linux-amd64
-
-      - name: Pull Xray images
-        run: for v in 24.12.31 25.7.25 26.4.13 26.9.9; do docker pull -q teddysun/xray:$v; done
-
-      - name: REALITY matrix (patched vs stock)
-        working-directory: tests/reality-lab
-        env:
-          XRAY_LAB: '1'
-          SLOTH_MIHOMO_BIN: ${{ github.workspace }}/dist/mihomo-linux-amd64
-          SLOTH_MIHOMO_STOCK_BIN: ${{ github.workspace }}/stock-mihomo
-        run: go test -v -count=1 -timeout 20m .

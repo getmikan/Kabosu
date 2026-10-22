@@ -28,11 +28,11 @@ func TestParseBrandManifestGate(t *testing.T) {
 		{"gate true", map[string]string{brandHdrEnabled: "true"}, false},
 		{"gate 1", map[string]string{brandHdrEnabled: "1"}, false},
 		{"gate quoted", map[string]string{brandHdrEnabled: `"true"`}, false},
-		// Android namespace must never activate the desktop client.
+		// Android headers now work without a separate desktop configuration.
 		{"android namespace only", map[string]string{
 			"X-Branding-Enabled": "true",
 			"X-Brand-Name":       "Foo",
-		}, true},
+		}, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

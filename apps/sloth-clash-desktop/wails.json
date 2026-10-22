@@ -1,25 +1,25 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "SlothClashDesktop",
+  "name": "Kabosu",
   "nsisType": "multiple",
-  "outputfilename": "sloth-clash-desktop",
+  "outputfilename": "kabosu-desktop",
   "frontend:install": "pnpm install",
   "frontend:build": "pnpm run build",
   "frontend:dev:watcher": "pnpm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "Nemu-x"
+    "name": "getmikan"
   },
   "info": {
-    "companyName": "Nemu-x",
-    "productName": "Sloth Clash",
+    "companyName": "getmikan",
+    "productName": "Kabosu",
     "productVersion": "0.9.4",
     "copyright": "GPL-3.0",
-    "comments": "https://github.com/Nemu-x/SlothClash",
+    "comments": "https://github.com/getmikan/Kabosu",
     "protocols": [
       {
-        "scheme": "slothclash",
-        "description": "Sloth Clash (subscription / install-config links)",
+        "scheme": "kabosu",
+        "description": "Kabosu subscription links",
         "role": "Editor"
       }
     ]

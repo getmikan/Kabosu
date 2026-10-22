@@ -13,7 +13,7 @@ function findRepoRoot() {
     d = p
   }
   throw new Error(
-    `[wails] Could not find SlothClash repo root (expected apps/sloth-clash-desktop/wails.json). cwd=${cwd()}`,
+    `[wails] Could not find Kabosu repo root (expected apps/sloth-clash-desktop/wails.json). cwd=${cwd()}`,
   )
 }
 

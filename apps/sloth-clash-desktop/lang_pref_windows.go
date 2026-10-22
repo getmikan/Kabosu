@@ -10,7 +10,7 @@ import (
 
 // NSIS MUI_LANGDLL stores numeric language id in HKCU.
 func detectPreferredLanguage() string {
-	const keyPath = `Software\Nemu-x\SlothClashDesktop\Installer`
+	const keyPath = `Software\getmikan\Kabosu\Installer`
 	k, err := registry.OpenKey(registry.CURRENT_USER, keyPath, registry.QUERY_VALUE)
 	if err != nil {
 		return ""
@@ -32,4 +32,3 @@ func detectPreferredLanguage() string {
 		return ""
 	}
 }
-

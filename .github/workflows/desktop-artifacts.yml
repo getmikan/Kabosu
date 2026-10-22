@@ -1,4 +1,4 @@
-# Builds Sloth Clash desktop for Windows, macOS (Apple Silicon + Intel), and Linux.
+# Builds Kabosu desktop for Windows, macOS (Apple Silicon + Intel), and Linux.
 # Service binaries: https://github.com/Nemu-x/sloth-clash-service-ipc/releases
 # Run: workflow_dispatch or push tag v* for the full release artifact set.
 # A tag with a suffix (v0.9.5-rc.1, v0.9.5-beta.2) is a PRE-RELEASE: same build,
@@ -91,7 +91,7 @@ jobs:
           if (-not $installer) { throw "Windows installer .exe not found in build/bin" }
           # Raw installer .exe — the in-app updater downloads this directly (must
           # contain "installer" + "amd64" so pickWindowsInstallerAsset matches).
-          Copy-Item $installer.FullName "dist/SlothClash-windows-amd64-installer.exe" -Force
+          Copy-Item $installer.FullName "dist/Kabosu-windows-amd64-installer.exe" -Force
 
       # --- SignPath code signing (Windows amd64) ---
       # Gated on repo variable SIGNPATH_SIGNING_POLICY: empty = no signing (ship
@@ -100,37 +100,37 @@ jobs:
       # is a one-variable change, no code edit.
       - name: Upload unsigned installer for SignPath (amd64)
         id: unsigned_amd64
-        if: vars.SIGNPATH_SIGNING_POLICY != ''
+        if: vars.SIGNPATH_SIGNING_POLICY != '' && vars.SIGNPATH_PROJECT_SLUG != '' && vars.SIGNPATH_ORGANIZATION_ID != ''
         uses: actions/upload-artifact@v4
         with:
           name: unsigned-windows-amd64
-          path: dist/SlothClash-windows-amd64-installer.exe
+          path: dist/Kabosu-windows-amd64-installer.exe
 
       - name: SignPath sign installer (amd64)
-        if: vars.SIGNPATH_SIGNING_POLICY != ''
+        if: vars.SIGNPATH_SIGNING_POLICY != '' && vars.SIGNPATH_PROJECT_SLUG != '' && vars.SIGNPATH_ORGANIZATION_ID != ''
         uses: signpath/github-action-submit-signing-request@v1
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
-          organization-id: '3717f257-09ac-492c-bc51-7ed0e5b47a01'
-          project-slug: 'SlothClash'
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
           signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY }}
           github-artifact-id: '${{ steps.unsigned_amd64.outputs.artifact-id }}'
           wait-for-completion: true
           output-artifact-directory: 'signed-amd64'
 
       - name: Replace installer with SIGNED build (amd64)
-        if: vars.SIGNPATH_SIGNING_POLICY != ''
+        if: vars.SIGNPATH_SIGNING_POLICY != '' && vars.SIGNPATH_PROJECT_SLUG != '' && vars.SIGNPATH_ORGANIZATION_ID != ''
         shell: pwsh
         run: |
           $signed = Get-ChildItem -Recurse -Path signed-amd64 -Filter "*.exe" | Select-Object -First 1
           if (-not $signed) { throw "Signed installer not found under signed-amd64" }
-          Copy-Item $signed.FullName "dist/SlothClash-windows-amd64-installer.exe" -Force
+          Copy-Item $signed.FullName "dist/Kabosu-windows-amd64-installer.exe" -Force
           Write-Host "amd64 installer replaced with SignPath-signed build"
 
       - uses: actions/upload-artifact@v4
         with:
           name: release-windows-amd64
-          path: dist/SlothClash-windows-amd64-installer.exe
+          path: dist/Kabosu-windows-amd64-installer.exe
 
   windows-arm64:
     needs: core
@@ -196,44 +196,44 @@ jobs:
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           $installer = Get-ChildItem "apps/sloth-clash-desktop/build/bin" -Filter "*-installer.exe" | Select-Object -First 1
           if (-not $installer) { throw "Windows installer .exe not found in build/bin" }
-          Copy-Item $installer.FullName "dist/SlothClash-windows-arm64-installer.exe" -Force
+          Copy-Item $installer.FullName "dist/Kabosu-windows-arm64-installer.exe" -Force
 
       # --- SignPath code signing (Windows arm64) --- same gating as amd64, plus
       # only when the arm64 build/pack actually succeeded (it is best-effort).
       - name: Upload unsigned installer for SignPath (arm64)
         id: unsigned_arm64
-        if: steps.pack_windows_arm64.outcome == 'success' && vars.SIGNPATH_SIGNING_POLICY != ''
+        if: steps.pack_windows_arm64.outcome == 'success' && vars.SIGNPATH_SIGNING_POLICY != '' && vars.SIGNPATH_PROJECT_SLUG != '' && vars.SIGNPATH_ORGANIZATION_ID != ''
         uses: actions/upload-artifact@v4
         with:
           name: unsigned-windows-arm64
-          path: dist/SlothClash-windows-arm64-installer.exe
+          path: dist/Kabosu-windows-arm64-installer.exe
 
       - name: SignPath sign installer (arm64)
-        if: steps.pack_windows_arm64.outcome == 'success' && vars.SIGNPATH_SIGNING_POLICY != ''
+        if: steps.pack_windows_arm64.outcome == 'success' && vars.SIGNPATH_SIGNING_POLICY != '' && vars.SIGNPATH_PROJECT_SLUG != '' && vars.SIGNPATH_ORGANIZATION_ID != ''
         uses: signpath/github-action-submit-signing-request@v1
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
-          organization-id: '3717f257-09ac-492c-bc51-7ed0e5b47a01'
-          project-slug: 'SlothClash'
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
           signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY }}
           github-artifact-id: '${{ steps.unsigned_arm64.outputs.artifact-id }}'
           wait-for-completion: true
           output-artifact-directory: 'signed-arm64'
 
       - name: Replace installer with SIGNED build (arm64)
-        if: steps.pack_windows_arm64.outcome == 'success' && vars.SIGNPATH_SIGNING_POLICY != ''
+        if: steps.pack_windows_arm64.outcome == 'success' && vars.SIGNPATH_SIGNING_POLICY != '' && vars.SIGNPATH_PROJECT_SLUG != '' && vars.SIGNPATH_ORGANIZATION_ID != ''
         shell: pwsh
         run: |
           $signed = Get-ChildItem -Recurse -Path signed-arm64 -Filter "*.exe" | Select-Object -First 1
           if (-not $signed) { throw "Signed installer not found under signed-arm64" }
-          Copy-Item $signed.FullName "dist/SlothClash-windows-arm64-installer.exe" -Force
+          Copy-Item $signed.FullName "dist/Kabosu-windows-arm64-installer.exe" -Force
           Write-Host "arm64 installer replaced with SignPath-signed build"
 
       - uses: actions/upload-artifact@v4
         if: steps.pack_windows_arm64.outcome == 'success'
         with:
           name: release-windows-arm64
-          path: dist/SlothClash-windows-arm64-installer.exe
+          path: dist/Kabosu-windows-arm64-installer.exe
 
   darwin-arm64:
     needs: core
@@ -422,7 +422,7 @@ jobs:
       - name: Pack Linux artifact (preserve executable bits)
         run: |
           mkdir -p dist
-          tar -C apps/sloth-clash-desktop/build/bin -czf "dist/sloth-clash-linux-${{ matrix.arch }}.tar.gz" .
+          tar -C apps/sloth-clash-desktop/build/bin -czf "dist/kabosu-linux-${{ matrix.arch }}.tar.gz" .
 
       - name: Resolve package version
         id: pkgver
@@ -443,14 +443,14 @@ jobs:
           go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
           CFG=apps/sloth-clash-desktop/build/linux/nfpm.yaml
           export NFPM_ARCH="${{ matrix.arch }}"
-          NFPM_VERSION="${{ steps.pkgver.outputs.version }}" nfpm package -f "$CFG" -p deb -t "dist/sloth-clash-linux-${{ matrix.arch }}.deb"
-          NFPM_VERSION="${{ steps.pkgver.outputs.version }}" nfpm package -f "$CFG" -p rpm -t "dist/sloth-clash-linux-${{ matrix.arch }}.rpm"
-          NFPM_VERSION="${{ steps.pkgver.outputs.arch_version }}" nfpm package -f "$CFG" -p archlinux -t "dist/sloth-clash-linux-${{ matrix.arch }}.pkg.tar.zst"
+          NFPM_VERSION="${{ steps.pkgver.outputs.version }}" nfpm package -f "$CFG" -p deb -t "dist/kabosu-linux-${{ matrix.arch }}.deb"
+          NFPM_VERSION="${{ steps.pkgver.outputs.version }}" nfpm package -f "$CFG" -p rpm -t "dist/kabosu-linux-${{ matrix.arch }}.rpm"
+          NFPM_VERSION="${{ steps.pkgver.outputs.arch_version }}" nfpm package -f "$CFG" -p archlinux -t "dist/kabosu-linux-${{ matrix.arch }}.pkg.tar.zst"
           ls -la dist/
 
       # Self-contained AppImage (GTK + WebKitGTK bundled, gh-releases-zsync
       # update info, AppStream metainfo) — what the AppImage catalog requires.
-      # Named SlothClash-<arch>.AppImage per catalog nomenclature (no "linux").
+      # Named Kabosu-<arch>.AppImage per catalog nomenclature (no "linux").
       - name: Build AppImage (self-contained)
         id: appimage
         run: |
@@ -462,18 +462,18 @@ jobs:
       # Must run LAST: it purges the host WebKit so only the bundled copy can
       # satisfy the loader, exactly like a machine without webkit2gtk.
       - name: Smoke-test AppImage without host WebKit
-        run: bash apps/sloth-clash-desktop/build/linux/test-appimage.sh "dist/SlothClash-${{ matrix.aitool }}.AppImage" "${{ steps.appimage.outputs.appdir }}"
+        run: bash apps/sloth-clash-desktop/build/linux/test-appimage.sh "dist/Kabosu-${{ matrix.aitool }}.AppImage" "${{ steps.appimage.outputs.appdir }}"
 
       - uses: actions/upload-artifact@v4
         with:
           name: release-linux-${{ matrix.arch }}
           path: |
-            dist/sloth-clash-linux-${{ matrix.arch }}.tar.gz
-            dist/sloth-clash-linux-${{ matrix.arch }}.deb
-            dist/sloth-clash-linux-${{ matrix.arch }}.rpm
-            dist/sloth-clash-linux-${{ matrix.arch }}.pkg.tar.zst
-            dist/SlothClash-${{ matrix.aitool }}.AppImage
-            dist/SlothClash-${{ matrix.aitool }}.AppImage.zsync
+            dist/kabosu-linux-${{ matrix.arch }}.tar.gz
+            dist/kabosu-linux-${{ matrix.arch }}.deb
+            dist/kabosu-linux-${{ matrix.arch }}.rpm
+            dist/kabosu-linux-${{ matrix.arch }}.pkg.tar.zst
+            dist/Kabosu-${{ matrix.aitool }}.AppImage
+            dist/Kabosu-${{ matrix.aitool }}.AppImage.zsync
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
@@ -525,7 +525,7 @@ jobs:
 
       # Release body = the English section of this version's Changelog entry.
       # We author Changelog.md per release (Security/Features/Fixes as prose);
-      # this just lifts the matching `## Sloth Clash desktop `X.Y.Z`` block up to
+      # this just lifts the matching `## Kabosu desktop `X.Y.Z`` block up to
       # (not including) its `### Русский` section, dropping the `### English`
       # heading. GitHub's auto "What's Changed" is appended below by softprops
       # (generate_release_notes). If no section matches the tag, the body is
@@ -536,7 +536,7 @@ jobs:
           VER="${GITHUB_REF_NAME#v}"
           VER="${VER%%-*}"   # v0.9.5-rc.1 uses the 0.9.5 section
           awk -v ver="$VER" '
-            /^## Sloth Clash desktop/ {
+            /^## (Kabosu|Sloth Clash) desktop/ {
               if (started) exit
               if (index($0, "`" ver "`")) { started=1; next }
               next
@@ -552,7 +552,7 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          name: 🦥 SlothClash ${{ github.ref_name }}
+          name: 🍋 Kabosu ${{ github.ref_name }}
           body_path: RELEASE_NOTES.md
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
@@ -582,13 +582,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run package-repos.yml --repo "${{ github.repository }}" --ref "${{ github.ref_name }}"
 
-  # winget: once Nemu-x.SlothClash exists in microsoft/winget-pkgs (first version
+  # winget: once getmikan.Kabosu exists in microsoft/winget-pkgs (first version
   # is submitted by hand, see packaging/winget/README.md), every tag opens the
-  # version-bump PR from the Nemu-x/winget-pkgs fork. Skipped without the token
+  # version-bump PR from the configured winget-pkgs fork. Skipped without the token
   # so releases never depend on it.
   winget:
     needs: release
-    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-')
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-') && vars.WINGET_PACKAGE_IDENTIFIER != ''
     runs-on: ubuntu-latest
     steps:
       - name: Check WINGET_TOKEN present
@@ -602,11 +602,11 @@ jobs:
             echo "enabled=false" >> "$GITHUB_OUTPUT"
             echo "WINGET_TOKEN not set — skipping winget publish."
           fi
-      - name: Publish to winget (Nemu-x.SlothClash)
+      - name: Publish to winget (getmikan.Kabosu)
         if: steps.gate.outputs.enabled == 'true'
         uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
         with:
-          identifier: Nemu-x.SlothClash
-          installers-regex: 'SlothClash-windows-(amd64|arm64)-installer\.exe$'
+          identifier: ${{ vars.WINGET_PACKAGE_IDENTIFIER }}
+          installers-regex: 'Kabosu-windows-(amd64|arm64)-installer\.exe$'
           max-versions-to-keep: 5
           token: ${{ secrets.WINGET_TOKEN }}

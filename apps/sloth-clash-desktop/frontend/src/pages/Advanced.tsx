@@ -94,6 +94,7 @@ export function AdvancedPage({
   coreVersion,
   controllerAddr,
   mixedPort,
+  panel,
   deviceIdentity,
   connectivityBusy,
   connectivityResults,
@@ -119,6 +120,7 @@ export function AdvancedPage({
   controllerAddr: string
   mixedPort: number | string
   profilePaths: main.ProfilePaths | null
+  panel?: main.SubscriptionPanel
   deviceIdentity: main.SubscriptionDeviceIdentityPublic | null
   connectivityBusy: string | null
   connectivityResults: Partial<Record<ConnectivityTarget, string>>
@@ -238,6 +240,25 @@ export function AdvancedPage({
             className="advancedDeviceIdentityCard"
           >
             <p className="muted small">{t('ui.advanced.deviceIdentityLead')}</p>
+            {panel ? (
+              <dl className="panelDiagnostics">
+                {(
+                  [
+                    ['x-hwid-active', panel.hwidActive],
+                    ['x-hwid-not-supported', panel.hwidNotSupported],
+                    ['x-hwid-max-devices-reached', panel.hwidMaxDevicesReached],
+                    ['x-hwid-limit', panel.hwidLimit],
+                  ] as const
+                )
+                  .filter(([, value]) => value !== undefined)
+                  .map(([name, value]) => (
+                    <div key={name}>
+                      <dt>{name}</dt>
+                      <dd>{t(value ? 'common.yes' : 'common.no')}</dd>
+                    </div>
+                  ))}
+              </dl>
+            ) : null}
             <div
               className="deviceIdentityHwidRow"
               data-hwid-disabled={hwidEnabled ? undefined : 'true'}

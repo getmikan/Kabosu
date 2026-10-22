@@ -1,4 +1,4 @@
-/** Privileged Sloth service (Windows IPC) install + status refresh. */
+/** Privileged Kabosu service (Windows IPC) install + status refresh. */
 export {
   GetServiceInfo,
   InstallService,

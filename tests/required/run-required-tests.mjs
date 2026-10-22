@@ -144,6 +144,12 @@ async function main() {
       repoRoot,
     )
   }
+  await step(
+    'Windows icon resource regression',
+    pnpmBin,
+    ['run', 'test:icons'],
+    repoRoot,
+  )
   // Regenerate the Wails bindings from the current Go App BEFORE the frontend
   // build so a newly-added App method (e.g. IsBootSettled) is present for tsc.
   // The generated bindings are NOT committed (build artifacts), so a stale

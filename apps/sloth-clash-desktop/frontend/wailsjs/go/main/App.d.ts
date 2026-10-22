@@ -14,6 +14,8 @@ export function ApplyUpdate(): Promise<void>
 
 export function CheckForUpdates(): Promise<main.UpdateState>
 
+export function ClearProfileScriptOverride(arg1: string): Promise<main.AppState>
+
 export function CloseAllConnections(): Promise<void>
 
 export function CompanionDiscover(): Promise<Array<companion.AgentInfo>>
@@ -79,6 +81,8 @@ export function GetAdvancedPaths(): Promise<main.AdvancedPaths>
 
 export function GetAppState(): Promise<main.AppState>
 
+export function GetCoreBuild(): Promise<main.CoreBuildInfo>
+
 export function GetCorpVpnCredentials(): Promise<main.CorpVpnCredentials>
 
 export function GetCorpVpnStatus(): Promise<main.CorpVpnStatus>
@@ -123,6 +127,8 @@ export function ImportProfileFromURL(
 
 export function InstallService(): Promise<main.TunSetupResult>
 
+export function IsBootSettled(): Promise<boolean>
+
 export function ListProfiles(): Promise<Array<main.Profile>>
 
 export function MarkQuitIntent(): Promise<void>
@@ -140,6 +146,11 @@ export function OpenPathInExplorer(arg1: string): Promise<void>
 export function PeekSubscriptionFromURL(
   arg1: string,
 ): Promise<main.SubscriptionPeek>
+
+export function PreviewProfileScript(
+  arg1: string,
+  arg2: string,
+): Promise<main.ProfileScriptPreview>
 
 export function ReExtractBundledResources(): Promise<void>
 
@@ -212,7 +223,16 @@ export function SetProfileRulesTemplate(
   arg2: string,
 ): Promise<main.AppState>
 
+export function SetProfileScriptOverride(
+  arg1: string,
+  arg2: string,
+): Promise<main.AppState>
+
 export function SetProxyNode(arg1: string, arg2: string): Promise<main.AppState>
+
+export function SetRealitySettings(
+  arg1: main.RealitySettings,
+): Promise<main.DesktopPrefs>
 
 export function SetTrafficMode(arg1: string): Promise<main.AppState>
 
@@ -220,9 +240,15 @@ export function SetTrafficSettings(
   arg1: main.TrafficSettings,
 ): Promise<main.DesktopPrefs>
 
+export function SetTraySettings(
+  arg1: main.TraySettings,
+): Promise<main.DesktopPrefs>
+
 export function SetTunSettings(
   arg1: main.TunSettings,
 ): Promise<main.DesktopPrefs>
+
+export function SetUISettings(arg1: main.UISettings): Promise<main.DesktopPrefs>
 
 export function SetUiLanguage(arg1: string): Promise<main.DesktopPrefs>
 
@@ -240,6 +266,10 @@ export function StartedMinimized(): Promise<boolean>
 export function StopCorpVpn(): Promise<void>
 
 export function TestProxyDelay(arg1: string): Promise<number>
+
+export function TestProxyGroupDelay(
+  arg1: string,
+): Promise<Record<string, number>>
 
 export function UpdateProfileInfo(
   arg1: string,

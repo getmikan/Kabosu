@@ -17,7 +17,7 @@ type trayStrings struct {
 	Settings   string
 	Quit       string
 	Tooltip    string
-	// Mode suffixes for the tooltip ("Sloth Clash · TUN"), see trayTooltipFor.
+	// Mode suffixes for the tooltip ("Kabosu · TUN"), see trayTooltipFor.
 	ModeIdle  string
 	ModeProxy string
 	ModeTun   string
@@ -29,8 +29,8 @@ var trayStringsEN = trayStrings{
 	Disconnect: "Disconnect",
 	Connecting: "Connecting...",
 	Settings:   "Settings…",
-	Quit:       "Quit Sloth Clash",
-	Tooltip:    "Sloth Clash",
+	Quit:       "Quit Kabosu",
+	Tooltip:    "Kabosu",
 	ModeIdle:   "Disconnected",
 	ModeProxy:  "Proxy mode",
 	ModeTun:    "TUN mode",
@@ -42,8 +42,8 @@ var trayStringsRU = trayStrings{
 	Disconnect: "Отключить",
 	Connecting: "Подключение...",
 	Settings:   "Настройки…",
-	Quit:       "Выйти из Sloth Clash",
-	Tooltip:    "Sloth Clash",
+	Quit:       "Выйти из Kabosu",
+	Tooltip:    "Kabosu",
 	ModeIdle:   "Отключено",
 	ModeProxy:  "Режим Proxy",
 	ModeTun:    "Режим TUN",
@@ -55,8 +55,8 @@ var trayStringsZH = trayStrings{
 	Disconnect: "断开",
 	Connecting: "连接中…",
 	Settings:   "设置…",
-	Quit:       "退出 Sloth Clash",
-	Tooltip:    "Sloth Clash",
+	Quit:       "退出 Kabosu",
+	Tooltip:    "Kabosu",
 	ModeIdle:   "未连接",
 	ModeProxy:  "代理模式",
 	ModeTun:    "TUN 模式",

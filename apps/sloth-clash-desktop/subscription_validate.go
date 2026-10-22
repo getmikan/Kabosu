@@ -128,6 +128,24 @@ func cleanupUnusedProxyProviders(m map[string]any) {
 	if !ok || len(providers) == 0 {
 		return
 	}
+	// Dynamic provider inclusion and chain expansion are native Citrus work.
+	// A client-side direct-reference scan cannot decide which providers they use.
+	if groups, ok := m["proxy-groups"].([]any); ok {
+		for _, raw := range groups {
+			group, ok := raw.(map[string]any)
+			if !ok {
+				continue
+			}
+			if typ, _ := group["type"].(string); strings.EqualFold(typ, "chain") {
+				return
+			}
+			for _, key := range []string{"include-all", "include-all-providers"} {
+				if value, present := group[key]; present && value != nil && value != false {
+					return
+				}
+			}
+		}
+	}
 	used := map[string]bool{}
 	if groups, ok := m["proxy-groups"].([]any); ok {
 		for _, g := range groups {
@@ -158,8 +176,8 @@ func cleanupUnusedProxyProviders(m map[string]any) {
 //  2. proxy-group reference cleanup
 //  3. fallback-group pruning
 //  4. runtime overlay (ports/secret/tun)
-//  4a. the profile's JavaScript override, when it has one
-//  4b. re-assertion of the invariants a script must not be able to win
+//     4a. the profile's JavaScript override, when it has one
+//     4b. re-assertion of the invariants a script must not be able to win
 //  5. semantic validation
 //  6. geodata fallback injection
 //
@@ -205,9 +223,14 @@ func finalizeRuntimeConfigPipelineWithScript(
 	pruneFallbackAutoManualIfCustom(m)
 	cleanupUnusedProxyProviders(m)
 	overlaySlothRuntimeOnMap(m, mixedPort, ctrlPort, secret, traffic, withExternalController, enableTun)
+	panel := readSubscriptionPanel(dataDir)
+	if panel != nil && panel.Brand != nil && panel.Brand.LockConfigScript {
+		script = ""
+	}
 	if res := applyProfileScriptStep(m, script, traffic, mixedPort, ctrlPort, secret, withExternalController, enableTun); scriptOut != nil {
 		*scriptOut = res
 	}
+	applyPanelRuntimePolicy(m, panel)
 	if err := validateFinalConfigSemantics(m); err != nil {
 		return err
 	}
@@ -260,4 +283,3 @@ func overlayBundledGeoData(m map[string]any, dataDir string) {
 		m["geo-auto-update"] = false
 	}
 }
-

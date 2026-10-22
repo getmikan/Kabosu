@@ -1,5 +1,5 @@
 {
-  "name": "sloth-clash",
+  "name": "kabosu",
   "version": "0.9.4",
   "license": "GPL-3.0-only",
   "scripts": {
@@ -25,6 +25,7 @@
     "desktop:build:linux:amd64": "node scripts/wails.mjs build -platform linux/amd64 -clean -tags webkit2_41",
     "desktop:build:linux:arm64": "node scripts/wails.mjs build -platform linux/arm64 -clean -tags webkit2_41",
     "test:required": "node tests/required/run-required-tests.mjs",
+    "test:icons": "node --test tests/icons/windows-icon.test.mjs",
     "updater": "node scripts/updater.mjs",
     "updater-fixed-webview2": "node scripts/updater-fixed-webview2.mjs",
     "fix-alpha-version": "node scripts/fix-alpha_version.mjs",
@@ -34,7 +35,8 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "bindings": "node scripts/wails.mjs generate module && pnpm exec biome format --write apps/sloth-clash-desktop/frontend/wailsjs/go apps/sloth-clash-desktop/frontend/wailsjs/runtime",
-    "typecheck": "pnpm run bindings && pnpm exec tsc --noEmit -p apps/sloth-clash-desktop/frontend/tsconfig.json"
+    "typecheck": "pnpm run bindings && pnpm exec tsc --noEmit -p apps/sloth-clash-desktop/frontend/tsconfig.json",
+    "test:core": "node --test tests/citrus-core.test.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

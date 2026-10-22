@@ -19,20 +19,22 @@ import (
 
 // SubscriptionPeek is returned before import so the UI can show a suggested name.
 type SubscriptionPeek struct {
-	URL                      string `json:"url"`
-	SuggestedName            string `json:"suggestedName"`
-	ProfileTitleRaw          string `json:"profileTitleRaw,omitempty"`
-	HTTPStatus               int    `json:"httpStatus,omitempty"`
-	LastError                string `json:"lastError,omitempty"`
-	SubscriptionInfo         string `json:"subscriptionInfo,omitempty"` // decoded userinfo JSON when present
-	SubscriptionSupportURL   string `json:"subscriptionSupportUrl,omitempty"`
-	SubscriptionAnnouncement string `json:"subscriptionAnnouncement,omitempty"`
+	Panel                    *SubscriptionPanel `json:"panel,omitempty"`
+	URL                      string             `json:"url"`
+	SuggestedName            string             `json:"suggestedName"`
+	ProfileTitleRaw          string             `json:"profileTitleRaw,omitempty"`
+	HTTPStatus               int                `json:"httpStatus,omitempty"`
+	LastError                string             `json:"lastError,omitempty"`
+	SubscriptionInfo         string             `json:"subscriptionInfo,omitempty"` // decoded userinfo JSON when present
+	SubscriptionSupportURL   string             `json:"subscriptionSupportUrl,omitempty"`
+	SubscriptionAnnouncement string             `json:"subscriptionAnnouncement,omitempty"`
 }
 
 // HTTP header names that some providers use for support / docs links (first non-empty wins).
 var subscriptionSupportHeaderKeys = []string{
 	"Support",
 	"Support-Url",
+	"Profile-Support-URL", "Subscription-Support-URL", "X-Support-URL", "support_url",
 	"support-url",
 	"Profile-Web-Page",
 	"profile-web-page",
@@ -46,7 +48,7 @@ var subscriptionAnnounceHeaderKeys = []string{
 	"announcement",
 	"Announce",
 	"Profile-Announce",
-	"X-Announcement",
+	"X-Announcement", "X-Announce",
 }
 
 func headerFirstNonEmpty(h http.Header, keys []string) string {
@@ -113,7 +115,7 @@ func normalizeSubscriptionAnnouncementFromHeader(raw string) string {
 			text = strings.TrimSpace(string(b))
 		}
 	}
-	return sanitizeSubscriptionAnnouncement(text)
+	return sanitizeSubscriptionAnnouncement(strings.ReplaceAll(text, `\n`, "\n"))
 }
 
 func (a *App) PeekSubscriptionFromURL(raw string) (SubscriptionPeek, error) {
@@ -217,7 +219,10 @@ func fetchSubscriptionPeekHeaders(ctx context.Context, norm, userAgent string) (
 
 	client := &http.Client{
 		Timeout: 22 * time.Second,
-		CheckRedirect: func(_ *http.Request, via []*http.Request) error {
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) > 0 && via[0].URL.Scheme == "https" && req.URL.Scheme != "https" {
+				return errors.New("subscription redirect must retain HTTPS")
+			}
 			if len(via) >= 12 {
 				return errors.New("too many redirects")
 			}
@@ -239,7 +244,8 @@ func fetchSubscriptionPeekHeaders(ctx context.Context, norm, userAgent string) (
 		return out, errors.New(out.LastError)
 	}
 
-	titleRaw := headerGet(resp.Header, "Profile-Title")
+	out.Panel = parseSubscriptionPanel(norm, resp.Header)
+	titleRaw := headerFirstNonEmpty(resp.Header, []string{"Profile-Title", "Subscription-Title", "X-Subscription-Title", "Display-Name"})
 	out.ProfileTitleRaw = titleRaw
 	out.SuggestedName = deriveSuggestedNameFromTitle(norm, titleRaw)
 

@@ -162,7 +162,7 @@ func verifyTunBringUp(profileID string, grace time.Duration) tunVerifyResult {
 
 // osHasTunAdapter is a best-effort cross-check: is a Mihomo TUN adapter present
 // in the OS interface list? On Windows we now name the wintun adapter
-// "SlothClash" (see tunWindowsDeviceName); older builds and macOS/Linux use the
+// "Kabosu" (see tunWindowsDeviceName); older builds and macOS/Linux use the
 // defaults ("Meta", utun/tun). All are covered by the name fragments below.
 func osHasTunAdapter() bool {
 	ifaces, err := net.Interfaces()
@@ -249,10 +249,10 @@ func (a *App) ensureTunUpWithRetry(profile Profile, gen uint64) error {
 type tunRecoverOutcome int
 
 const (
-	tunRecoverNotAttempted tunRecoverOutcome = iota // not Windows, or no access-denied signature
-	tunRecoverRemoved                               // service accepted the removal (0+ adapters cleared)
-	tunRecoverServiceOutdated                       // service too old — no /tun/remove endpoint (404)
-	tunRecoverFailed                                // removal attempted but errored otherwise
+	tunRecoverNotAttempted    tunRecoverOutcome = iota // not Windows, or no access-denied signature
+	tunRecoverRemoved                                  // service accepted the removal (0+ adapters cleared)
+	tunRecoverServiceOutdated                          // service too old — no /tun/remove endpoint (404)
+	tunRecoverFailed                                   // removal attempted but errored otherwise
 )
 
 // maybeRecoverStuckTunAdapter asks the privileged service to force-remove a
@@ -312,22 +312,22 @@ func classifyTunFailure(logTail string, recovery tunRecoverOutcome) string {
 	l := strings.ToLower(logTail)
 	switch {
 	case strings.Contains(l, "operation not permitted"):
-		return "The TUN adapter couldn't be created (operation not permitted) — usually a previous tunnel is still releasing. Click Connect again; it typically succeeds on the next try. If it keeps failing, another VPN or network filter (e.g. Cisco AnyConnect) may be blocking it — disable it or reinstall the SlothClash service. You can also use Proxy mode."
+		return "The TUN adapter couldn't be created (operation not permitted) — usually a previous tunnel is still releasing. Click Connect again; it typically succeeds on the next try. If it keeps failing, another VPN or network filter (e.g. Cisco AnyConnect) may be blocking it — disable it or reinstall the Kabosu service. You can also use Proxy mode."
 	case strings.Contains(l, "access is denied"):
 		switch recovery {
 		case tunRecoverServiceOutdated:
-			return "The TUN adapter couldn't be created (access denied) — a leftover network adapter from a previous session is blocking it, and your helper service is too old to clear it. Use the \"Update service\" banner to update the SlothClash helper (it needs administrator approval), then click Connect again. Use Proxy mode in the meantime."
+			return "The TUN adapter couldn't be created (access denied) — a leftover network adapter from a previous session is blocking it, and your helper service is too old to clear it. Use the \"Update service\" banner to update the Kabosu helper (it needs administrator approval), then click Connect again. Use Proxy mode in the meantime."
 		case tunRecoverFailed:
-			return "The TUN adapter couldn't be created (access denied) — a leftover network adapter from a previous session is blocking it, and automatic removal didn't go through. Reinstall the SlothClash service, or use Proxy mode, then try again."
+			return "The TUN adapter couldn't be created (access denied) — a leftover network adapter from a previous session is blocking it, and automatic removal didn't go through. Reinstall the Kabosu service, or use Proxy mode, then try again."
 		default:
 			// tunRecoverRemoved / tunRecoverNotAttempted: the service accepted the
 			// removal (or none was needed), so the next connect should succeed.
-			return "The TUN adapter couldn't be created (access denied) — a leftover network adapter from a previous session was blocking it. SlothClash asked the service to remove it; click Connect again and it should succeed. If it still fails, reinstall the service or use Proxy mode."
+			return "The TUN adapter couldn't be created (access denied) — a leftover network adapter from a previous session was blocking it. Kabosu asked the service to remove it; click Connect again and it should succeed. If it still fails, reinstall the service or use Proxy mode."
 		}
 	case strings.Contains(l, "already exists"), strings.Contains(l, "in use"):
 		return "The TUN adapter is already in use. Another Clash/wintun client may be holding it — close it (e.g. clash-verge, v2rayN) and try again."
 	case strings.Contains(l, "wintun"):
-		return "The wintun driver could not be loaded. Antivirus may have quarantined it — allow SlothClash in your antivirus and try again."
+		return "The wintun driver could not be loaded. Antivirus may have quarantined it — allow Kabosu in your antivirus and try again."
 	default:
 		return "The TUN adapter could not be brought up. Try reconnecting; if it keeps failing, switch to Proxy mode and copy diagnostics so we can investigate."
 	}
@@ -354,7 +354,7 @@ func (a *App) CopyTunDiagnostics() string {
 // on user machines.
 func (a *App) collectTunDiagnostics() string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "SlothClash TUN diagnostics\n")
+	fmt.Fprintf(&b, "Kabosu TUN diagnostics\n")
 	fmt.Fprintf(&b, "version: %s\n", AppVersion)
 	fmt.Fprintf(&b, "os: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 

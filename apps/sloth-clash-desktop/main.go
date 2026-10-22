@@ -29,19 +29,19 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:       "Sloth Clash",
+		Title:       "Kabosu",
 		StartHidden: startHidden,
 		// 1100x720 leaves comfortable margins on 1366x768 laptops and on
 		// scaled-up 4K monitors (150%/175% DPI) alike. The previous 1200x820
 		// covered ~88%×107% of a 1366x768 screen which made the window taller
 		// than the viewport on default Windows scaling. Min* values stay
 		// the same so the rules editor and YAML modals still fit.
-		Width:     1100,
-		Height:    720,
-		MinWidth:  960,
-		MinHeight: 640,
-		Frameless:        false,
-		BackgroundColour: &options.RGBA{R: 18, G: 17, B: 16, A: 1},
+		Width:            1100,
+		Height:           720,
+		MinWidth:         960,
+		MinHeight:        640,
+		Frameless:        true,
+		BackgroundColour: &options.RGBA{R: 246, G: 250, B: 238, A: 1},
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
@@ -49,7 +49,7 @@ func main() {
 			Theme: windows.Dark,
 		},
 		SingleInstanceLock: &options.SingleInstanceLock{
-			UniqueId: "a3f2c8d1-4b5e-4f6a-9c0d-slothclash-desktop",
+			UniqueId: "io.github.getmikan.kabosu.desktop",
 			OnSecondInstanceLaunch: func(data options.SecondInstanceData) {
 				app.OnSecondInstance(data)
 			},

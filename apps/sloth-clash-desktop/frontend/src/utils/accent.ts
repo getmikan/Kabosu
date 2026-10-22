@@ -10,20 +10,19 @@ const ACCENT_ALPHAS: Record<AccentTheme, { dim: number; muted: number }> = {
   light: { dim: 0.18, muted: 0.34 },
 }
 
-// Mid-stop of each theme's background gradient in App.css — the surface most
-// accent-colored elements sit on, used as the contrast reference.
+// Neutral surfaces of the Material theme, used by the custom color preview.
 const THEME_BG: Record<AccentTheme, string> = {
-  dark: '#1a1918',
-  light: '#e9dec8',
+  dark: '#101418',
+  light: '#f8f9ff',
 }
 
 // Below this ratio against the theme background the accent is auto-adjusted.
 export const MIN_ACCENT_CONTRAST = 3
 
-// Built-in bronze accents from App.css — used as picker/preview fallbacks.
+// Default citrus accents — used as picker/preview fallbacks.
 export const STOCK_ACCENTS: Record<AccentTheme, string> = {
-  dark: '#c9a86c',
-  light: '#936b38',
+  dark: '#b8d78b',
+  light: '#4a662b',
 }
 
 /** `#rgb`/`#rrggbb` (case-insensitive) → normalized `#rrggbb`, else null. */

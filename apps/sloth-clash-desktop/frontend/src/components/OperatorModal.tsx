@@ -9,6 +9,8 @@ import {
   subscriptionDaysLeft,
 } from '../utils/subscription'
 
+import { ServerGroups } from './ServerGroups'
+
 /**
  * Operator info dialog — everything about the provider in one place: what the
  * panel sent via X-Brand-Desktop-* (logo, name, links) plus the two things a
@@ -23,6 +25,7 @@ export function OperatorModal({
   coreVersion,
   serviceVersion,
   lightUI,
+  embedded = false,
   open,
   onClose,
   onBrowserOpen,
@@ -34,6 +37,7 @@ export function OperatorModal({
   coreVersion: string
   serviceVersion: string
   lightUI: boolean
+  embedded?: boolean
   open: boolean
   onClose: () => void
   onBrowserOpen: (url: string) => void
@@ -57,9 +61,15 @@ export function OperatorModal({
       : null
 
   const links: Array<[string, string | undefined]> = [
-    [t('settings.operatorCabinet'), m.cabinetUrl],
+    [
+      t('settings.operatorCabinet'),
+      m.cabinetUrl || activeProfile?.panel?.webPageUrl,
+    ],
     [t('settings.operatorRenew'), m.renewUrl],
-    [t('settings.operatorSupport'), m.supportUrl],
+    [
+      t('settings.operatorSupport'),
+      m.supportUrl || activeProfile?.subscriptionSupportUrl,
+    ],
     ['Telegram', m.telegramUrl],
     [t('settings.operatorBot'), m.botUrl],
     [t('settings.operatorWebsite'), m.websiteUrl],
@@ -98,11 +108,17 @@ export function OperatorModal({
   }
 
   return (
-    <div className="modalOverlay" role="presentation" onClick={onClose}>
+    <div
+      className={embedded ? 'operatorPage' : 'modalOverlay'}
+      role="presentation"
+      onClick={embedded ? undefined : onClose}
+    >
       <div
-        className="modalCard operatorModalCard"
-        role="dialog"
-        aria-modal="true"
+        className={
+          embedded ? 'operatorPageCard' : 'modalCard operatorModalCard'
+        }
+        role={embedded ? 'region' : 'dialog'}
+        aria-modal={embedded ? undefined : true}
         aria-labelledby="operatorTitle"
         onClick={(e) => e.stopPropagation()}
       >
@@ -183,6 +199,11 @@ export function OperatorModal({
           </div>
         ) : null}
 
+        <ServerGroups
+          metadata={activeProfile?.panel?.groups}
+          pageUrl={m.cabinetUrl || activeProfile?.panel?.webPageUrl}
+          onOpen={onBrowserOpen}
+        />
         {shown.length > 0 ? (
           <div className="operatorLinks">
             {shown.map(([label, url]) => (
@@ -198,6 +219,9 @@ export function OperatorModal({
           </div>
         ) : null}
 
+        <p className="muted small operatorAttribution">
+          Powered by Kabosu · Citrus
+        </p>
         <div className="modalFooter">
           <button
             type="button"
@@ -206,7 +230,12 @@ export function OperatorModal({
           >
             {copied ? t('ui.operator.copied') : t('ui.operator.copyForSupport')}
           </button>
-          <button type="button" className="btn" onClick={onClose}>
+          <button
+            type="button"
+            className="btn"
+            hidden={embedded}
+            onClick={onClose}
+          >
             {t('common.close')}
           </button>
         </div>

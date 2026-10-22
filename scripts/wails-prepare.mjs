@@ -10,7 +10,7 @@ const resourcesDir = path.join(desktopBuild, 'resources')
 /** Linux: prebuild puts them under sidecar (see scripts/prebuild.mjs SERVICE_DIR). */
 const sidecarDir = path.join(desktopBuild, 'sidecar')
 
-/** Only Sloth on-disk names; legacy Verge files are migrated once if present. */
+/** Only upstream helper on-disk names; legacy Verge files are migrated once if present. */
 const patterns = [
   'sloth-clash-service*.exe',
   'sloth-clash-service',

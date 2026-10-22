@@ -374,4 +374,3 @@ rules:
 		t.Fatalf("group proxies should fallback to DIRECT after invalid ref pruning, got: %#v", proxies)
 	}
 }
-

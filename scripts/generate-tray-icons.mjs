@@ -82,7 +82,7 @@ async function applyBadge(basePng, state, style) {
   ]
   if (style === 'colorful') {
     // Thin dark outline under the coloured badge so it never fuses with the
-    // sloth's fur or the rounded-square background.
+    // fruit or the dark background.
     layers.push({
       input: circleSvg(
         w,
@@ -117,6 +117,7 @@ async function squareResize(srcPng, size) {
       fit: 'contain',
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
+    .ensureAlpha()
     .png()
     .toBuffer()
 }

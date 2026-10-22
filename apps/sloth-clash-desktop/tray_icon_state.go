@@ -99,7 +99,7 @@ func trayIconAssetBase(style string, kind trayIconKind) string {
 func trayTooltipFor(kind trayIconKind, s trayStrings) string {
 	base := strings.TrimSpace(s.Tooltip)
 	if base == "" {
-		base = "Sloth Clash"
+		base = "Kabosu"
 	}
 	var mode string
 	switch kind {
