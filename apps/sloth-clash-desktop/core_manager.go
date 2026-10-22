@@ -1038,7 +1038,11 @@ func (a *App) coreFetchVersion(ctx context.Context) (string, error) {
 }
 
 func (a *App) stopCoreLocked() {
-	a.clearSystemProxyLocked()
+	if a.holdSystemProxy {
+		a.appendRuntimeDiag("sysproxy.hold", "kept during core recovery (leak guard)")
+	} else {
+		a.clearSystemProxyLocked()
+	}
 	a.restoreTakenOverTunServicesLocked()
 	a.coreStopIntentional = true
 	a.coreProcToken++

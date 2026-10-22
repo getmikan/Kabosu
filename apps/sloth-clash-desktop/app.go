@@ -50,6 +50,12 @@ type App struct {
 	coreActiveProfileID string
 	coreLifecycleMu     sync.Mutex // serializes ensureCoreForProfile across concurrent callers
 	systemProxyLeased   bool       // Windows: we set HKCU system proxy to mixed-port; clear on disconnect/stop
+	// holdSystemProxy is the leak guard: while the core is being recovered
+	// after an unexpected death (or recovery gave up), stopping the core must
+	// NOT remove the system proxy. Apps then fail against the dead port
+	// instead of silently going out through the real IP. Only an explicit
+	// Connect, Disconnect or app shutdown releases it.
+	holdSystemProxy bool
 	systemProxySnapshot map[string]SystemProxyServiceSnapshot
 	tunTakenOver        []tunServiceTakeover
 	connectGen          atomic.Uint64 // bumped when starting async connect or on Disconnect; invalidates in-flight worker
@@ -308,6 +314,7 @@ func (a *App) drainTunAndStopCore() {
 	}
 
 	a.mu.Lock()
+	a.holdSystemProxy = false
 	a.stopCoreLocked()
 	a.mu.Unlock()
 }

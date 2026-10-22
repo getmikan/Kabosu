@@ -46,6 +46,22 @@ func (a *App) attemptCoreAutoRestart(profileID, traffic string) {
 	}
 	enableTun := traffic == "tun"
 
+	// Leak guard: keep the system proxy in place while we restart the core,
+	// so apps fail closed instead of bypassing the tunnel. Released on every
+	// exit path except "gave up", where blocking is the safe outcome.
+	keepBlocked := false
+	a.mu.Lock()
+	a.holdSystemProxy = true
+	a.mu.Unlock()
+	defer func() {
+		if keepBlocked {
+			return
+		}
+		a.mu.Lock()
+		a.holdSystemProxy = false
+		a.mu.Unlock()
+	}()
+
 	for i, wait := range coreAutoRestartBackoffs {
 		attempt := i + 1
 		total := len(coreAutoRestartBackoffs)
@@ -137,6 +153,17 @@ func (a *App) attemptCoreAutoRestart(profileID, traffic string) {
 			}
 		}
 
+		// The restarted core listens on a new mixed port: point the system
+		// proxy at it, or Proxy mode would stay dead (held) or leak (cleared).
+		if traffic == "proxy" {
+			if err := a.applySystemProxyFromSnapshot(); err != nil {
+				a.traceEvent("core.autorestart.sysproxy_failed", "fail", 0, map[string]any{
+					"profileId": profileID,
+					"error":     err.Error(),
+				})
+			}
+		}
+
 		// Success — flip status back to connected. Mirror what
 		// finishConnectJobOK does so the UI sees a clean ready state.
 		a.mu.Lock()
@@ -154,13 +181,13 @@ func (a *App) attemptCoreAutoRestart(profileID, traffic string) {
 		return
 	}
 
-	// All attempts exhausted — leave the user a clear next step.
+	// All attempts exhausted — leave the user a clear next step. In Proxy
+	// mode the system proxy stays on the dead port: traffic is blocked rather
+	// than sent around the tunnel until the user reconnects or disconnects.
+	keepBlocked = traffic == "proxy"
 	a.mu.Lock()
 	a.state.Connection.Status = ConnError
-	a.state.Connection.LastError = fmt.Sprintf(
-		"core exited and %d auto-restarts failed; click Connect to retry",
-		len(coreAutoRestartBackoffs),
-	)
+	a.state.Connection.LastError = autoRestartExhaustedMessage(traffic, len(coreAutoRestartBackoffs))
 	a.state.UpdatedAt = time.Now().Unix()
 	a.mu.Unlock()
 	a.emitAppStateChanged()
@@ -168,4 +195,20 @@ func (a *App) attemptCoreAutoRestart(profileID, traffic string) {
 		"profileId": profileID,
 		"attempts":  len(coreAutoRestartBackoffs),
 	})
+}
+
+// autoRestartExhaustedMessage tells the user what state the network is left in
+// after recovery gave up: blocked (Proxy mode, leak guard) or direct (TUN,
+// whose adapter went away with the core).
+func autoRestartExhaustedMessage(traffic string, attempts int) string {
+	if traffic == "proxy" {
+		return fmt.Sprintf(
+			"core exited and %d auto-restarts failed; internet is blocked so traffic cannot bypass the VPN. Click Connect to retry or Disconnect to go direct",
+			attempts,
+		)
+	}
+	return fmt.Sprintf(
+		"core exited and %d auto-restarts failed; click Connect to retry",
+		attempts,
+	)
 }

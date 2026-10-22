@@ -18,6 +18,8 @@ import (
 
 func (a *App) Connect() (AppState, error) {
 	a.mu.Lock()
+	// A fresh Connect owns the system proxy again (it re-applies it itself).
+	a.holdSystemProxy = false
 	if len(a.profiles) == 0 {
 		a.mu.Unlock()
 		return a.GetAppState(), errors.New("no profiles — import a subscription first")
@@ -586,6 +588,7 @@ func (a *App) Disconnect() AppState {
 	// wintun comes down cleanly (no PATCH / force-kill).
 	a.mu.Lock()
 	prevTraffic := strings.TrimSpace(a.state.Traffic)
+	a.holdSystemProxy = false
 	a.clearSystemProxyLocked()
 	a.restoreTakenOverTunServicesLocked()
 	a.state.Connection.Status = ConnDisconnected
