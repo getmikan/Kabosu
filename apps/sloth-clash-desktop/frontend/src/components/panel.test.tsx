@@ -40,7 +40,7 @@ describe('panel headers in the desktop UI', () => {
               exhausted: true,
             },
           ],
-        }}
+        } as main.MikanGroups}
         pageUrl="https://billing.example.test"
         onOpen={vi.fn()}
       />,
@@ -64,7 +64,7 @@ describe('panel headers in the desktop UI', () => {
               exhausted: false,
             },
           ],
-        }}
+        } as main.MikanGroups}
         onOpen={vi.fn()}
       />,
     )
@@ -83,7 +83,7 @@ describe('panel headers in the desktop UI', () => {
           panel: {
             shareLinksLocked: true,
             brand: { lockConfigScript: true } as main.BrandManifest,
-          },
+          } as main.SubscriptionPanel,
         }}
         onUpdate={vi.fn()}
         onEditInfo={vi.fn()}
@@ -136,7 +136,9 @@ describe('panel headers in the desktop UI', () => {
           } as main.ActiveBranding
         }
         activeProfile={{
-          panel: { webPageUrl: 'https://billing.example.test/me' },
+          panel: {
+            webPageUrl: 'https://billing.example.test/me',
+          } as main.SubscriptionPanel,
         }}
         deviceIdentity={null}
         appVersion="test"
