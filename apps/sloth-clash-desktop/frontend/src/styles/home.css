@@ -347,7 +347,25 @@
   gap: 8px;
   margin-top: 4px;
 }
-.serverPill img {
+.homePicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(600px, 100%);
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: var(--radius-xl);
+  background: var(--pane-strong);
+}
+.homePickerGroup {
+  flex: 0 1 200px;
+  min-width: 140px;
+}
+.homePickerNode {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.homePicker .flagValue img {
   border-radius: 3px;
 }
 
@@ -456,25 +474,37 @@
 }
 
 /* --- Announcement / errors --- */
-.homeAnnouncement .m3CardBody {
+.homeAnnouncement {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  padding: 16px 20px;
+  gap: 12px;
+  margin: 12px 8px 0;
+  padding: 12px 12px 12px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+  animation: riseIn 520ms var(--ease-emphasized) both;
 }
-.homeAnnouncementHead {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--primary);
-}
-.homeAnnouncementHead svg {
+.homeAnnouncementIcon svg {
   width: 20px;
   height: 20px;
+  margin-top: 2px;
+}
+.homeAnnouncementBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.homeAnnouncementBody strong {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
 }
 .homeAnnouncementText {
-  max-height: 120px;
+  max-height: 72px;
   margin: 0;
   overflow: auto;
   white-space: pre-wrap;

@@ -28,7 +28,7 @@ export function RuleProvidersModal({
   onRefreshAll: () => void
   onClose: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <Dialog
       open={open}
@@ -92,7 +92,7 @@ export function RuleProvidersModal({
                   {p.behavior} · {p.vehicleType} · {p.ruleCount}
                 </div>
                 <span className="ruProvUpdated">
-                  {formatProviderUpdatedAt(p.updatedAt)}
+                  {formatProviderUpdatedAt(p.updatedAt, i18n.language)}
                 </span>
                 {err ? (
                   <p className="ruProvErr" role="alert">

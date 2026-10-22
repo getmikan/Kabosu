@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
+  GetProfileProxyGroupsBaseline,
   GetProfileRulesBaseline,
   SetProfileRulesTemplate,
 } from '../api/profile'
@@ -126,20 +127,49 @@ export function ProfileRulesModal({
   const [formContent, setFormContent] = useState('')
   const [formPolicy, setFormPolicy] = useState('DIRECT')
 
+  // Policies come from the live core when it runs; otherwise from the
+  // profile's own proxy-groups, so rules can target PROXY & co. before the
+  // first Connect (an empty list left only DIRECT/REJECT to pick from).
+  const [profileGroupNames, setProfileGroupNames] = useState<string[]>([])
+  const liveGroupCount = proxyGroups?.length ?? 0
+  useEffect(() => {
+    if (!target || liveGroupCount > 0) return
+    let cancelled = false
+    void GetProfileProxyGroupsBaseline(target.id)
+      .then((peek) => {
+        if (cancelled) return
+        const names = (peek?.groups ?? [])
+          .map((g: any) => String(g?.name ?? '').trim())
+          .filter(Boolean)
+        setProfileGroupNames(names)
+      })
+      .catch(() => {
+        // Falls back to the policies used by the baseline rules below.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [target, liveGroupCount])
+
   const policyOptions = useMemo(() => {
-    const base = ['DIRECT', 'REJECT', 'REJECT-DROP', 'PASS']
-    const groups = (proxyGroups ?? [])
+    const live = (proxyGroups ?? [])
       .map((g: any) => String(g?.name ?? '').trim())
       .filter(Boolean)
+    const fromRules = (baseline ?? []).map((line) => {
+      const parts = line.split(',').map((p) => p.trim())
+      if (parts[parts.length - 1]?.toLowerCase() === 'no-resolve') parts.pop()
+      return parts[parts.length - 1] ?? ''
+    })
+    const base = ['DIRECT', 'REJECT', 'REJECT-DROP', 'PASS']
     const seen = new Set<string>()
     const out: string[] = []
-    for (const v of [...base, ...groups]) {
-      if (seen.has(v)) continue
+    for (const v of [...live, ...profileGroupNames, ...fromRules, ...base]) {
+      if (!v || seen.has(v)) continue
       seen.add(v)
       out.push(v)
     }
     return out
-  }, [proxyGroups])
+  }, [proxyGroups, profileGroupNames, baseline])
 
   const advancedYamlErr = useMemo(
     () => yamlValidationError(advancedDraft, true),

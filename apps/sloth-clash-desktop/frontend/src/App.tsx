@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
 import './styles/m3.css'
@@ -119,6 +120,7 @@ import { useServiceLog } from './hooks/queries/useServiceLog'
 import { useUpdateState } from './hooks/queries/useUpdateState'
 import { useConnectivityChecks } from './hooks/useConnectivityChecks'
 import { useDialogFocus } from './hooks/useDialogFocus'
+import { useOfflineProxyGroups } from './hooks/useOfflineProxyGroups'
 import { useProxyDelay } from './hooks/useProxyDelay'
 import { useRuleToggles } from './hooks/useRuleToggles'
 import { useToasts } from './hooks/useToasts'
@@ -127,6 +129,7 @@ import {
   DEFAULT_MERGE_TEMPLATE,
   mergeTemplateFromProfile,
 } from './mergeTemplate'
+import { preloadMonaco } from './monaco/load'
 import { HomePage } from './pages/Home'
 import { ProfilesPage } from './pages/Profiles'
 import { ProxiesPage } from './pages/Proxies'
@@ -157,7 +160,7 @@ import { parseMihomoRulesJson, parseRuleProvidersJson } from './rulesTable'
 import { SpotlightTour } from './SpotlightTour'
 import { SPOTLIGHT_TOUR_STEP_COUNT } from './spotlightTourConfig'
 import type { CompactSettings, ImportModalReason, Screen } from './types/app'
-import { Button, IconButton } from './ui/M3'
+import { Button, IconButton, Segmented } from './ui/M3'
 import { normalizeHex, resolveAccent } from './utils/accent'
 import { decodeUnicodeEscapes, extractNodeFlagIso } from './utils/proxyNames'
 import {
@@ -173,6 +176,11 @@ const DEFAULT_SEED = '#9dc843'
 
 function App() {
   useDialogFocus()
+  // Warm the editor chunk while idle so YAML editors open instantly.
+  useEffect(() => {
+    const id = window.setTimeout(preloadMonaco, 4000)
+    return () => window.clearTimeout(id)
+  }, [])
   const { t } = useTranslation()
   const shellRef = useRef<HTMLDivElement>(null)
   const [screen, setScreen] = useState<Screen>('home')
@@ -1472,11 +1480,62 @@ function App() {
     return t('ui.home.trafficHealthLine', { traffic: tr, health: hk })
   }, [state?.connection?.status, state?.connection?.health, displayTraffic, t])
 
-  const activeNode = useMemo(() => {
-    const groups = (state?.proxy?.groups ?? []) as any[]
-    const activeGroup = String(
-      brandManifest?.primaryProxyGroup || state?.proxy?.activeGroup || '',
+  // Devices is a tab inside Advanced; only when a brand hides Advanced does it
+  // get its own navigation item back.
+  const devicesInNav = Boolean(brandManifest?.hideAdvanced)
+  const liveConnected = state?.connection?.status === 'connected'
+  const liveGroups = useMemo(
+    () => (state?.proxy?.groups ?? []) as any[],
+    [state?.proxy?.groups],
+  )
+  const onOfflinePicksApplied = useCallback(() => void refresh(), [refresh])
+  const offlineProxy = useOfflineProxyGroups({
+    profileId: String(state?.profile?.activeProfileId ?? ''),
+    coreRunning: liveConnected,
+    liveGroups,
+    onApplied: onOfflinePicksApplied,
+  })
+  // Live groups while connected; the profile's own groups before Connect, so
+  // servers can be browsed and picked without a running core.
+  const proxyGroups = liveGroups.length > 0 ? liveGroups : offlineProxy.groups
+  // The group the Home picker works on: the user's pick, else the profile's
+  // first selectable group, so a fresh profile needs no trip to Proxies.
+  const pickerGroupName = useMemo(() => {
+    const preferred = String(
+      brandManifest?.primaryProxyGroup ||
+        state?.proxy?.activeGroup ||
+        state?.proxy?.lastGoodGroup ||
+        '',
     ).trim()
+    if (preferred && proxyGroups.some((g: any) => g?.name === preferred))
+      return preferred
+    const firstSelector = proxyGroups.find(
+      (g: any) =>
+        String(g?.type ?? '') === 'Selector' &&
+        String(g?.name ?? '').toUpperCase() !== 'GLOBAL',
+    )
+    return String(firstSelector?.name ?? preferred)
+  }, [
+    brandManifest?.primaryProxyGroup,
+    state?.proxy?.activeGroup,
+    state?.proxy?.lastGoodGroup,
+    proxyGroups,
+  ])
+  const { rememberPick } = offlineProxy
+  const selectNode = useCallback(
+    (group: string, node: string) => {
+      // Remembered either way: offline it is applied on Connect, online it
+      // keeps the offline list in sync with what the user last chose.
+      rememberPick(group, node)
+      if (liveConnected) void run(() => SetProxyNode(group, node))
+    },
+     
+    [liveConnected, rememberPick],
+  )
+
+  const activeNode = useMemo(() => {
+    const groups = proxyGroups
+    const activeGroup = pickerGroupName
     if (!activeGroup || groups.length === 0) return ''
     const g = groups.find((x) => String(x?.name ?? '') === activeGroup)
     if (!g) return ''
@@ -1488,11 +1547,7 @@ function App() {
       return leaf ? `${selected} -> ${leaf}` : selected
     }
     return selected
-  }, [
-    state?.proxy?.activeGroup,
-    state?.proxy?.groups,
-    brandManifest?.primaryProxyGroup,
-  ])
+  }, [pickerGroupName, proxyGroups])
 
   const activeNodeVisual = useMemo(() => {
     const raw = decodeUnicodeEscapes(String(activeNode ?? '')).trim()
@@ -1509,10 +1564,8 @@ function App() {
 
   /** Group whose `proxies` list we let the user change from Home (GLOBAL → nested group). */
   const nodePickerGroup = useMemo(() => {
-    const groups = (state?.proxy?.groups ?? []) as any[]
-    const activeGroup = String(
-      brandManifest?.primaryProxyGroup || state?.proxy?.activeGroup || '',
-    ).trim()
+    const groups = proxyGroups
+    const activeGroup = pickerGroupName
     if (!activeGroup || groups.length === 0) return null
     const g = groups.find((x) => String(x?.name ?? '') === activeGroup)
     if (!g) return null
@@ -1533,11 +1586,7 @@ function App() {
       return null
     }
     return g
-  }, [
-    state?.proxy?.activeGroup,
-    state?.proxy?.groups,
-    brandManifest?.primaryProxyGroup,
-  ])
+  }, [pickerGroupName, proxyGroups])
 
   const homeAlertTooltip = useMemo(() => {
     const parts: string[] = []
@@ -2020,12 +2069,17 @@ function App() {
       reducedMotion="user"
       transition={{ type: 'spring', stiffness: 360, damping: 30 }}
     >
-      <m3e-theme
-        color={themeSeed}
-        scheme={effectiveTheme}
-        variant="tonal-spot"
-        motion="expressive"
-      >
+      {/* m3e-theme only themes the whole document (incl. menus and dialogs
+          the library portals into <body>) when it is a direct child of body. */}
+      {createPortal(
+        <m3e-theme
+          color={themeSeed}
+          scheme={effectiveTheme}
+          variant="tonal-spot"
+          motion="expressive"
+        />,
+        document.body,
+      )}
       <div
         className={`shell ${navCollapsed ? 'navCollapsed' : ''}`}
         ref={shellRef}
@@ -2036,12 +2090,14 @@ function App() {
           {t('expressive.skipContent')}
         </a>
         <SidebarNav
-          screen={screen}
+          // Devices lives as a tab of Advanced, so it lights that item up.
+          screen={screen === 'devices' && !devicesInNav ? 'advanced' : screen}
           onChange={setScreen}
           collapsed={navCollapsed}
           onToggleCollapse={() => setNavCollapsed((v) => !v)}
           hiddenScreens={[
             ...(brandManifest?.hideAdvanced ? (['advanced'] as const) : []),
+            ...(devicesInNav ? [] : (['devices'] as const)),
             ...(!operatorAvailable ? (['operator'] as const) : []),
             ...(brandIdentity && brandManifest?.hideRouting
               ? (['rules'] as const)
@@ -2053,7 +2109,7 @@ function App() {
 
         <div className="workspace">
           <AppChrome
-            screen={screen}
+            screen={screen === 'devices' && !devicesInNav ? 'advanced' : screen}
             connected={showProtectedBadge}
             connectionLabel={connectionLabel}
             theme={theme}
@@ -2161,6 +2217,8 @@ function App() {
                     showProtectedBadge={showProtectedBadge}
                     homeTrafficHealthSubtitle={homeTrafficHealthSubtitle}
                     nodePickerGroup={nodePickerGroup}
+                    proxyGroups={proxyGroups}
+                    pickerGroupName={pickerGroupName}
                     activeNode={activeNode}
                     activeNodeVisual={activeNodeVisual}
                     showBuiltinProxyGroups={showBuiltinProxyGroups}
@@ -2200,14 +2258,12 @@ function App() {
                     onSelectGroup={(name) =>
                       void run(() => SelectProxyGroup(name))
                     }
-                    onSelectNode={(group, node) =>
-                      void run(() => SetProxyNode(group, node))
-                    }
+                    onSelectNode={selectNode}
                   />
                 ) : null}
                 {screen === 'proxies' ? (
                   <ProxiesPage
-                    groups={(state?.proxy?.groups ?? []) as any[]}
+                    groups={proxyGroups}
                     activeGroup={state?.proxy?.activeGroup ?? ''}
                     connectionStatus={state?.connection?.status ?? ''}
                     displayMode={displayMode}
@@ -2224,9 +2280,7 @@ function App() {
                     onSelectGroup={(name) =>
                       void run(() => SelectProxyGroup(name))
                     }
-                    onSelectNode={(group, node) =>
-                      void run(() => SetProxyNode(group, node))
-                    }
+                    onSelectNode={selectNode}
                     onPingAll={(group, nodes) =>
                       void runProxyDelayTestAll(group, nodes)
                     }
@@ -2269,6 +2323,28 @@ function App() {
                       onRefresh={() => void refreshRuntimeLog()}
                     />
                   </Suspense>
+                ) : null}
+
+                {(screen === 'advanced' || screen === 'devices') &&
+                !devicesInNav ? (
+                  <Segmented
+                    className="advancedTabs"
+                    ariaLabel={t('nav.advanced')}
+                    value={screen}
+                    onChange={setScreen}
+                    options={[
+                      {
+                        value: 'advanced' as const,
+                        label: t('ui.advanced.tabDiagnostics'),
+                        icon: 'advanced',
+                      },
+                      {
+                        value: 'devices' as const,
+                        label: t('ui.advanced.tabDevices'),
+                        icon: 'devices',
+                      },
+                    ]}
+                  />
                 ) : null}
 
                 {screen === 'devices' ? (
@@ -2906,7 +2982,6 @@ function App() {
 
         <ToastHub toasts={toasts} onDismiss={dismissToast} />
       </div>
-      </m3e-theme>
     </MotionConfig>
   )
 }

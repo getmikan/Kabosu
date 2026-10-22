@@ -200,6 +200,11 @@ export function ProxiesPage({
 
   return (
     <div className="page pxPage">
+      {connectionStatus !== 'connected' && groups.length > 0 ? (
+        <p className="inlineWarning pxOffline" role="status">
+          {t('ui.proxies.offlineHint')}
+        </p>
+      ) : null}
       <h2 className="srOnly">{t('ui.proxies.title')}</h2>
       <p className="srOnly">{t('ui.proxies.lead')}</p>
       <div className="pageToolbar pxToolbar">
@@ -695,6 +700,8 @@ function ProxyGroupsAccordion({
                               {isChain ? `${allProxies.indexOf(p) + 1}. ` : ''}
                               {nodeDisplayName(p)}
                             </span>
+                          </div>
+                          <div className="pxNodeBottom">
                             <div className="pxNodeTags">
                               {quotaByProxy.has(p) ? (
                                 <span

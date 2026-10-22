@@ -22,26 +22,27 @@ export function formatBytesSmart(n: number): string {
   return `${v.toFixed(d)} ${units[i]}`
 }
 
-export function formatProfileAgo(lastUpdatedUnix: number): string {
+/** "3 minutes ago" in the UI language (Intl), or '' for missing/future stamps. */
+export function formatProfileAgo(lastUpdatedUnix: number, lang = 'en'): string {
   if (!Number.isFinite(lastUpdatedUnix) || lastUpdatedUnix <= 0) return ''
   const ms = lastUpdatedUnix < 1e12 ? lastUpdatedUnix * 1000 : lastUpdatedUnix
   const diff = Date.now() - ms
   if (diff < 0) return ''
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' })
   const s = Math.floor(diff / 1000)
-  if (s < 60) return `${s}s ago`
+  if (s < 60) return rtf.format(-s, 'second')
   const m = Math.floor(s / 60)
-  if (m < 60) return `${m}m ago`
+  if (m < 60) return rtf.format(-m, 'minute')
   const h = Math.floor(m / 60)
-  if (h < 48) return `${h}h ago`
-  const d = Math.floor(h / 24)
-  return `${d}d ago`
+  if (h < 48) return rtf.format(-h, 'hour')
+  return rtf.format(-Math.floor(h / 24), 'day')
 }
 
-export function formatProviderUpdatedAt(raw: string): string {
+export function formatProviderUpdatedAt(raw: string, lang = 'en'): string {
   const s = String(raw ?? '').trim()
   if (!s) return '—'
   const ts = Date.parse(s)
   if (!Number.isFinite(ts)) return s
-  const ago = formatProfileAgo(Math.floor(ts / 1000))
-  return ago || new Date(ts).toLocaleString()
+  const ago = formatProfileAgo(Math.floor(ts / 1000), lang)
+  return ago || new Date(ts).toLocaleString(lang)
 }

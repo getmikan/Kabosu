@@ -2,6 +2,7 @@ import Add from '@material-symbols/svg-400/rounded/add.svg?react'
 import Corp from '@material-symbols/svg-400/rounded/business_center.svg?react'
 import Check from '@material-symbols/svg-400/rounded/check.svg?react'
 import Chevron from '@material-symbols/svg-400/rounded/chevron_left.svg?react'
+import Next from '@material-symbols/svg-400/rounded/chevron_right.svg?react'
 import Close from '@material-symbols/svg-400/rounded/close.svg?react'
 import Maximize from '@material-symbols/svg-400/rounded/crop_square.svg?react'
 import Moon from '@material-symbols/svg-400/rounded/dark_mode.svg?react'
@@ -42,6 +43,7 @@ const icons = {
   settings: Settings,
   advanced: Advanced,
   chevron: Chevron,
+  next: Next,
   add: Add,
   power: Power,
   shield: Shield,

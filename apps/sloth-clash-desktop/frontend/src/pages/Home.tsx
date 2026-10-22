@@ -30,9 +30,9 @@ import {
 
 import '../styles/home.css'
 
-// Announcement card — always expanded so users see provider notices without
-// extra clicks. The text body is height-bounded with internal scroll so a
-// long announcement never pushes the Home layout below the viewport.
+// Provider notice shown inside the subscription card, right under the quota
+// numbers it usually talks about. Height-bounded with internal scroll so a
+// long announcement never pushes the connect button off screen.
 function SubscriptionAnnouncement({
   text,
   url,
@@ -46,20 +46,22 @@ function SubscriptionAnnouncement({
   const trimmed = text.trim()
   if (!trimmed) return null
   return (
-    <Card className="homeAnnouncement" variant="outlined">
-      <div className="homeAnnouncementHead">
+    <div className="homeAnnouncement" role="note">
+      <span className="homeAnnouncementIcon" aria-hidden>
         <MaterialSymbol name="help" />
+      </span>
+      <div className="homeAnnouncementBody">
         <strong>{t('ui.home.subscriptionAnnouncement')}</strong>
+        <p className="homeAnnouncementText allowSelect">
+          {decodeSubscriptionAnnouncementDisplay(trimmed)}
+        </p>
       </div>
-      <p className="homeAnnouncementText allowSelect">
-        {decodeSubscriptionAnnouncementDisplay(trimmed)}
-      </p>
       {url ? (
-        <Button variant="text" onClick={() => onOpen(url)}>
+        <Button variant="text" size="extra-small" onClick={() => onOpen(url)}>
           {t('settings.operatorHelp')}
         </Button>
       ) : null}
-    </Card>
+    </div>
   )
 }
 
@@ -188,6 +190,8 @@ export function HomePage({
   showProtectedBadge,
   homeTrafficHealthSubtitle,
   nodePickerGroup,
+  proxyGroups,
+  pickerGroupName,
   activeNode,
   activeNodeVisual,
   showBuiltinProxyGroups,
@@ -230,6 +234,10 @@ export function HomePage({
   showProtectedBadge: boolean
   homeTrafficHealthSubtitle: string
   nodePickerGroup: any
+  /** Live groups, or the profile's own groups while the core is off. */
+  proxyGroups: any[]
+  /** Group the Home picker edits (user pick or first selector). */
+  pickerGroupName: string
   activeNode: string
   activeNodeVisual: HomeActiveNodeVisual
   showBuiltinProxyGroups: boolean
@@ -328,7 +336,7 @@ export function HomePage({
       .join(' · ') || undefined
   const ruleMode = String(state?.mode?.current ?? '') === 'rule'
 
-  const groupOptions = (state?.proxy?.groups ?? [])
+  const groupOptions = proxyGroups
     .filter((g: any) => {
       const name = String(g?.name ?? '')
       if (isUnsafeGroupName(name)) return false
@@ -439,6 +447,14 @@ export function HomePage({
       {hasAnyProfile ? (
         <Card className="homeStats">
           <SubscriptionStats profile={activeProfile} />
+          {activeProfile?.type === 'subscription' ? (
+            <SubscriptionAnnouncement
+              url={activeProfile?.panel?.announcementUrl}
+              onOpen={onOpenSupport}
+              key={String(activeProfile?.id ?? '')}
+              text={String(activeProfile?.subscriptionAnnouncement ?? '')}
+            />
+          ) : null}
         </Card>
       ) : null}
       <ServerGroups
@@ -522,27 +538,41 @@ export function HomePage({
         {!hasAnyProfile ? (
           <p className="connectionEmptyHint">{t('expressive.importBody')}</p>
         ) : null}
+        {hasAnyProfile && groupOptions.length > 0 ? (
+          <div className="homePicker" data-tour="server">
+            <Select
+              className="homePickerGroup"
+              label={t('ui.home.pickGroup')}
+              ariaLabel={t('ui.home.activeProxyGroupAria')}
+              value={pickerGroupName}
+              options={groupOptions}
+              onChange={(v) => {
+                if (v && v !== pickerGroupName) onSelectGroup(v)
+              }}
+            />
+            {nodePickerGroup && nodeOptions.length ? (
+              <Select
+                className="homePickerNode"
+                label={t('ui.home.activeNode')}
+                ariaLabel={t('ui.home.activeNode')}
+                value={String(nodePickerGroup.selected ?? '')}
+                options={nodeOptions}
+                onChange={(p) => {
+                  if (p && p !== nodePickerGroup.selected)
+                    onSelectNode(String(nodePickerGroup.name), p)
+                }}
+              />
+            ) : null}
+            <IconButton
+              variant="tonal"
+              size="medium"
+              icon="proxies"
+              label={t('expressive.chooseServer')}
+              onClick={onOpenProxies}
+            />
+          </div>
+        ) : null}
         <div className="homeCanvasActions">
-          <Button
-            variant="tonal"
-            size="medium"
-            className="serverPill"
-            icon={
-              activeNodeVisual.iso ? (
-                <FlagMark iso2={activeNodeVisual.iso} width={20} height={14} />
-              ) : (
-                'proxies'
-              )
-            }
-            trailingIcon={
-              <MaterialSymbol name="chevron" className="chevronForward" />
-            }
-            onClick={
-              hasAnyProfile ? onOpenProxies : () => onOpenImport('manual')
-            }
-          >
-            {activeNodeVisual.text || activeNode || t('expressive.chooseServer')}
-          </Button>
           {!hasAnyProfile ? (
             <Button
               variant="filled"
@@ -668,40 +698,13 @@ export function HomePage({
                 </div>
               ) : null}
               <StatusRow label={t('ui.home.pickGroup')}>
-                {connected && groupOptions.length ? (
-                  <Select
-                    className="statusSelect"
-                    ariaLabel={t('ui.home.activeProxyGroupAria')}
-                    value={String(state?.proxy?.activeGroup ?? '')}
-                    options={groupOptions}
-                    onChange={(v) => {
-                      if (v) onSelectGroup(v)
-                    }}
-                  />
-                ) : (
-                  <strong>
-                    {String(state?.proxy?.activeGroup ?? '').trim() || '—'}
-                  </strong>
-                )}
+                <strong>{pickerGroupName || '—'}</strong>
               </StatusRow>
               <StatusRow label={t('ui.home.activeNode')}>
-                {nodePickerGroup && connected && nodeOptions.length ? (
-                  <Select
-                    className="statusSelect"
-                    ariaLabel={t('ui.home.activeNode')}
-                    value={String(nodePickerGroup.selected ?? '')}
-                    options={nodeOptions}
-                    onChange={(p) => {
-                      if (p && p !== nodePickerGroup.selected)
-                        onSelectNode(String(nodePickerGroup.name), p)
-                    }}
-                  />
-                ) : (
-                  <FlagValue
-                    iso={activeNodeVisual.iso}
-                    text={activeNodeVisual.text || activeNode}
-                  />
-                )}
+                <FlagValue
+                  iso={activeNodeVisual.iso}
+                  text={activeNodeVisual.text || activeNode}
+                />
               </StatusRow>
               <StatusRow label="Core">
                 <span
@@ -769,15 +772,6 @@ export function HomePage({
           </div>
         </div>
       </Expansion>
-
-      {activeProfile?.type === 'subscription' ? (
-        <SubscriptionAnnouncement
-          url={activeProfile?.panel?.announcementUrl}
-          onOpen={onOpenSupport}
-          key={String(activeProfile?.id ?? '')}
-          text={String(activeProfile?.subscriptionAnnouncement ?? '')}
-        />
-      ) : null}
 
       {errorLines.length ? (
         <div className="inlineError homeConnError" role="alert">

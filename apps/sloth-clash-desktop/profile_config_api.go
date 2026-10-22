@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -492,6 +494,14 @@ func (a *App) loadProfileSubscriptionBody(ctx context.Context, p Profile) ([]byt
 		}
 		return body, nil
 	}
+	// Cache-first, like Connect: the editors and the offline proxy list read
+	// what the last Connect/refresh saved instead of blocking on the network
+	// (up to 45s, and impossible while the tunnel itself is down).
+	if root, err := slothDataRoot(); err == nil {
+		if body := readSubscriptionBodyCache(filepath.Join(root, "runtime", p.ID)); len(body) > 0 {
+			return body, nil
+		}
+	}
 	body, _, err := fetchSubscriptionBody(ctx, p.URL, p.AgeSecretKey)
 	return body, err
 }
@@ -566,7 +576,12 @@ func (a *App) applyRuntimeConfigWithGen(profile Profile, traffic string, enableT
 			mixedPort = 7890
 		}
 	}
-	if err := writeRuntimeConfigIfNeeded(a, bin, dataDir, profile, 0, mixedPort, secret, traffic, false, enableTun); err != nil {
+	// A running core is reloaded from this very file. Writing it without the
+	// external-controller it was started with makes mihomo close its TCP API
+	// on reload: the UI then gets "connection refused" and the health watchdog
+	// declares the core dead every ~90s. Keep the live controller port.
+	ctrlPort := controllerPortFromListen(listen)
+	if err := writeRuntimeConfigIfNeeded(a, bin, dataDir, profile, ctrlPort, mixedPort, secret, traffic, ctrlPort > 0, enableTun); err != nil {
 		return err
 	}
 	if expectedGen != 0 && a.connectGen.Load() != expectedGen {
@@ -677,4 +692,19 @@ func mergeFields(base, extra map[string]any) map[string]any {
 		out[k] = v
 	}
 	return out
+}
+
+// controllerPortFromListen extracts the TCP port of a running core's
+// external-controller ("127.0.0.1:53373"). Returns 0 when there is no TCP
+// controller (no core, or a non-host:port endpoint).
+func controllerPortFromListen(listen string) int {
+	_, portStr, err := net.SplitHostPort(strings.TrimSpace(listen))
+	if err != nil {
+		return 0
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil || port <= 0 || port > 65535 {
+		return 0
+	}
+	return port
 }

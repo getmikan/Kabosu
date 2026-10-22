@@ -8,13 +8,7 @@ import {
   subscriptionDaysLeft,
 } from '../utils/subscription'
 
-export function SubscriptionStats({
-  profile,
-  compact = false,
-}: {
-  profile: unknown
-  compact?: boolean
-}) {
+export function SubscriptionStats({ profile }: { profile: unknown }) {
   const { t, i18n } = useTranslation()
   const usage = parseSubscriptionUsage(profile)
   const days = subscriptionDaysLeft(usage)
@@ -36,11 +30,11 @@ export function SubscriptionStats({
         )
       : null
   return (
-    <dl className={`subscriptionStats${compact ? ' compact' : ''}`}>
+    <dl className="subscriptionStats">
       <div className="subscriptionStat">
         <dt>{t('expressive.trafficLeft')}</dt>
         <dd>{remaining}</dd>
-        {leftPercent !== null && !compact ? (
+        {leftPercent !== null ? (
           <Progress
             className="subscriptionStatBar"
             value={leftPercent}
@@ -52,18 +46,14 @@ export function SubscriptionStats({
         <dt>{t('expressive.daysLeft')}</dt>
         <dd>{days === null ? '—' : Math.max(0, days)}</dd>
       </div>
-      {!compact ? (
-        <div className="subscriptionStat">
-          <dt>{t('expressive.expires')}</dt>
-          <dd>
-            {usage?.expiresAt
-              ? new Date(usage.expiresAt * 1000).toLocaleDateString(
-                  i18n.language,
-                )
-              : '—'}
-          </dd>
-        </div>
-      ) : null}
+      <div className="subscriptionStat">
+        <dt>{t('expressive.expires')}</dt>
+        <dd>
+          {usage?.expiresAt
+            ? new Date(usage.expiresAt * 1000).toLocaleDateString(i18n.language)
+            : '—'}
+        </dd>
+      </div>
     </dl>
   )
 }

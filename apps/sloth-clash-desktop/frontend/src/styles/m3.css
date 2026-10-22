@@ -97,8 +97,8 @@
   --dur-base: 300ms;
   --dur-slow: 500ms;
 
-  --nav-w: 96px;
-  --nav-w-expanded: 220px;
+  --nav-w: 88px;
+  --nav-w-expanded: 232px;
 
   --scrollbar-thumb: color-mix(in srgb, var(--outline) 40%, transparent);
   --scrollbar-thumb-hover: var(--outline);
@@ -331,8 +331,13 @@
   align-items: center;
   gap: 12px;
   height: 56px;
-  padding: 0 20px;
+  padding: 0 16px;
   flex-shrink: 0;
+}
+.nav[data-mode="rail"] .navBrand,
+.nav[data-mode="rail"] .navFooter {
+  justify-content: center;
+  padding: 0;
 }
 .navBrandLogo {
   position: relative;
@@ -362,20 +367,108 @@
   letter-spacing: -0.2px;
   white-space: nowrap;
 }
-.navRail {
+.navList {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: 4px;
   min-height: 0;
+  padding: 4px;
   overflow: hidden auto;
+  scrollbar-width: none;
   --wails-draggable: no-drag;
-  --m3e-nav-rail-compact-width: var(--nav-w);
-  --m3e-nav-rail-expanded-width: var(--nav-w-expanded);
-  --m3e-nav-rail-top-space: 8px;
-  --m3e-nav-rail-bottom-space: 8px;
-  --m3e-nav-item-active-container-color: var(--secondary-container);
-  --m3e-nav-bar-container-color: transparent;
 }
-.navRail m3e-nav-item {
+.navList::-webkit-scrollbar {
+  display: none;
+}
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--on-surface-variant);
+  font: inherit;
+  cursor: pointer;
+}
+.navPill {
   position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 32px;
+  border-radius: 16px;
+  transition: background var(--dur-fast);
+}
+.navItem:hover .navPill {
+  background: color-mix(in srgb, var(--on-surface) 8%, transparent);
+}
+.navItem:active .navPill {
+  scale: 0.94;
+}
+.navIndicator {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--secondary-container);
+}
+.navIcon {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.navIcon svg {
+  width: 24px;
+  height: 24px;
+}
+.navLabel {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  letter-spacing: -0.1px;
+  line-height: 16px;
+  font-weight: 500;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.navItem.active {
+  color: var(--on-secondary-container);
+}
+.navItem.active .navLabel {
+  font-weight: 700;
+  color: var(--on-surface);
+}
+/* Drawer: one full-width pill per item, icon and label in a row. */
+.nav[data-mode="drawer"] .navList {
+  gap: 2px;
+  padding: 4px 12px;
+}
+.nav[data-mode="drawer"] .navItem {
+  min-height: 0;
+  align-items: stretch;
+}
+.nav[data-mode="drawer"] .navPill {
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 24px;
+}
+.nav[data-mode="drawer"] .navLabel {
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+}
+.nav[data-mode="drawer"] .navItem.active .navLabel {
+  color: var(--on-secondary-container);
 }
 .navActiveDot {
   position: absolute;
@@ -864,4 +957,10 @@ m3e-dialog [slot="actions"] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.advancedTabs {
+  margin: 4px auto 16px;
+  display: flex;
+  width: max-content;
 }

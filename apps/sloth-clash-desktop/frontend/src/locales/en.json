@@ -438,7 +438,9 @@
         "savedBanner": "Script saved",
         "clearedBanner": "Script cleared",
         "badgeTitle": "This profile’s script failed on the last run"
-      }
+      },
+      "daysLeft_one": "{{count}} day left",
+      "daysLeft_other": "{{count}} days left"
     },
     "proxies": {
       "title": "Proxies",
@@ -476,7 +478,8 @@
       "hiddenChip": "hidden",
       "hiddenChipHint": "This group is marked hidden by the subscription.",
       "chainHint": "Citrus chain: hop order comes from the configuration. The core manages route checks and health.",
-      "chainFailed": "Chain failed"
+      "chainFailed": "Chain failed",
+      "offlineHint": "The core is not running: the server you pick is applied as soon as you connect."
     },
     "rules": {
       "title": "Rules",
@@ -603,7 +606,9 @@
       "brandDebugTitle": "Brand headers (dev)",
       "brandDebugHint": "Injects X-Brand-Desktop-* headers through the real capture pipeline for the active profile. The next real subscription refresh overwrites this override. Dev builds only.",
       "brandDebugApply": "Apply",
-      "brandDebugClear": "Clear"
+      "brandDebugClear": "Clear",
+      "tabDiagnostics": "Diagnostics",
+      "tabDevices": "Devices"
     },
     "toasts": {
       "profileAddedFromLink": "Profile “{{name}}” added from link.",

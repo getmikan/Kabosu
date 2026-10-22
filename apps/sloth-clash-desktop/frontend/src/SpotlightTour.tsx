@@ -198,7 +198,7 @@ export function SpotlightTour({
             {t('tour.back')}
           </Button>
           {stepIndex < total - 1 ? (
-            <Button trailingIcon="chevron" onClick={onNext}>
+            <Button trailingIcon="next" onClick={onNext}>
               {t('tour.next')}
             </Button>
           ) : (

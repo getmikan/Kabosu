@@ -2,11 +2,14 @@ import { type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { MaterialSymbol } from '../components/MaterialSymbol'
-import { SubscriptionStats } from '../components/SubscriptionStats'
 import '../styles/profiles.css'
-import { Button, IconButton, Loading, Shape } from '../ui/M3'
-import { formatProfileAgo } from '../utils/format'
-import { profileSubscriptionHost } from '../utils/subscription'
+import { Button, IconButton, Loading, Progress, Shape } from '../ui/M3'
+import { formatBytesSmart, formatProfileAgo } from '../utils/format'
+import {
+  parseSubscriptionUsage,
+  profileSubscriptionHost,
+  subscriptionDaysLeft,
+} from '../utils/subscription'
 import { friendlyErrorMessage } from '../utils/yaml'
 
 export type ProfileMenuTarget = {
@@ -14,6 +17,44 @@ export type ProfileMenuTarget = {
   name: string
   x: number
   y: number
+}
+
+function ProfileUsage({ profile }: { profile: any }) {
+  const { t, i18n } = useTranslation()
+  const usage = parseSubscriptionUsage(profile)
+  const days = subscriptionDaysLeft(usage)
+  if (!usage) return null
+  const unlimited = usage.totalBytes <= 0
+  const left = Math.max(0, usage.totalBytes - usage.usedBytes)
+  const leftPercent = unlimited
+    ? null
+    : Math.round((left / usage.totalBytes) * 100)
+  return (
+    <div className="pfUsage">
+      <div className="pfUsageRow">
+        <span className="pfUsageLabel">{t('expressive.trafficLeft')}</span>
+        <strong className="pfUsageValue">
+          {unlimited ? '∞' : formatBytesSmart(left)}
+        </strong>
+      </div>
+      {leftPercent !== null ? (
+        <Progress value={leftPercent} ariaLabel={t('expressive.trafficLeft')} />
+      ) : null}
+      <div className="pfUsageRow">
+        <span className="pfUsageLabel">{t('expressive.expires')}</span>
+        <span className="pfUsageMeta">
+          {usage.expiresAt
+            ? new Date(usage.expiresAt * 1000).toLocaleDateString(i18n.language)
+            : '∞'}
+          {days !== null ? (
+            <span className="pfDays" data-low={days <= 3 || undefined}>
+              {t('ui.profiles.daysLeft', { count: Math.max(0, days) })}
+            </span>
+          ) : null}
+        </span>
+      </div>
+    </div>
+  )
 }
 
 export function ProfilesPage({
@@ -35,7 +76,7 @@ export function ProfilesPage({
   onRefresh: (id: string) => void
   onContextMenu: (target: ProfileMenuTarget) => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <div className="page pfPage">
       <div className="pageToolbar">
@@ -48,6 +89,8 @@ export function ProfilesPage({
         {profiles.map((profile, index) => {
           const active = activeProfileId === profile.id
           const refreshing = refreshBusyId === profile.id
+          const isSub = profile.type === 'subscription'
+          const host = profileSubscriptionHost(profile.url || '')
           const menu = (x: number, y: number) =>
             onContextMenu({ id: profile.id, name: profile.name, x, y })
           return (
@@ -66,11 +109,18 @@ export function ProfilesPage({
                   type="button"
                   onClick={() => !active && onActivate(profile.id)}
                   aria-pressed={active}
+                  title={active ? undefined : t('ui.profiles.activate')}
                 >
                   <span className="pfAvatar">
+                    <Shape name={active ? 'sunny' : '7-sided-cookie'} />
                     <MaterialSymbol name={active ? 'check' : 'profiles'} />
                   </span>
-                  <strong>{profile.name}</strong>
+                  <span className="pfTitle">
+                    <strong>{profile.name}</strong>
+                    <span className="pfSubtitle">
+                      {isSub ? host || t('ui.common.subscription') : t('ui.common.local')}
+                    </span>
+                  </span>
                 </button>
                 <span
                   className="pfMore"
@@ -85,31 +135,39 @@ export function ProfilesPage({
                   />
                 </span>
               </div>
-              <button
-                type="button"
-                className="pfStats"
-                onClick={() => !active && onActivate(profile.id)}
-                aria-label={profile.name}
-                aria-pressed={active}
-              >
-                <SubscriptionStats profile={profile} compact />
-              </button>
+
+              <ProfileUsage profile={profile} />
+
               {profile.scriptError ? (
                 <p className="pfScriptError" title={profile.scriptError}>
+                  <MaterialSymbol name="error" />
                   {t('ui.profiles.scriptModal.badgeTitle')}
                 </p>
               ) : null}
+
               <div className="pfFoot">
-                <span
-                  className="pfAgo"
-                  title={profileSubscriptionHost(profile.url || '')}
-                >
-                  {formatProfileAgo(Number(profile.lastUpdated ?? 0)) ||
-                    (profile.type === 'subscription'
-                      ? t('ui.common.subscription')
-                      : t('ui.common.local'))}
+                {active ? (
+                  <span className="pfActiveChip">
+                    <MaterialSymbol name="check" />
+                    {t('ui.profiles.active')}
+                  </span>
+                ) : (
+                  <Button
+                    variant="tonal"
+                    size="extra-small"
+                    onClick={() => onActivate(profile.id)}
+                  >
+                    {t('ui.profiles.activate')}
+                  </Button>
+                )}
+                <span className="spacer" />
+                <span className="pfAgo">
+                  {formatProfileAgo(
+                    Number(profile.lastUpdated ?? 0),
+                    i18n.language,
+                  )}
                 </span>
-                {profile.type === 'subscription' ? (
+                {isSub ? (
                   refreshing ? (
                     <Loading
                       className="pfRefreshing"
@@ -118,15 +176,11 @@ export function ProfilesPage({
                   ) : (
                     <IconButton
                       icon="refresh"
-                      label={t('ui.connections.refresh')}
+                      label={t('ui.profiles.refreshSubscription')}
                       onClick={() => onRefresh(profile.id)}
                     />
                   )
-                ) : (
-                  <span className="pfLocalIcon">
-                    <MaterialSymbol name="rules" />
-                  </span>
-                )}
+                ) : null}
               </div>
             </article>
           )

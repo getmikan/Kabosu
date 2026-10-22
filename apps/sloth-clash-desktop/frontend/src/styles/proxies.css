@@ -211,7 +211,7 @@
   gap: 8px;
 }
 .pxSort {
-  width: 160px;
+  width: 200px;
 }
 .pxNodeSearch {
   flex: 1 1 200px;
@@ -222,22 +222,23 @@
 }
 .pxGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 8px;
 }
 .pxGrid.compact {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 4px 8px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
 }
 
 /* --- Node tile --- */
 .pxNode {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
-  min-height: 56px;
-  padding: 8px 12px;
+  min-height: 72px;
+  padding: 12px;
   border: 0;
   border-radius: var(--radius-md);
   background: var(--surface-container-high);
@@ -251,8 +252,9 @@
     scale var(--dur-base) var(--ease-spring);
 }
 .pxGrid.compact .pxNode {
-  min-height: 40px;
-  padding: 4px 12px;
+  min-height: 64px;
+  gap: 4px;
+  padding: 8px 12px;
 }
 .pxNode:hover:not(:disabled) {
   border-radius: var(--radius-sm);
@@ -283,32 +285,42 @@
 }
 .pxNodeTop {
   display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.pxNodeBottom {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   min-width: 0;
 }
 .pxNodeTop img {
+  margin-top: 4px;
   border-radius: 2px;
   flex-shrink: 0;
 }
+/* Full server names: up to two lines instead of an ellipsis after 1 letter. */
 .pxNodeName {
   flex: 1;
   min-width: 0;
   overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: 14px;
   line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .pxNode.active .pxNodeName {
   font-weight: 600;
 }
 .pxNodeTags {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px;
-  max-width: 40%;
-  overflow: hidden;
-  flex-shrink: 1;
+  min-width: 0;
 }
 .pxNodeTag {
   padding: 0 8px;

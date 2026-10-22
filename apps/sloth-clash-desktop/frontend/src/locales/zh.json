@@ -438,7 +438,8 @@
         "savedBanner": "脚本已保存",
         "clearedBanner": "脚本已清除",
         "badgeTitle": "该配置文件的脚本在上次运行时失败"
-      }
+      },
+      "daysLeft_other": "剩余 {{count}} 天"
     },
     "proxies": {
       "title": "代理",
@@ -476,7 +477,8 @@
       "hiddenChip": "隐藏",
       "hiddenChipHint": "此分组被订阅标记为隐藏。",
       "chainHint": "Citrus 链：跳转顺序由配置定义，检测和路由健康由核心管理。",
-      "chainFailed": "链路失败"
+      "chainFailed": "链路失败",
+      "offlineHint": "内核未运行：所选服务器将在连接后立即生效。"
     },
     "rules": {
       "title": "规则",
@@ -603,7 +605,9 @@
       "brandDebugTitle": "品牌标头（开发）",
       "brandDebugHint": "将 X-Brand-Desktop-* 标头通过真实管线应用到当前配置。下次真实订阅刷新会覆盖此调试值。仅限开发构建。",
       "brandDebugApply": "应用",
-      "brandDebugClear": "清除"
+      "brandDebugClear": "清除",
+      "tabDiagnostics": "诊断",
+      "tabDevices": "设备"
     },
     "toasts": {
       "profileAddedFromLink": "已通过链接添加配置“{{name}}”。",

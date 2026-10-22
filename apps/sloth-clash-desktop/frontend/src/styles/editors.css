@@ -449,3 +449,9 @@
     height: 1px;
   }
 }
+
+.edMonacoSkeleton {
+  display: block;
+  height: min(46vh, 460px);
+  border-radius: var(--radius-lg);
+}

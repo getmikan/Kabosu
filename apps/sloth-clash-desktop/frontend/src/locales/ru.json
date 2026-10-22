@@ -438,7 +438,11 @@
         "savedBanner": "Скрипт сохранён",
         "clearedBanner": "Скрипт очищен",
         "badgeTitle": "Скрипт этого профиля упал на последнем запуске"
-      }
+      },
+      "daysLeft_one": "{{count}} день",
+      "daysLeft_few": "{{count}} дня",
+      "daysLeft_many": "{{count}} дней",
+      "daysLeft_other": "{{count}} дня"
     },
     "proxies": {
       "title": "Прокси",
@@ -476,7 +480,8 @@
       "hiddenChip": "скрытая",
       "hiddenChipHint": "Эта группа помечена в подписке как скрытая.",
       "chainHint": "Цепочка Citrus: порядок переходов задаётся конфигурацией. Проверка и состояние маршрута управляются ядром.",
-      "chainFailed": "Ошибка цепочки"
+      "chainFailed": "Ошибка цепочки",
+      "offlineHint": "Ядро не запущено: выбранный сервер применится сразу после подключения."
     },
     "rules": {
       "title": "Правила",
@@ -603,7 +608,9 @@
       "brandDebugTitle": "Бренд-хедеры (dev)",
       "brandDebugHint": "Прогоняет X-Brand-Desktop-* хедеры через реальный пайплайн для активного профиля. Следующее реальное обновление подписки перезапишет оверрайд. Только в dev-сборке.",
       "brandDebugApply": "Применить",
-      "brandDebugClear": "Очистить"
+      "brandDebugClear": "Очистить",
+      "tabDiagnostics": "Диагностика",
+      "tabDevices": "Устройства"
     },
     "toasts": {
       "profileAddedFromLink": "Профиль «{{name}}» добавлен по ссылке.",
