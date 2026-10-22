@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -15,6 +16,16 @@ import {
   type ProxyGroupRow,
 } from '../mergeTemplate'
 import { MonacoYamlEditor } from '../MonacoYamlEditor'
+import '../styles/editors.css'
+import {
+  Button,
+  Dialog,
+  IconButton,
+  Segmented,
+  Select,
+  SwitchRow,
+  TextField,
+} from '../ui/M3'
 import { yamlValidationError } from '../utils/yaml'
 
 import type { ProfileModalTarget } from './ProfileMergeModal'
@@ -37,7 +48,7 @@ function GroupLine({
   pos,
   deleted,
   actionLabel,
-  actionGlyph,
+  actionIcon,
   onAction,
 }: {
   name: string
@@ -46,32 +57,42 @@ function GroupLine({
   pos?: AppendTarget
   deleted?: boolean
   actionLabel: string
-  actionGlyph: string
+  actionIcon: 'close' | 'refresh'
   onAction: () => void
 }) {
   const { t } = useTranslation()
   const useLabel = use.trim() || '—'
 
   return (
-    <div className={`ruleRow${deleted ? ' ruleRowDeleted' : ''}`}>
-      <span className="ruleTypeChip">{groupType}</span>
-      <span className="ruleContent" title={name}>
-        {name || '—'}
+    <motion.div
+      layout="position"
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: deleted ? 0.5 : 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+      className="edRule"
+      data-deleted={deleted || undefined}
+      data-user={pos ? true : undefined}
+    >
+      <span className="edRuleType">{groupType}</span>
+      <span className="edRuleBody">
+        <strong className="edRuleContent" title={name}>
+          {name || '—'}
+        </strong>
+        <span className="edRulePolicy" title={useLabel}>
+          {t('ui.profiles.proxyModal.useLabel', { value: useLabel })}
+          {pos ? <em>{pos}</em> : null}
+        </span>
       </span>
-      <span className="rulePolicy" title={useLabel}>
-        {t('ui.profiles.proxyModal.useLabel', { value: useLabel })}
+      <span className="edRuleAction">
+        <IconButton
+          icon={actionIcon}
+          label={actionLabel}
+          size="small"
+          onClick={onAction}
+        />
       </span>
-      {pos ? <span className="rulePos">{pos}</span> : null}
-      <button
-        type="button"
-        className="btn ghost ruleRemove"
-        aria-label={actionLabel}
-        title={actionLabel}
-        onClick={onAction}
-      >
-        {actionGlyph}
-      </button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -267,311 +288,222 @@ export function ProfileProxyModal({
     }
   }
 
-  return (
-    <div
-      className="modalOverlay"
-      role="presentation"
-      style={{ zIndex: 70 }}
-      onClick={onClose}
-    >
-      <div
-        className={`modalCard modalCardWide rulesEditorModal ${
-          uiMode === 'advanced' ? 'modalCardFullscreen' : 'modalCardVisualTall'
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="pgTitle"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="vergeModalHead">
-          <h3 id="pgTitle" className="modalTitle vergeModalTitle">
-            {t('ui.profiles.proxyModal.title')}
-          </h3>
-          <div className="vergeToggleRow">
-            <button
-              type="button"
-              className={`btn vergeToggle ${uiMode === 'visual' ? 'primary' : 'ghost'}`}
-              onClick={onSwitchToVisual}
-            >
-              {t('common.visual')}
-            </button>
-            <button
-              type="button"
-              className={`btn vergeToggle ${uiMode === 'advanced' ? 'primary' : 'ghost'}`}
-              onClick={() => setUiMode('advanced')}
-            >
-              {t('common.advancedYamlTab')}
-            </button>
-          </div>
+  const renderBaselineBlock = () => {
+    if (baselineLoading)
+      return (
+        <div className="edLoading">
+          <m3e-loading-indicator className="m3InlineLoader" />
+          {t('ui.profiles.proxyModal.loadingGroups')}
         </div>
+      )
+    if (baselineError)
+      return (
+        <p className="edError" role="alert">
+          {baselineError}
+        </p>
+      )
+    if (!baseline || baseline.length === 0)
+      return (
+        <p className="edHint">{t('ui.profiles.proxyModal.noGroupsDetected')}</p>
+      )
+    return baseline.map((gm, idx) => {
+      const row = proxyGroupObjToRow(gm as any, idx)
+      if (!row) return null
+      const isDeleted = deleted.includes(row.name)
+      return (
+        <GroupLine
+          key={row.id}
+          name={row.name}
+          groupType={row.type}
+          use={row.use}
+          deleted={isDeleted}
+          actionLabel={isDeleted ? t('common.restore') : t('common.delete')}
+          actionIcon={isDeleted ? 'refresh' : 'close'}
+          onAction={() => toggleBaselineDelete(row.name)}
+        />
+      )
+    })
+  }
 
-        {uiMode === 'advanced' ? (
-          <label className="field modalField rulesAdvancedField">
-            <span className="fieldLab">{t('common.advancedYaml')}</span>
-            <MonacoYamlEditor
-              className="vergePaneYaml modalMonacoWrap"
-              value={advancedDraft}
-              onChange={setAdvancedDraft}
-              height="56vh"
+  return (
+    <Dialog
+      open
+      wide
+      onClose={onClose}
+      className="edDialogWide"
+      title={
+        <span className="edTitleRow">
+          <span>{t('ui.profiles.proxyModal.title')}</span>
+          <Segmented<Mode>
+            ariaLabel={t('ui.profiles.proxyModal.title')}
+            value={uiMode}
+            options={[
+              { value: 'visual', label: t('common.visual') },
+              { value: 'advanced', label: t('common.advancedYamlTab') },
+            ]}
+            onChange={(next) =>
+              next === 'visual' ? onSwitchToVisual() : setUiMode('advanced')
+            }
+          />
+        </span>
+      }
+      actions={
+        <>
+          <Button variant="text" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            disabled={uiMode === 'advanced' && Boolean(advancedYamlErr)}
+            onClick={() => void save()}
+          >
+            {t('common.save')}
+          </Button>
+        </>
+      }
+    >
+      {uiMode === 'advanced' ? (
+        <div className="edField">
+          <span className="edFieldLabel">{t('common.advancedYaml')}</span>
+          <MonacoYamlEditor value={advancedDraft} onChange={setAdvancedDraft} />
+          {advancedYamlErr ? (
+            <p className="edError" role="alert">
+              {t('common.yamlError', { error: advancedYamlErr })}
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        <div className="edCols edColsForm">
+          <div className="edFormCol">
+            <p className="edEyebrow">{t('ui.profiles.proxyModal.addGroup')}</p>
+            <TextField
+              label={t('ui.profiles.proxyModal.groupName')}
+              ariaLabel={t('ui.profiles.proxyModal.groupNameAria')}
+              value={pgName}
+              onChange={setPgName}
+              placeholder={t('ui.profiles.proxyModal.groupNamePlaceholder')}
             />
-            {advancedYamlErr ? (
-              <span className="rulesYamlErr small">
-                {t('common.yamlError', { error: advancedYamlErr })}
-              </span>
-            ) : null}
-          </label>
-        ) : (
-          <div className="rulesEditorBody">
-            <div className="rulesCols proxyEditorCols">
-              <div className="rulesCol proxyFormCol">
-                <p className="eyebrow">
-                  {t('ui.profiles.proxyModal.addGroup')}
-                </p>
-                <label className="field modalField">
-                  <span className="fieldLab">
-                    {t('ui.profiles.proxyModal.groupName')}
-                  </span>
-                  <input
-                    className="input"
-                    value={pgName}
-                    onChange={(e) => setPgName(e.target.value)}
-                    placeholder={t(
-                      'ui.profiles.proxyModal.groupNamePlaceholder',
-                    )}
-                    aria-label={t('ui.profiles.proxyModal.groupNameAria')}
-                  />
-                </label>
-                <label className="field modalField">
-                  <span className="fieldLab">
-                    {t('ui.profiles.proxyModal.groupType')}
-                  </span>
-                  <select
-                    className="selectModern"
-                    value={pgType}
-                    onChange={(e) => setPgType(e.target.value)}
-                    aria-label={t('ui.profiles.proxyModal.groupTypeAria')}
-                  >
-                    {GROUP_TYPE_OPTIONS.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="field modalField">
-                  <span className="fieldLab">
-                    {t('ui.profiles.proxyModal.useProviders')}
-                  </span>
-                  <input
-                    className="input"
-                    value={pgUse}
-                    onChange={(e) => setPgUse(e.target.value)}
-                    placeholder={t(
-                      'ui.profiles.proxyModal.useProvidersPlaceholder',
-                    )}
-                  />
-                </label>
-                <label className="field modalField">
-                  <span className="fieldLab">
-                    {t('ui.profiles.proxyModal.healthcheckUrl')}
-                  </span>
-                  <input
-                    className="input"
-                    value={pgUrl}
-                    onChange={(e) => setPgUrl(e.target.value)}
-                    placeholder={t(
-                      'ui.profiles.proxyModal.healthcheckUrlPlaceholder',
-                    )}
-                  />
-                </label>
-                <div className="fieldGrid">
-                  <label className="field modalField">
-                    <span className="fieldLab">
-                      {t('ui.profiles.proxyModal.interval')}
-                    </span>
-                    <input
-                      className="input"
-                      value={pgInterval}
-                      onChange={(e) => setPgInterval(e.target.value)}
+            <Select
+              label={t('ui.profiles.proxyModal.groupType')}
+              ariaLabel={t('ui.profiles.proxyModal.groupTypeAria')}
+              value={pgType}
+              onChange={setPgType}
+              options={GROUP_TYPE_OPTIONS.map((type) => ({
+                value: type,
+                label: type,
+              }))}
+            />
+            <TextField
+              label={t('ui.profiles.proxyModal.useProviders')}
+              value={pgUse}
+              onChange={setPgUse}
+              placeholder={t('ui.profiles.proxyModal.useProvidersPlaceholder')}
+            />
+            <TextField
+              label={t('ui.profiles.proxyModal.healthcheckUrl')}
+              value={pgUrl}
+              onChange={setPgUrl}
+              placeholder={t('ui.profiles.proxyModal.healthcheckUrlPlaceholder')}
+            />
+            <div className="edGrid3">
+              <TextField
+                label={t('ui.profiles.proxyModal.interval')}
+                value={pgInterval}
+                onChange={setPgInterval}
+              />
+              <TextField
+                label={t('ui.profiles.proxyModal.timeout')}
+                value={pgTimeout}
+                onChange={setPgTimeout}
+              />
+              <TextField
+                label={t('ui.profiles.proxyModal.maxFailedTimes')}
+                value={pgMaxFailed}
+                onChange={setPgMaxFailed}
+              />
+            </div>
+            <SwitchRow
+              label={t('ui.profiles.proxyModal.lazy')}
+              checked={pgLazy}
+              onChange={setPgLazy}
+            />
+            <Segmented<AppendTarget>
+              ariaLabel={t('common.prepend')}
+              value={appendTarget}
+              onChange={setAppendTarget}
+              options={[
+                { value: 'prepend', label: t('common.prepend') },
+                { value: 'append', label: t('common.append') },
+              ]}
+            />
+            <Button icon="add" disabled={!pgName.trim()} onClick={addGroup}>
+              {t('common.addShort')}
+            </Button>
+          </div>
+
+          <div className="edCol">
+            <div className="edBlock">
+              <p className="edEyebrow">
+                {t('ui.profiles.proxyModal.subscriptionSection')}
+              </p>
+              <div className="edList">{renderBaselineBlock()}</div>
+            </div>
+
+            <div className="edBlock">
+              <p className="edEyebrow">
+                {t('ui.profiles.proxyModal.prependSection')}
+              </p>
+              <div className="edList">
+                {rows.length === 0 ? (
+                  <p className="edHint">
+                    {t('ui.profiles.proxyModal.noGroupsYet')}
+                  </p>
+                ) : null}
+                <AnimatePresence initial={false}>
+                  {rows.map((r) => (
+                    <GroupLine
+                      key={r.id}
+                      name={r.name}
+                      groupType={r.type}
+                      use={r.use}
+                      pos="prepend"
+                      actionLabel={t('common.remove')}
+                      actionIcon="close"
+                      onAction={() => removeRow(r.id)}
                     />
-                  </label>
-                  <label className="field modalField">
-                    <span className="fieldLab">
-                      {t('ui.profiles.proxyModal.timeout')}
-                    </span>
-                    <input
-                      className="input"
-                      value={pgTimeout}
-                      onChange={(e) => setPgTimeout(e.target.value)}
-                    />
-                  </label>
-                </div>
-                <div className="fieldGrid">
-                  <label className="field modalField">
-                    <span className="fieldLab">
-                      {t('ui.profiles.proxyModal.maxFailedTimes')}
-                    </span>
-                    <input
-                      className="input"
-                      value={pgMaxFailed}
-                      onChange={(e) => setPgMaxFailed(e.target.value)}
-                    />
-                  </label>
-                  <label className="field modalField">
-                    <span className="fieldLab">
-                      {t('ui.profiles.proxyModal.lazy')}
-                    </span>
-                    <button
-                      type="button"
-                      className={`trafficKnob ${pgLazy ? 'on' : ''}`}
-                      onClick={() => setPgLazy((v) => !v)}
-                      aria-label={t('ui.profiles.proxyModal.lazy')}
-                    >
-                      {pgLazy ? t('common.on') : t('common.off')}
-                    </button>
-                  </label>
-                </div>
-                <div className="segPill proxyAddPos">
-                  <button
-                    type="button"
-                    className={`pillOpt ${appendTarget === 'prepend' ? 'active' : ''}`}
-                    onClick={() => setAppendTarget('prepend')}
-                  >
-                    {t('common.prepend')}
-                  </button>
-                  <button
-                    type="button"
-                    className={`pillOpt ${appendTarget === 'append' ? 'active' : ''}`}
-                    onClick={() => setAppendTarget('append')}
-                  >
-                    {t('common.append')}
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  className="btn primary proxyAddBtn"
-                  onClick={addGroup}
-                >
-                  {t('common.addShort')}
-                </button>
+                  ))}
+                </AnimatePresence>
               </div>
+            </div>
 
-              <div className="rulesCol proxyListsCol">
-                <div className="proxyListBlock">
-                  <p className="eyebrow">
-                    {t('ui.profiles.proxyModal.subscriptionSection')}
+            <div className="edBlock">
+              <p className="edEyebrow">
+                {t('ui.profiles.proxyModal.appendSection')}
+              </p>
+              <div className="edList">
+                {appendRows.length === 0 ? (
+                  <p className="edHint">
+                    {t('ui.profiles.proxyModal.noAppendGroups')}
                   </p>
-                  <div className="rulesList">
-                    {baselineLoading ? (
-                      <p className="muted small">
-                        {t('ui.profiles.proxyModal.loadingGroups')}
-                      </p>
-                    ) : baselineError ? (
-                      <p className="muted small rulesYamlErr">
-                        {baselineError}
-                      </p>
-                    ) : !baseline || baseline.length === 0 ? (
-                      <p className="muted small">
-                        {t('ui.profiles.proxyModal.noGroupsDetected')}
-                      </p>
-                    ) : (
-                      baseline.map((gm, idx) => {
-                        const row = proxyGroupObjToRow(gm as any, idx)
-                        if (!row) return null
-                        const isDeleted = deleted.includes(row.name)
-                        return (
-                          <GroupLine
-                            key={row.id}
-                            name={row.name}
-                            groupType={row.type}
-                            use={row.use}
-                            deleted={isDeleted}
-                            actionLabel={
-                              isDeleted
-                                ? t('common.restore')
-                                : t('common.delete')
-                            }
-                            actionGlyph={isDeleted ? '↺' : '×'}
-                            onAction={() => toggleBaselineDelete(row.name)}
-                          />
-                        )
-                      })
-                    )}
-                  </div>
-                </div>
-
-                <div className="proxyListBlock">
-                  <p className="eyebrow">
-                    {t('ui.profiles.proxyModal.prependSection')}
-                  </p>
-                  <div className="rulesList">
-                    {rows.length === 0 ? (
-                      <p className="muted small">
-                        {t('ui.profiles.proxyModal.noGroupsYet')}
-                      </p>
-                    ) : (
-                      rows.map((r) => (
-                        <GroupLine
-                          key={r.id}
-                          name={r.name}
-                          groupType={r.type}
-                          use={r.use}
-                          pos="prepend"
-                          actionLabel={t('common.remove')}
-                          actionGlyph="×"
-                          onAction={() => removeRow(r.id)}
-                        />
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                <div className="proxyListBlock">
-                  <p className="eyebrow">
-                    {t('ui.profiles.proxyModal.appendSection')}
-                  </p>
-                  <div className="rulesList">
-                    {appendRows.length === 0 ? (
-                      <p className="muted small">
-                        {t('ui.profiles.proxyModal.noAppendGroups')}
-                      </p>
-                    ) : (
-                      appendRows.map((r) => (
-                        <GroupLine
-                          key={r.id}
-                          name={r.name}
-                          groupType={r.type}
-                          use={r.use}
-                          pos="append"
-                          actionLabel={t('common.remove')}
-                          actionGlyph="×"
-                          onAction={() => removeAppendRow(r.id)}
-                        />
-                      ))
-                    )}
-                  </div>
-                </div>
+                ) : null}
+                <AnimatePresence initial={false}>
+                  {appendRows.map((r) => (
+                    <GroupLine
+                      key={r.id}
+                      name={r.name}
+                      groupType={r.type}
+                      use={r.use}
+                      pos="append"
+                      actionLabel={t('common.remove')}
+                      actionIcon="close"
+                      onAction={() => removeAppendRow(r.id)}
+                    />
+                  ))}
+                </AnimatePresence>
               </div>
             </div>
           </div>
-        )}
-
-        <div className="modalFooter">
-          <button type="button" className="btn ghost" onClick={onClose}>
-            {t('common.cancel')}
-          </button>
-          <div className="modalFooterRight">
-            <button
-              type="button"
-              className="btn primary"
-              disabled={uiMode === 'advanced' && Boolean(advancedYamlErr)}
-              onClick={() => void save()}
-            >
-              {t('common.save')}
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Dialog>
   )
 }

@@ -10,8 +10,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import './App.css'
-import './material.css'
+import './styles/m3.css'
 
 // Same asset Wails uses from build/appicon.png (single source of truth for the window chrome).
 import {
@@ -81,6 +80,7 @@ import { GetAppState, RefreshHomeInsight } from './api/state'
 import { GetSubscriptionDeviceIdentity } from './api/subscription'
 import { ApplyUpdate } from './api/update'
 import { AppChrome } from './components/AppChrome'
+import { Backdrop } from './components/Backdrop'
 import { DeleteProfileModal } from './components/DeleteProfileModal'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import {
@@ -89,6 +89,7 @@ import {
 } from './components/ImportProfileModal'
 import type { InstallConfigRequest } from './components/InstallConfigConfirmModal'
 import { InstallConfigConfirmModal } from './components/InstallConfigConfirmModal'
+import { MaterialSymbol } from './components/MaterialSymbol'
 import { OperatorModal } from './components/OperatorModal'
 import { PageSkeleton } from './components/PageSkeleton'
 import { ProfileContextMenu } from './components/ProfileContextMenu'
@@ -156,8 +157,8 @@ import { parseMihomoRulesJson, parseRuleProvidersJson } from './rulesTable'
 import { SpotlightTour } from './SpotlightTour'
 import { SPOTLIGHT_TOUR_STEP_COUNT } from './spotlightTourConfig'
 import type { CompactSettings, ImportModalReason, Screen } from './types/app'
+import { Button, IconButton } from './ui/M3'
 import { normalizeHex, resolveAccent } from './utils/accent'
-import { applyMaterialTheme } from './utils/materialTheme'
 import { decodeUnicodeEscapes, extractNodeFlagIso } from './utils/proxyNames'
 import {
   applyUiScale,
@@ -165,6 +166,10 @@ import {
   loadCompactSettings,
 } from './utils/settings'
 import { friendlyErrorMessage, yamlValidationError } from './utils/yaml'
+
+// Kabosu citrus green; seeds the Material color scheme when neither the user
+// nor the panel brand picked an accent.
+const DEFAULT_SEED = '#9dc843'
 
 function App() {
   useDialogFocus()
@@ -312,8 +317,6 @@ function App() {
   const [settingsBusy, setSettingsBusy] = useState(false)
   const [trayAvailable, setTrayAvailable] = useState(false)
   const [showBuiltinProxyGroups, setShowBuiltinProxyGroups] = useState(false)
-  const [homeActiveNodeOpen, setHomeActiveNodeOpen] = useState(false)
-  const homeActiveNodeRef = useRef<HTMLDivElement | null>(null)
   const [tunPrefs, setTunPrefs] = useState<main.TunSettings>(
     () => new main.TunSettings({}),
   )
@@ -359,6 +362,9 @@ function App() {
   const [profileRefreshBusyId, setProfileRefreshBusyId] = useState<
     string | null
   >(null)
+  const [effectiveTheme, setEffectiveTheme] = useState<'dark' | 'light'>(
+    'light',
+  )
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>(() => {
     const v = localStorage.getItem(LS_THEME) as
       | 'dark'
@@ -949,32 +955,27 @@ function App() {
     localStorage.setItem(LS_THEME, theme)
     if (customAccent) localStorage.setItem(LS_ACCENT, customAccent)
     else localStorage.removeItem(LS_ACCENT)
-    const el = shellRef.current
-    if (!el) return
     const apply = () => {
-      let effective: 'dark' | 'light'
       if (theme === 'system') {
         const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        effective = dark ? 'dark' : 'light'
+        setEffectiveTheme(dark ? 'dark' : 'light')
       } else {
-        effective = theme
+        setEffectiveTheme(theme)
       }
-      el.setAttribute('data-theme', effective)
-      // Inline custom properties outrank both stylesheet blocks, so every
-      // var(--accent*) consumer restyles without per-component changes.
-      // Brand accent (panel-provided) sits below the user's own pick.
-      const hex = resolveAccent({
-        userHex: customAccent,
-        brandHex: brandManifest?.accentColor,
-      })
-      applyMaterialTheme(el, effective === 'dark', hex)
     }
     apply()
     if (theme !== 'system') return
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     mq.addEventListener('change', apply)
     return () => mq.removeEventListener('change', apply)
-  }, [theme, customAccent, brandManifest?.accentColor])
+  }, [theme, customAccent])
+  // <m3e-theme> derives every color role from this seed; the brand accent
+  // (panel-provided) sits below the user's own pick.
+  const themeSeed =
+    resolveAccent({
+      userHex: customAccent,
+      brandHex: brandManifest?.accentColor,
+    }) ?? DEFAULT_SEED
 
   useEffect(() => {
     let cancelled = false
@@ -1621,27 +1622,6 @@ function App() {
     }
   }, [screen, operatorModalOpen])
 
-  useEffect(() => {
-    if (!homeActiveNodeOpen) return
-    const onDown = (e: MouseEvent) => {
-      const el = homeActiveNodeRef.current
-      if (el && !el.contains(e.target as Node)) setHomeActiveNodeOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setHomeActiveNodeOpen(false)
-    }
-    document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [homeActiveNodeOpen])
-
-  useEffect(() => {
-    setHomeActiveNodeOpen(false)
-  }, [screen, state?.connection?.status])
-
   const rulesRows = useMemo(
     () => parseMihomoRulesJson(rulesOverview?.rulesBody),
     [rulesOverview?.rulesBody],
@@ -2040,10 +2020,18 @@ function App() {
       reducedMotion="user"
       transition={{ type: 'spring', stiffness: 360, damping: 30 }}
     >
+      <m3e-theme
+        color={themeSeed}
+        scheme={effectiveTheme}
+        variant="tonal-spot"
+        motion="expressive"
+      >
       <div
         className={`shell ${navCollapsed ? 'navCollapsed' : ''}`}
         ref={shellRef}
+        data-theme={effectiveTheme}
       >
+        <Backdrop />
         <a className="skipLink" href="#page-content">
           {t('expressive.skipContent')}
         </a>
@@ -2083,9 +2071,7 @@ function App() {
               liveUnreachable) &&
             !serviceBannerDismissed ? (
               <div className="serviceUpdateBar" role="alert">
-                <span className="serviceUpdateBarIcon" aria-hidden>
-                  ⚠️
-                </span>
+                <MaterialSymbol name="error" className="serviceUpdateBarIcon" />
                 <span className="serviceUpdateBarText">
                   {serviceInfo?.updateRequired
                     ? t('settings.serviceUpdateTitle')
@@ -2094,25 +2080,20 @@ function App() {
                       : t('settings.serviceUnreachableTitle')}{' '}
                   — {t('settings.serviceUpdateAdminHint')}
                 </span>
-                <button
-                  type="button"
-                  className="btn primary serviceUpdateBarBtn"
+                <Button
+                  variant="filled"
                   onClick={() => {
                     setScreen('settings')
                     void installService()
                   }}
                 >
                   {t('settings.serviceUpdateAction')}
-                </button>
-                <button
-                  type="button"
-                  className="serviceUpdateBarClose"
-                  aria-label={t('common.dismiss')}
-                  title={t('common.dismiss')}
+                </Button>
+                <IconButton
+                  icon="close"
+                  label={t('common.dismiss')}
                   onClick={() => setServiceBannerDismissed(true)}
-                >
-                  ✕
-                </button>
+                />
               </div>
             ) : null}
             {/* Per-screen error boundary: a render crash in one page shows a
@@ -2122,9 +2103,9 @@ function App() {
               <motion.div
                 className="screenView"
                 key={screen}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 350, damping: 32 }}
+                initial={{ opacity: 0, y: 16, scale: 0.985 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
               >
                 {screen === 'operator' ? (
                   <OperatorModal
@@ -2180,8 +2161,6 @@ function App() {
                     showProtectedBadge={showProtectedBadge}
                     homeTrafficHealthSubtitle={homeTrafficHealthSubtitle}
                     nodePickerGroup={nodePickerGroup}
-                    homeActiveNodeOpen={homeActiveNodeOpen}
-                    homeActiveNodeRef={homeActiveNodeRef}
                     activeNode={activeNode}
                     activeNodeVisual={activeNodeVisual}
                     showBuiltinProxyGroups={showBuiltinProxyGroups}
@@ -2223,9 +2202,6 @@ function App() {
                     }
                     onSelectNode={(group, node) =>
                       void run(() => SetProxyNode(group, node))
-                    }
-                    onToggleActiveNodeOpen={() =>
-                      setHomeActiveNodeOpen((o) => !o)
                     }
                   />
                 ) : null}
@@ -2310,6 +2286,13 @@ function App() {
                 {screen === 'rules' ? (
                   <Suspense fallback={<PageSkeleton />}>
                     <RulesPage
+                      onEditRules={() => {
+                        if (activeProfile?.id)
+                          setProfileRulesModal({
+                            id: activeProfile.id,
+                            name: activeProfile.name,
+                          })
+                      }}
                       rulesOverview={rulesOverview}
                       connectionStatus={state?.connection?.status ?? ''}
                       rulesBusy={rulesBusy}
@@ -2923,6 +2906,7 @@ function App() {
 
         <ToastHub toasts={toasts} onDismiss={dismissToast} />
       </div>
+      </m3e-theme>
     </MotionConfig>
   )
 }

@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -16,6 +17,19 @@ import {
 } from '../api/companion'
 import type { companion } from '../api/models'
 import { EventsOn } from '../api/runtime'
+import { MaterialSymbol } from '../components/MaterialSymbol'
+import {
+  Button,
+  Card,
+  Chip,
+  IconButton,
+  Loading,
+  Select,
+  Shape,
+  TextField,
+} from '../ui/M3'
+
+import '../styles/devices.css'
 
 type Agent = companion.AgentInfo
 
@@ -36,6 +50,7 @@ export function DevicesPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [scanning, setScanning] = useState(false)
 
   // Live discovery: seed from the store, start the background watcher, and
   // subscribe to the "companion:agents" event so the list refreshes itself.
@@ -96,7 +111,12 @@ export function DevicesPage() {
 
   const onDiscover = () =>
     run(async () => {
-      setAgents((await CompanionDiscover()) ?? [])
+      setScanning(true)
+      try {
+        setAgents((await CompanionDiscover()) ?? [])
+      } finally {
+        setScanning(false)
+      }
     })
 
   const onPairString = () =>
@@ -146,205 +166,246 @@ export function DevicesPage() {
       setAgents((await CompanionListAgents()) ?? [])
     })
 
+
   return (
-    <div className="devices panel">
-      <header className="devicesHeader">
-        <h2>{t('ui.devices.title')}</h2>
-        <button
-          type="button"
-          className="btn subtle"
+    <div className="page dvPage">
+      <header className="dvHead">
+        <h2 className="srOnly">{t('ui.devices.title')}</h2>
+        <Button
+          variant="tonal"
+          icon="refresh"
+          busy={scanning}
           disabled={busy}
           onClick={onDiscover}
         >
           {t('ui.devices.discover')}
-        </button>
+        </Button>
       </header>
-      <p className="muted small">{t('ui.devices.subtitle')}</p>
+      <p className="pageLead">{t('ui.devices.subtitle')}</p>
 
-      {error ? <p className="error">{error}</p> : null}
-      {notice ? <p className="muted small">{notice}</p> : null}
+      <AnimatePresence initial={false}>
+        {error ? (
+          <motion.div
+            key="err"
+            className="inlineError"
+            role="alert"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            <p>{error}</p>
+          </motion.div>
+        ) : null}
+        {notice ? (
+          <motion.div
+            key="notice"
+            className="dvNotice"
+            role="status"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            <MaterialSymbol name="check" />
+            {notice}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       {/* Pairing */}
-      <section className="devicesPair">
-        <h3>{t('ui.devices.pairTitle')}</h3>
-        <div className="devicesPairRow">
-          <input
-            className="input"
-            placeholder="clashctl-pair://…"
-            value={pasteStr}
-            onChange={(e) => setPasteStr(e.target.value)}
-          />
-          <button
-            type="button"
-            className="btn"
-            disabled={busy || !pasteStr.trim()}
-            onClick={onPairString}
-          >
-            {t('ui.devices.pairPaste')}
-          </button>
-        </div>
-        <div className="devicesPairRow">
-          <select
-            className="input"
-            value={pinTarget}
-            onChange={(e) => setPinTarget(e.target.value)}
-          >
-            <option value="">{t('ui.devices.pickAgent')}</option>
-            {discovered.map((a) => (
-              <option key={a.deviceId} value={a.deviceId}>
-                {a.name || a.deviceId}
-              </option>
-            ))}
-          </select>
-          <input
-            className="input"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder={t('ui.devices.pinPlaceholder')}
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-          />
-          <button
-            type="button"
-            className="btn"
-            disabled={busy || !pinTarget || pin.length < 4}
-            onClick={onPairPin}
-          >
-            {t('ui.devices.pairPin')}
-          </button>
-        </div>
-      </section>
+      <Card variant="filled">
+        <section className="dvSection">
+          <h3>{t('ui.devices.pairTitle')}</h3>
+          <div className="dvPairRow">
+            <TextField
+              placeholder="clashctl-pair://…"
+              ariaLabel={t('ui.devices.pairPaste')}
+              value={pasteStr}
+              onChange={setPasteStr}
+              spellCheck={false}
+            />
+            <Button
+              disabled={busy || !pasteStr.trim()}
+              onClick={onPairString}
+            >
+              {t('ui.devices.pairPaste')}
+            </Button>
+          </div>
+          <div className="dvPairRow">
+            <Select
+              value={pinTarget}
+              onChange={setPinTarget}
+              ariaLabel={t('ui.devices.pickAgent')}
+              options={[
+                { value: '', label: t('ui.devices.pickAgent') },
+                ...discovered.map((a) => ({
+                  value: a.deviceId,
+                  label: a.name || a.deviceId,
+                })),
+              ]}
+            />
+            <TextField
+              placeholder={t('ui.devices.pinPlaceholder')}
+              ariaLabel={t('ui.devices.pinPlaceholder')}
+              value={pin}
+              mono
+              onChange={(v) => setPin(v.replace(/\D/g, '').slice(0, 6))}
+            />
+            <Button
+              disabled={busy || !pinTarget || pin.length < 4}
+              onClick={onPairPin}
+            >
+              {t('ui.devices.pairPin')}
+            </Button>
+          </div>
+        </section>
+      </Card>
 
-      <div className="devicesBody">
+      <div className="dvBody">
         {/* Device list */}
-        <section className="devicesList">
-          <h3>{t('ui.devices.listTitle')}</h3>
-          {agents.length === 0 ? (
-            <p className="muted small">{t('ui.devices.empty')}</p>
+        <section className="dvList">
+          <h3 className="sectionTitle">{t('ui.devices.listTitle')}</h3>
+          {scanning ? (
+            <div className="dvScan" role="status">
+              <Loading label={t('ui.devices.discover')} />
+              <span>{t('ui.devices.discover')}</span>
+            </div>
           ) : null}
-          {paired.map((a) => (
-            <DeviceRow
-              key={a.deviceId}
-              agent={a}
-              selected={a.deviceId === selectedId}
-              onSelect={() => setSelectedId(a.deviceId)}
-              pairedLabel={t('ui.devices.paired')}
-              unsupportedLabel={t('ui.devices.unsupported')}
-              offlineLabel={t('ui.devices.offline')}
-            />
-          ))}
+          {agents.length === 0 && !scanning ? (
+            <div className="emptyState">
+              <Shape name="flower" />
+              <p>{t('ui.devices.empty')}</p>
+            </div>
+          ) : null}
+          <AnimatePresence initial={false}>
+            {paired.map((a) => (
+              <DeviceRow
+                key={a.deviceId}
+                agent={a}
+                selected={a.deviceId === selectedId}
+                onSelect={() => setSelectedId(a.deviceId)}
+                pairedLabel={t('ui.devices.paired')}
+                unsupportedLabel={t('ui.devices.unsupported')}
+                offlineLabel={t('ui.devices.offline')}
+              />
+            ))}
+          </AnimatePresence>
           {discovered.length ? (
-            <p className="muted small devicesGroupLabel">
-              {t('ui.devices.discoveredGroup')}
-            </p>
+            <p className="dvGroupLabel">{t('ui.devices.discoveredGroup')}</p>
           ) : null}
-          {discovered.map((a) => (
-            <DeviceRow
-              key={a.deviceId}
-              agent={a}
-              selected={a.deviceId === selectedId}
-              onSelect={() => {
-                setSelectedId(a.deviceId)
-                setPinTarget(a.deviceId)
-              }}
-              pairedLabel={t('ui.devices.paired')}
-              unsupportedLabel={t('ui.devices.unsupported')}
-              offlineLabel={t('ui.devices.offline')}
-            />
-          ))}
+          <AnimatePresence initial={false}>
+            {discovered.map((a) => (
+              <DeviceRow
+                key={a.deviceId}
+                agent={a}
+                selected={a.deviceId === selectedId}
+                onSelect={() => {
+                  setSelectedId(a.deviceId)
+                  setPinTarget(a.deviceId)
+                }}
+                pairedLabel={t('ui.devices.paired')}
+                unsupportedLabel={t('ui.devices.unsupported')}
+                offlineLabel={t('ui.devices.offline')}
+              />
+            ))}
+          </AnimatePresence>
         </section>
 
         {/* Control panel */}
-        <section className="devicesControl">
-          {selected && selected.paired ? (
-            <>
-              <h3>{selected.name || selected.deviceId}</h3>
-              <div className="devicesStatusRow">
-                <span className="muted">{t('ui.devices.power')}</span>
-                <strong>{status?.power ?? '—'}</strong>
-              </div>
-              {status?.capabilities?.length ? (
-                <div className="devicesCaps">
-                  {status.capabilities.map((c) => (
-                    <span key={c} className="pill">
-                      {c}
-                    </span>
-                  ))}
+        <Card variant="filled">
+          <section className="dvControl">
+            {selected && selected.paired ? (
+              <>
+                <div className="dvControlHead">
+                  <h3>{selected.name || selected.deviceId}</h3>
+                  <IconButton
+                    icon="refresh"
+                    label={t('ui.devices.refresh')}
+                    disabled={busy}
+                    onClick={() => void refreshStatus(selectedId, true)}
+                  />
                 </div>
-              ) : null}
-              <div className="devicesActions">
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={busy}
-                  onClick={() => onPower('on')}
-                >
-                  {t('ui.devices.powerOn')}
-                </button>
-                <button
-                  type="button"
-                  className="btn subtle"
-                  disabled={busy}
-                  onClick={() => onPower('off')}
-                >
-                  {t('ui.devices.powerOff')}
-                </button>
-                <button
-                  type="button"
-                  className="btn subtle"
-                  disabled={busy}
-                  onClick={() => onPower('toggle')}
-                >
-                  {t('ui.devices.powerToggle')}
-                </button>
+                <div className="dvStatus">
+                  <span
+                    className={`statusDot${status?.power === 'on' ? ' statusDotOk' : ''}`}
+                    aria-hidden="true"
+                  />
+                  <span className="muted">{t('ui.devices.power')}</span>
+                  <strong>{status?.power ?? '—'}</strong>
+                </div>
+                {status?.capabilities?.length ? (
+                  <div className="dvCaps">
+                    {status.capabilities.map((c) => (
+                      <Chip key={c}>{c}</Chip>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="dvActions">
+                  <Button
+                    disabled={busy}
+                    icon="power"
+                    onClick={() => onPower('on')}
+                  >
+                    {t('ui.devices.powerOn')}
+                  </Button>
+                  <Button
+                    variant="tonal"
+                    disabled={busy}
+                    onClick={() => onPower('off')}
+                  >
+                    {t('ui.devices.powerOff')}
+                  </Button>
+                  <Button
+                    variant="tonal"
+                    disabled={busy}
+                    onClick={() => onPower('toggle')}
+                  >
+                    {t('ui.devices.powerToggle')}
+                  </Button>
+                </div>
+                <div className="dvActions">
+                  <Button
+                    variant="outlined"
+                    icon="upload"
+                    disabled={busy}
+                    onClick={onShare}
+                  >
+                    {t('ui.devices.share')}
+                  </Button>
+                </div>
+                <div className="dvPairRow">
+                  <TextField
+                    placeholder={t('ui.devices.renamePlaceholder')}
+                    ariaLabel={t('ui.devices.renamePlaceholder')}
+                    value={renameVal}
+                    onChange={setRenameVal}
+                  />
+                  <Button
+                    variant="tonal"
+                    disabled={busy || !renameVal.trim()}
+                    onClick={onRename}
+                  >
+                    {t('ui.devices.rename')}
+                  </Button>
+                </div>
+                <div className="dvActions">
+                  <Button
+                    variant="text"
+                    icon="close"
+                    disabled={busy}
+                    onClick={onUnpair}
+                  >
+                    {t('ui.devices.unpair')}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="emptyState">
+                <Shape name="gem" />
+                <p className="dvHint">{t('ui.devices.selectHint')}</p>
               </div>
-              <div className="devicesActions">
-                <button
-                  type="button"
-                  className="btn subtle"
-                  disabled={busy}
-                  onClick={onShare}
-                >
-                  {t('ui.devices.share')}
-                </button>
-                <button
-                  type="button"
-                  className="btn subtle"
-                  disabled={busy}
-                  onClick={() => void refreshStatus(selectedId, true)}
-                >
-                  {t('ui.devices.refresh')}
-                </button>
-              </div>
-              <div className="devicesPairRow">
-                <input
-                  className="input"
-                  placeholder={t('ui.devices.renamePlaceholder')}
-                  value={renameVal}
-                  onChange={(e) => setRenameVal(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="btn subtle"
-                  disabled={busy || !renameVal.trim()}
-                  onClick={onRename}
-                >
-                  {t('ui.devices.rename')}
-                </button>
-              </div>
-              <button
-                type="button"
-                className="btn subtle devicesUnpair"
-                disabled={busy}
-                onClick={onUnpair}
-              >
-                {t('ui.devices.unpair')}
-              </button>
-            </>
-          ) : (
-            <p className="muted small">{t('ui.devices.selectHint')}</p>
-          )}
-        </section>
+            )}
+          </section>
+        </Card>
       </div>
     </div>
   )
@@ -365,25 +426,34 @@ function DeviceRow({
   unsupportedLabel: string
   offlineLabel: string
 }) {
+  const online = agent.paired ? !!agent.reachable : false
   return (
-    <button
+    <motion.button
       type="button"
-      className={`devicesRow${selected ? ' devicesRowSelected' : ''}`}
+      className="dvRow"
+      data-selected={selected || undefined}
+      aria-pressed={selected}
       onClick={onSelect}
+      layout="position"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 32 }}
     >
-      <span className="devicesRowName">{agent.name || agent.deviceId}</span>
-      <span className="devicesRowMeta">
-        {agent.app ? <span className="pill">{agent.app}</span> : null}
-        {agent.paired && !agent.reachable ? (
-          <span className="muted small">{offlineLabel}</span>
-        ) : null}
-        {!agent.supported ? (
-          <span className="muted small">{unsupportedLabel}</span>
-        ) : null}
-        {agent.paired ? (
-          <span className="muted small">{pairedLabel}</span>
-        ) : null}
+      <span className="dvRowName">
+        <span
+          className={`statusDot${online ? ' statusDotOk' : ''}`}
+          aria-hidden="true"
+        />
+        <span>{agent.name || agent.deviceId}</span>
       </span>
-    </button>
+      <span className="dvRowMeta">
+        {agent.app ? <span className="dvPill">{agent.app}</span> : null}
+        {agent.paired && !agent.reachable ? <span>{offlineLabel}</span> : null}
+        {!agent.supported ? <span>{unsupportedLabel}</span> : null}
+        {agent.paired ? <span>{pairedLabel}</span> : null}
+      </span>
+    </motion.button>
   )
 }

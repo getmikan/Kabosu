@@ -400,7 +400,19 @@
         "loadingRules": "正在加载订阅规则…",
         "noRulesDetected": "未检测到订阅规则。",
         "fixYamlBeforeVisual": "切换到 Visual 前请先修复规则 advanced YAML。",
-        "savedBanner": "规则已保存到 merge 模板。"
+        "savedBanner": "规则已保存到 merge 模板。",
+        "ruleType": "规则类型",
+        "param": "规则参数",
+        "proxy": "代理",
+        "addStart": "在开头添加规则",
+        "addEnd": "在末尾添加规则",
+        "current": "当前规则",
+        "search": "搜索规则",
+        "help": "说明",
+        "helpBody": "添加到开头的规则先于订阅规则生效，添加到末尾的规则在其之后生效。订阅规则可以用删除按钮移除并恢复。更改会保存到配置的合并模板中。",
+        "toYaml": "YAML 编辑器",
+        "toVisual": "可视化编辑器",
+        "added": "本次会话新增"
       },
       "deleteModal": {
         "title": "删除配置",

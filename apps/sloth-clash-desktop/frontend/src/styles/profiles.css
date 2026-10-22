@@ -1,0 +1,155 @@
+/* Profiles screen: card grid. Prefix pf. */
+.pfList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.pfCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: var(--radius-xl);
+  background: var(--pane);
+  transition:
+    background var(--dur-base) var(--ease-standard),
+    border-radius var(--dur-slow) var(--ease-spring),
+    translate var(--dur-base) var(--ease-spring);
+}
+.pfCard:hover {
+  background: var(--pane-strong);
+  translate: 0 -2px;
+}
+.pfCardActive {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  border-radius: var(--radius-lg);
+}
+.pfCardActive:hover {
+  background: var(--secondary-container);
+}
+.pfHeading {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.pfChoose {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 8px 0 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pfChoose:disabled {
+  cursor: default;
+}
+.pfChoose strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pfAvatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  transition:
+    border-radius var(--dur-slow) var(--ease-spring),
+    background var(--dur-base);
+}
+.pfAvatar svg {
+  width: 24px;
+  height: 24px;
+}
+.pfChoose:hover .pfAvatar {
+  border-radius: 50%;
+}
+.pfCardActive .pfAvatar {
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.pfMore {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.pfStats {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pfCardActive .pfStats {
+  cursor: default;
+}
+.pfCardActive .subscriptionStats.compact .subscriptionStat {
+  background: color-mix(in srgb, var(--on-secondary-container) 10%, transparent);
+}
+.pfScriptError {
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--error-container);
+  color: var(--on-error-container);
+  font-size: 12px;
+  line-height: 16px;
+}
+.pfFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 4px 0 8px;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.pfCardActive .pfFoot {
+  color: var(--on-secondary-container);
+}
+.pfAgo {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pfRefreshing {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+.pfLocalIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+}
+.pfLocalIcon svg {
+  width: 20px;
+  height: 20px;
+}

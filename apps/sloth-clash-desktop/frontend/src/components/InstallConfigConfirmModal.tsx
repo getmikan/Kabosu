@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
+import '../styles/profile-dialogs.css'
+import { Button, Dialog } from '../ui/M3'
+
 export type InstallConfigRequest = {
   name: string
   url: string
@@ -22,60 +25,45 @@ export function InstallConfigConfirmModal({
   const { t } = useTranslation()
   if (!request) return null
   return (
-    <div
-      className="modalOverlay"
-      role="presentation"
-      style={{ zIndex: 74 }}
-      onClick={busy ? undefined : onCancel}
-    >
-      <div
-        className="modalCard"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('installConfig.title')}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="modalTitle">{t('installConfig.title')}</h3>
-        <p className="muted">{t('installConfig.lead')}</p>
-
-        <div className="installConfigDetails">
-          <div className="installConfigRow">
-            <span className="fieldLab">{t('installConfig.source')}</span>
-            <strong className="installConfigHost">{request.host}</strong>
-          </div>
-          {request.name ? (
-            <div className="installConfigRow">
-              <span className="fieldLab">{t('installConfig.name')}</span>
-              <span>{request.name}</span>
-            </div>
-          ) : null}
-          <div className="installConfigRow">
-            <span className="fieldLab">{t('installConfig.url')}</span>
-            <code className="installConfigUrl">{request.url}</code>
-          </div>
-        </div>
-
-        <p className="installConfigWarn">{t('installConfig.warning')}</p>
-
-        <div className="modalActions">
-          <button
-            type="button"
-            className="btn ghost"
-            disabled={busy}
-            onClick={onCancel}
-          >
+    <Dialog
+      open
+      onClose={onCancel}
+      disableClose={busy}
+      dismissible={!busy}
+      title={t('installConfig.title')}
+      actions={
+        <>
+          <Button variant="text" disabled={busy} onClick={onCancel}>
             {t('common.cancel')}
-          </button>
-          <button
-            type="button"
-            className="btn primary"
-            disabled={busy}
+          </Button>
+          <Button
+            variant="filled"
+            busy={busy}
             onClick={() => onConfirm(request)}
           >
             {busy ? t('installConfig.adding') : t('installConfig.confirm')}
-          </button>
+          </Button>
+        </>
+      }
+    >
+      <p className="pdBody">{t('installConfig.lead')}</p>
+      <div className="pdDetails">
+        <div className="pdRow">
+          <span className="pdLabel">{t('installConfig.source')}</span>
+          <strong>{request.host}</strong>
+        </div>
+        {request.name ? (
+          <div className="pdRow">
+            <span className="pdLabel">{t('installConfig.name')}</span>
+            <span>{request.name}</span>
+          </div>
+        ) : null}
+        <div className="pdRow">
+          <span className="pdLabel">{t('installConfig.url')}</span>
+          <code className="pdUrl">{request.url}</code>
         </div>
       </div>
-    </div>
+      <p className="inlineWarning">{t('installConfig.warning')}</p>
+    </Dialog>
   )
 }

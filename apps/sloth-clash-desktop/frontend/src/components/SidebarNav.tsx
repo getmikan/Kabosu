@@ -1,10 +1,13 @@
-import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import appIcon from '../assets/images/logo-universal.png'
 import { NAV_DEFS } from '../nav'
 import { IconChevronNav } from '../navIcons'
 import type { Screen } from '../types/app'
+import { IconButton, Shape, type ShapeName } from '../ui/M3'
+
+const LOGO_SHAPES: ShapeName[] = ['9-sided-cookie', 'sunny', 'flower', 'soft-burst']
 
 export function SidebarNav({
   screen,
@@ -22,66 +25,58 @@ export function SidebarNav({
   activeScreens?: Screen[]
 }) {
   const { t } = useTranslation()
+  const [logoStep, setLogoStep] = useState(0)
+  useEffect(() => {
+    const id = window.setInterval(() => setLogoStep((n) => n + 1), 5200)
+    return () => window.clearInterval(id)
+  }, [])
   return (
     <aside className="nav">
       <div className="navBrand" title="Kabosu">
-        <img
-          src={appIcon}
-          width="44"
-          height="44"
-          alt={collapsed ? 'Kabosu' : ''}
-        />
-        {!collapsed ? (
-          <div>
-            <strong>Kabosu</strong>
-          </div>
-        ) : null}
+        <span className="navBrandLogo">
+          <Shape name={LOGO_SHAPES[logoStep % LOGO_SHAPES.length]} />
+          <img src={appIcon} width="36" height="36" alt="" />
+        </span>
+        {!collapsed ? <strong>Kabosu</strong> : null}
       </div>
-      <nav className="navList" aria-label={t('expressive.navigation')}>
+      <m3e-nav-rail
+        className="navRail"
+        mode={collapsed ? 'compact' : 'expanded'}
+        aria-label={t('expressive.navigation')}
+      >
         {NAV_DEFS.filter(({ id }) => !hiddenScreens?.includes(id)).map(
           ({ id, labelKey, Icon }) => (
-            <motion.button
+            <m3e-nav-item
               key={id}
-              type="button"
-              whileTap={{ scale: 0.96 }}
-              className={screen === id ? 'navItem active' : 'navItem'}
-              title={t(labelKey)}
-              aria-label={collapsed ? t(labelKey) : undefined}
+              selected={screen === id}
+              title={collapsed ? t(labelKey) : undefined}
               aria-current={screen === id ? 'page' : undefined}
               onClick={() => onChange(id)}
             >
-              {screen === id ? (
-                <motion.span
-                  className="navIndicator"
-                  layoutId="navigation-indicator"
-                  transition={{ type: 'spring', stiffness: 440, damping: 36 }}
-                />
-              ) : null}
-              <span className="navIcon">
+              <span slot="icon" className="m3Icon">
                 <Icon />
                 {activeScreens?.includes(id) ? (
                   <span className="navActiveDot" aria-hidden />
                 ) : null}
               </span>
-              <span className="navLabel">{t(labelKey)}</span>
-            </motion.button>
+              {t(labelKey)}
+            </m3e-nav-item>
           ),
         )}
-      </nav>
-      <button
-        type="button"
-        className="navCollapseBtn"
-        title={collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')}
-        aria-label={
-          collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')
-        }
-        onClick={onToggleCollapse}
-      >
-        <span className={`navChevronWrap ${collapsed ? 'collapsed' : ''}`}>
-          <IconChevronNav />
-        </span>
-        {!collapsed ? <span>{t('nav.collapseSidebar')}</span> : null}
-      </button>
+      </m3e-nav-rail>
+      <div className="navFooter">
+        <IconButton
+          variant="tonal"
+          size="small"
+          label={collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')}
+          icon={
+            <span className="navToggleIcon">
+              <IconChevronNav />
+            </span>
+          }
+          onClick={onToggleCollapse}
+        />
+      </div>
     </aside>
   )
 }

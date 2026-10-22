@@ -1,0 +1,146 @@
+/* Operator screen / dialog: brand, usage, links, server groups. */
+.opPage {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+.opCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(100%, 640px);
+  padding: 24px;
+  border-radius: var(--radius-xl);
+  background: var(--pane);
+  animation: riseIn 520ms var(--ease-emphasized) both;
+}
+.opDialog {
+  --m3e-dialog-max-width: min(560px, 92vw);
+  --m3e-dialog-min-width: min(440px, 92vw);
+}
+.opBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.opHero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.opLogo {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  color: var(--on-primary-container);
+}
+.opLogo m3e-shape {
+  position: absolute;
+  inset: 0;
+  --m3e-shape-size: 80px;
+  --m3e-shape-container-color: var(--primary-container);
+  animation: backdropSpin 30s linear infinite;
+}
+.opLogo img {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: contain;
+}
+.opLogo svg {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+.opHeroText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.opTitle {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.opTagline {
+  margin: 0;
+  font-size: 14px;
+  color: var(--on-surface-variant);
+}
+.opHost {
+  align-self: flex-start;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-container-high);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--on-surface-variant);
+}
+.opGreeting {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+}
+.opUsage {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.opTile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+}
+.opTile[data-warn] {
+  background: var(--warning-container);
+  color: var(--on-warning-container);
+}
+.opTileLabel {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  color: var(--on-surface-variant);
+}
+.opTile[data-warn] .opTileLabel {
+  color: inherit;
+}
+.opTileValue {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.opTileBar {
+  width: 100%;
+  margin-top: 4px;
+}
+.opLinks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.opLinkBtn {
+  width: 100%;
+}
+.opAttribution {
+  margin: 0;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  text-align: center;
+}
+.opFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}

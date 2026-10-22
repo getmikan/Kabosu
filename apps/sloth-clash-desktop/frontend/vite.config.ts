@@ -5,9 +5,6 @@ import svgr from 'vite-plugin-svgr'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), svgr()],
-  test: {
-    server: { deps: { inline: ['@material/material-color-utilities'] } },
-  },
   server: {
     fs: {
       // Allow importing title-bar logo from ../build/appicon.png during `vite dev`

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '../styles/editors.css'
+import { Button, Dialog, Select, SwitchRow, TextField } from '../ui/M3'
+
 export type ProfileEditInfoTarget = { id: string; name: string; url: string }
 
 // Collapsible "AGE encryption" block. Remounted per profile (key=target.id) so
@@ -70,92 +73,73 @@ function AgeKeySection({
 
   if (!open) {
     return (
-      <button
-        type="button"
-        className="btn btnModalSecondary"
-        style={{ marginTop: 12 }}
-        onClick={() => setOpen(true)}
-      >
-        {t('ui.profiles.editInfo.ageSection')}
-      </button>
+      <div className="edRowActions">
+        <Button
+          variant="tonal"
+          icon="shield"
+          onClick={() => setOpen(true)}
+        >
+          {t('ui.profiles.editInfo.ageSection')}
+        </Button>
+      </div>
     )
   }
 
   return (
-    <div className="modalAgeSection">
-      <label className="field modalField">
-        <span className="fieldLab">{t('ui.profiles.editInfo.ageKey')}</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            className="input"
-            style={{ flex: 1 }}
-            type={reveal ? 'text' : 'password'}
-            autoComplete="off"
-            spellCheck={false}
-            value={ageKey}
-            onChange={(e) => onAgeKeyChange(e.target.value)}
-            placeholder={t('ui.profiles.editInfo.ageKeyPlaceholder')}
-          />
-          <button
-            type="button"
-            className="btn btnModalSecondary"
-            onClick={() => setReveal((v) => !v)}
-          >
+    <div className="edAge">
+      <TextField
+        label={t('ui.profiles.editInfo.ageKey')}
+        type={reveal ? 'text' : 'password'}
+        autoComplete="off"
+        spellCheck={false}
+        mono
+        value={ageKey}
+        onChange={onAgeKeyChange}
+        placeholder={t('ui.profiles.editInfo.ageKeyPlaceholder')}
+        trailing={
+          <Button variant="text" onClick={() => setReveal((v) => !v)}>
             {reveal
               ? t('ui.profiles.editInfo.ageHide')
               : t('ui.profiles.editInfo.ageReveal')}
-          </button>
-        </div>
-      </label>
-      <label className="field modalField">
-        <span className="fieldLab">
-          {t('ui.profiles.editInfo.agePublicLabel')}
-        </span>
-        <input
-          className="input"
-          readOnly
-          spellCheck={false}
-          value={publicKey}
-          placeholder={t('ui.profiles.editInfo.agePublicPlaceholder')}
-          onFocus={(e) => e.target.select()}
-        />
-      </label>
-      <div className="modalActions">
-        <select
-          className="input"
-          style={{ width: 'auto' }}
-          aria-label={t('ui.profiles.editInfo.ageKeyType')}
+          </Button>
+        }
+      />
+      <TextField
+        label={t('ui.profiles.editInfo.agePublicLabel')}
+        readOnly
+        onChange={() => {}}
+        spellCheck={false}
+        mono
+        value={publicKey}
+        placeholder={t('ui.profiles.editInfo.agePublicPlaceholder')}
+      />
+      <div className="edRowActions">
+        <Select
+          className="edAgeSelect"
+          ariaLabel={t('ui.profiles.editInfo.ageKeyType')}
           value={keyKind}
-          onChange={(e) => setKeyKind(e.target.value)}
-        >
-          <option value="x25519">X25519</option>
-          <option value="hybrid">MLKEM768-X25519</option>
-        </select>
-        <button
-          type="button"
-          className="btn btnModalSecondary"
-          disabled={genBusy}
+          onChange={setKeyKind}
+          options={[
+            { value: 'x25519', label: 'X25519' },
+            { value: 'hybrid', label: 'MLKEM768-X25519' },
+          ]}
+        />
+        <Button
+          variant="tonal"
+          busy={genBusy}
           onClick={() => void generate()}
         >
           {t('ui.profiles.editInfo.generateAgePair')}
-        </button>
+        </Button>
         {publicKey ? (
-          <button
-            type="button"
-            className="btn btnModalSecondary"
-            onClick={() => onCopyText(publicKey)}
-          >
+          <Button variant="outlined" onClick={() => onCopyText(publicKey)}>
             {t('ui.profiles.editInfo.copyAgePublic')}
-          </button>
+          </Button>
         ) : null}
         {hasKey ? (
-          <button
-            type="button"
-            className="btn btnModalSecondary"
-            onClick={() => onAgeKeyChange('')}
-          >
+          <Button variant="text" onClick={() => onAgeKeyChange('')}>
             {t('ui.profiles.editInfo.ageClear')}
-          </button>
+          </Button>
         ) : null}
       </div>
     </div>
@@ -206,69 +190,55 @@ export function ProfileEditInfoModal({
   const { t } = useTranslation()
   if (!target) return null
   return (
-    <div
-      className="modalOverlay"
-      role="presentation"
-      style={{ zIndex: 70 }}
-      onClick={onClose}
+    <Dialog
+      open
+      onClose={onClose}
+      className="edDialogNarrow"
+      title={t('ui.profiles.editInfo.title')}
+      actions={
+        <>
+          <Button variant="text" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            disabled={!name.trim()}
+            onClick={() => onSave(target.id)}
+          >
+            {t('common.save')}
+          </Button>
+        </>
+      }
     >
-      <div
-        className="modalCard"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="editInfoTitle"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 id="editInfoTitle" className="modalTitle">
-          {t('ui.profiles.editInfo.title')}
-        </h3>
-        <p className="muted small">{t('ui.profiles.editInfo.blurb')}</p>
-        <label className="field modalField">
-          <span className="fieldLab">{t('ui.profiles.editInfo.name')}</span>
-          <input
-            className="input"
-            value={name}
-            onChange={(e) => onNameChange(e.target.value)}
-            autoFocus
-          />
-        </label>
-        <label className="field modalField">
-          <span className="fieldLab">
-            {t('ui.profiles.editInfo.subscriptionUrl')}
-          </span>
-          <input
-            className="input"
-            value={urlLocked ? '' : url}
-            disabled={urlLocked}
-            title={urlLocked ? t('panel.shareLocked') : undefined}
-            onChange={(e) => onUrlChange(e.target.value)}
-            placeholder={t('ui.profiles.editInfo.urlPlaceholder')}
-          />
-        </label>
-        <div className="fieldGrid">
-          <label className="field modalField">
-            <span className="fieldLab">
-              {t('ui.profiles.editInfo.autoUpdate')}
-            </span>
-            <button
-              type="button"
-              className={`trafficKnob ${autoEnabled ? 'on' : ''}`}
-              onClick={onAutoEnabledToggle}
-            >
-              {autoEnabled ? t('common.on') : t('common.off')}
-            </button>
-          </label>
-          <label className="field modalField">
-            <span className="fieldLab">
-              {t('ui.profiles.editInfo.intervalMinutes')}
-            </span>
-            <input
-              className="input"
-              value={autoInterval}
-              onChange={(e) => onAutoIntervalChange(e.target.value)}
-              placeholder="360"
+      <div className="edBody">
+        <p className="edBlurb">{t('ui.profiles.editInfo.blurb')}</p>
+        <TextField
+          label={t('ui.profiles.editInfo.name')}
+          value={name}
+          onChange={onNameChange}
+          autoFocus
+        />
+        <TextField
+          label={t('ui.profiles.editInfo.subscriptionUrl')}
+          value={urlLocked ? '' : url}
+          disabled={urlLocked}
+          hint={urlLocked ? t('panel.shareLocked') : undefined}
+          onChange={onUrlChange}
+          placeholder={t('ui.profiles.editInfo.urlPlaceholder')}
+        />
+        <div className="edGrid">
+          <div className="edSwitchTile">
+            <SwitchRow
+              label={t('ui.profiles.editInfo.autoUpdate')}
+              checked={autoEnabled}
+              onChange={() => onAutoEnabledToggle()}
             />
-          </label>
+          </div>
+          <TextField
+            label={t('ui.profiles.editInfo.intervalMinutes')}
+            value={autoInterval}
+            onChange={onAutoIntervalChange}
+            placeholder="360"
+          />
         </div>
         <AgeKeySection
           key={target.id}
@@ -278,40 +248,23 @@ export function ProfileEditInfoModal({
           onDeriveAgePublicKey={onDeriveAgePublicKey}
           onCopyText={onCopyName}
         />
-        <div className="modalActions">
-          <button
-            type="button"
-            className="btn btnModalSecondary"
+        <div className="edRowActions">
+          <Button
+            variant="outlined"
             disabled={urlLocked || !url.trim()}
             onClick={() => onCopyUrl(url.trim())}
           >
             {t('ui.profiles.editInfo.copyUrl')}
-          </button>
-          <button
-            type="button"
-            className="btn btnModalSecondary"
+          </Button>
+          <Button
+            variant="outlined"
             disabled={!name.trim()}
             onClick={() => onCopyName(name.trim())}
           >
             {t('ui.profiles.editInfo.copyName')}
-          </button>
-        </div>
-        <div className="modalFooter">
-          <div className="modalFooterRight" style={{ width: '100%' }}>
-            <button type="button" className="btn ghost" onClick={onClose}>
-              {t('common.cancel')}
-            </button>
-            <button
-              type="button"
-              className="btn primary"
-              disabled={!name.trim()}
-              onClick={() => onSave(target.id)}
-            >
-              {t('common.save')}
-            </button>
-          </div>
+          </Button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -16,6 +17,15 @@ import {
   type RuleRow,
 } from '../mergeTemplate'
 import { MonacoYamlEditor } from '../MonacoYamlEditor'
+import '../styles/editors.css'
+import {
+  Button,
+  Dialog,
+  Expansion,
+  IconButton,
+  Select,
+  TextField,
+} from '../ui/M3'
 import { yamlValidationError } from '../utils/yaml'
 
 import type { ProfileModalTarget } from './ProfileMergeModal'
@@ -23,7 +33,7 @@ import type { ProfileModalTarget } from './ProfileMergeModal'
 type Mode = 'visual' | 'advanced'
 type RuleAppendTarget = 'prepend' | 'append'
 
-// One-line read/edit row used in both columns.
+// One rule row: type chip, payload, policy underneath, delete on hover.
 function RuleLine({
   ruleType,
   content,
@@ -31,7 +41,7 @@ function RuleLine({
   pos,
   deleted,
   actionLabel,
-  actionGlyph,
+  actionIcon,
   onAction,
 }: {
   ruleType: string
@@ -40,32 +50,39 @@ function RuleLine({
   pos?: RuleAppendTarget
   deleted?: boolean
   actionLabel: string
-  actionGlyph: string
+  actionIcon: 'close' | 'refresh'
   onAction: () => void
 }) {
   return (
-    <div className={`ruleRow${deleted ? ' ruleRowDeleted' : ''}`}>
-      <span className="ruleTypeChip">{ruleType}</span>
-      <span className="ruleContent" title={content}>
-        {content || '—'}
+    <motion.div
+      layout="position"
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: deleted ? 0.5 : 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+      className="edRule"
+      data-deleted={deleted || undefined}
+      data-user={pos ? true : undefined}
+    >
+      <span className="edRuleType">{ruleType}</span>
+      <span className="edRuleBody">
+        <strong className="edRuleContent" title={content}>
+          {content || '—'}
+        </strong>
+        <span className="edRulePolicy" title={policy}>
+          {policy}
+          {pos ? <em>{pos}</em> : null}
+        </span>
       </span>
-      <span className="ruleArrow" aria-hidden>
-        →
+      <span className="edRuleAction">
+        <IconButton
+          icon={actionIcon}
+          label={actionLabel}
+          size="small"
+          onClick={onAction}
+        />
       </span>
-      <span className="rulePolicy" title={policy}>
-        {policy}
-      </span>
-      {pos ? <span className="rulePos">{pos}</span> : null}
-      <button
-        type="button"
-        className="btn ghost ruleRemove"
-        aria-label={actionLabel}
-        title={actionLabel}
-        onClick={onAction}
-      >
-        {actionGlyph}
-      </button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -104,7 +121,7 @@ export function ProfileRulesModal({
   const [deletedBaseline, setDeletedBaseline] = useState<string[]>(
     initialBuckets.delete,
   )
-  const [appendTarget, setAppendTarget] = useState<RuleAppendTarget>('prepend')
+  const [search, setSearch] = useState('')
   const [formType, setFormType] = useState('DOMAIN-SUFFIX')
   const [formContent, setFormContent] = useState('')
   const [formPolicy, setFormPolicy] = useState('DIRECT')
@@ -174,7 +191,7 @@ export function ProfileRulesModal({
     setDeletedBaseline(buckets.delete)
   }
 
-  const addRule = () => {
+  const addRule = (where: RuleAppendTarget) => {
     const content = formContent.trim()
     const needsContent = formType !== 'MATCH'
     if (needsContent && !content) return
@@ -184,9 +201,9 @@ export function ProfileRulesModal({
       content: needsContent ? content : '',
       policy: formPolicy.trim() || 'DIRECT',
     }
-    const prepNext = appendTarget === 'prepend' ? [row, ...rows] : rows
+    const prepNext = where === 'prepend' ? [row, ...rows] : rows
     const appNext =
-      appendTarget === 'append' ? [...appendRows, row] : appendRows
+      where === 'append' ? [...appendRows, row] : appendRows
     setRows(prepNext)
     setAppendRows(appNext)
     const buckets = {
@@ -251,142 +268,148 @@ export function ProfileRulesModal({
     }
   }
 
-  const hasCustom = rows.length > 0 || appendRows.length > 0
+  const addedCount = rows.length + appendRows.length
+  const totalCount = addedCount + (baseline?.length ?? 0)
+  const needle = search.trim().toLowerCase()
+  const matches = (type: string, content: string, policy: string) =>
+    !needle || `${type} ${content} ${policy}`.toLowerCase().includes(needle)
+  const contentRequired = formType !== 'MATCH'
+  const canAdd = !contentRequired || formContent.trim().length > 0
+
+  const modeToggle =
+    uiMode === 'visual' ? (
+      <Button variant="text" onClick={() => setUiMode('advanced')}>
+        {'<> '}
+        {t('ui.profiles.rulesModal.toYaml')}
+      </Button>
+    ) : (
+      <Button variant="text" onClick={onSwitchToVisual}>
+        {t('ui.profiles.rulesModal.toVisual')}
+      </Button>
+    )
 
   return (
-    <div
-      className="modalOverlay"
-      role="presentation"
-      style={{ zIndex: 70 }}
-      onClick={onClose}
+    <Dialog
+      open
+      wide
+      onClose={onClose}
+      className="edDialogWide"
+      title={
+        <span className="edTitleRow">
+          <span>{t('ui.profiles.rulesModal.title')}</span>
+          {modeToggle}
+        </span>
+      }
+      actions={
+        <>
+          <Button variant="text" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            disabled={uiMode === 'advanced' && Boolean(advancedYamlErr)}
+            onClick={() => void save()}
+          >
+            {t('common.save')}
+          </Button>
+        </>
+      }
     >
-      <div
-        className={`modalCard modalCardWide rulesEditorModal ${
-          uiMode === 'advanced' ? 'modalCardFullscreen' : 'modalCardVisualTall'
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="rulesEdTitle"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="vergeModalHead">
-          <h3 id="rulesEdTitle" className="modalTitle vergeModalTitle">
-            {t('ui.profiles.rulesModal.title')}
-          </h3>
-          <div className="vergeToggleRow">
-            <button
-              type="button"
-              className={`btn vergeToggle ${uiMode === 'visual' ? 'primary' : 'ghost'}`}
-              onClick={onSwitchToVisual}
-            >
-              {t('common.visual')}
-            </button>
-            <button
-              type="button"
-              className={`btn vergeToggle ${uiMode === 'advanced' ? 'primary' : 'ghost'}`}
-              onClick={() => setUiMode('advanced')}
-            >
-              {t('common.advancedYamlTab')}
-            </button>
-          </div>
+      {uiMode === 'advanced' ? (
+        <div className="edField">
+          <span className="edFieldLabel">{t('common.advancedYaml')}</span>
+          <MonacoYamlEditor value={advancedDraft} onChange={setAdvancedDraft} />
+          {advancedYamlErr ? (
+            <p className="edError" role="alert">
+              {t('common.yamlError', { error: advancedYamlErr })}
+            </p>
+          ) : null}
         </div>
-
-        {uiMode === 'advanced' ? (
-          <label className="field modalField rulesAdvancedField">
-            <span className="fieldLab">{t('common.advancedYaml')}</span>
-            <MonacoYamlEditor
-              className="vergePaneYaml modalMonacoWrap"
-              value={advancedDraft}
-              onChange={setAdvancedDraft}
-              height="56vh"
+      ) : (
+        <div className="edRulesSplit">
+          <div className="edRulesForm">
+            <Select
+              label={t('ui.profiles.rulesModal.ruleType')}
+              ariaLabel={t('ui.profiles.rulesModal.ruleTypeAria')}
+              value={formType}
+              onChange={setFormType}
+              options={RULE_TYPE_OPTIONS.map((type) => ({
+                value: type,
+                label: type,
+              }))}
             />
-            {advancedYamlErr ? (
-              <span className="rulesYamlErr small">
-                {t('common.yamlError', { error: advancedYamlErr })}
-              </span>
-            ) : null}
-          </label>
-        ) : (
-          <div className="rulesEditorBody">
-            <div className="rulesAddBar">
-              <select
-                className="selectModern selectInline rulesAddType"
-                value={formType}
-                onChange={(e) => setFormType(e.target.value)}
-                aria-label={t('ui.profiles.rulesModal.ruleTypeAria')}
+            <TextField
+              label={t('ui.profiles.rulesModal.param')}
+              value={formContent}
+              onChange={setFormContent}
+              placeholder={
+                contentRequired
+                  ? 'example.com'
+                  : t('ui.profiles.rulesModal.noContentPlaceholder')
+              }
+              disabled={!contentRequired}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && canAdd) addRule('prepend')
+              }}
+            />
+            <Select
+              label={t('ui.profiles.rulesModal.proxy')}
+              ariaLabel={t('ui.profiles.rulesModal.policyAria')}
+              value={formPolicy}
+              onChange={setFormPolicy}
+              options={policyOptions.map((opt) => ({ value: opt, label: opt }))}
+            />
+            <div className="edRulesFormActions">
+              <Button
+                icon="upload"
+                className="edBlockBtn"
+                onClick={() => addRule('prepend')}
+                disabled={!canAdd}
               >
-                {RULE_TYPE_OPTIONS.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-              <input
-                className="input rulesAddContent"
-                value={formContent}
-                onChange={(e) => setFormContent(e.target.value)}
-                placeholder={
-                  formType === 'MATCH'
-                    ? t('ui.profiles.rulesModal.noContentPlaceholder')
-                    : 'google.com'
-                }
-                disabled={formType === 'MATCH'}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') addRule()
-                }}
-              />
-              <span className="rulesAddArrow" aria-hidden>
-                →
-              </span>
-              <select
-                className="selectModern selectInline rulesAddPolicy"
-                value={formPolicy}
-                onChange={(e) => setFormPolicy(e.target.value)}
-                aria-label={t('ui.profiles.rulesModal.policyAria')}
+                {t('ui.profiles.rulesModal.addStart')}
+              </Button>
+              <Button
+                variant="tonal"
+                className="edBlockBtn"
+                disabled={!canAdd}
+                onClick={() => addRule('append')}
               >
-                {policyOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-              <div className="segPill rulesAddPos">
-                <button
-                  type="button"
-                  className={`pillOpt ${appendTarget === 'prepend' ? 'active' : ''}`}
-                  onClick={() => setAppendTarget('prepend')}
-                >
-                  {t('common.prepend')}
-                </button>
-                <button
-                  type="button"
-                  className={`pillOpt ${appendTarget === 'append' ? 'active' : ''}`}
-                  onClick={() => setAppendTarget('append')}
-                >
-                  {t('common.append')}
-                </button>
-              </div>
-              <button
-                type="button"
-                className="btn primary rulesAddBtn"
-                onClick={addRule}
-              >
-                {t('common.addShort')}
-              </button>
+                {t('ui.profiles.rulesModal.addEnd')}
+              </Button>
             </div>
+            <Expansion header={t('ui.profiles.rulesModal.help')} icon="help">
+              <p className="edBlurb edHelp">
+                {t('ui.profiles.rulesModal.helpBody')}
+              </p>
+            </Expansion>
+          </div>
 
-            <div className="rulesCols">
-              <div className="rulesCol">
-                <p className="eyebrow">
-                  {t('ui.profiles.rulesModal.yourRules')}
-                </p>
-                <div className="rulesList">
-                  {!hasCustom ? (
-                    <p className="muted small">
-                      {t('ui.profiles.rulesModal.noCustomRules')}
-                    </p>
-                  ) : null}
-                  {rows.map((r) => (
+          <span className="edVDivider" aria-hidden />
+
+          <div className="edRulesList">
+            <div className="edRulesHead">
+              <h3>{t('ui.profiles.rulesModal.current')}</h3>
+              <span className="edCount">{totalCount}</span>
+              {addedCount > 0 ? (
+                <span
+                  className="edCount edCountAdded"
+                  title={t('ui.profiles.rulesModal.added')}
+                >
+                  +{addedCount}
+                </span>
+              ) : null}
+            </div>
+            <TextField
+              ariaLabel={t('ui.profiles.rulesModal.search')}
+              placeholder={t('ui.profiles.rulesModal.search')}
+              leadingIcon="search"
+              value={search}
+              onChange={setSearch}
+            />
+            <div className="edList edListTall">
+              <AnimatePresence initial={false}>
+                {rows
+                  .filter((r) => matches(r.ruleType, r.content, r.policy))
+                  .map((r) => (
                     <RuleLine
                       key={r.id}
                       ruleType={r.ruleType}
@@ -394,11 +417,50 @@ export function ProfileRulesModal({
                       policy={r.policy}
                       pos="prepend"
                       actionLabel={t('common.remove')}
-                      actionGlyph="×"
+                      actionIcon="close"
                       onAction={() => removeRow(r.id)}
                     />
                   ))}
-                  {appendRows.map((r) => (
+              </AnimatePresence>
+              {baselineLoading ? (
+                <div className="edLoading">
+                  <m3e-loading-indicator className="m3InlineLoader" />
+                  {t('ui.profiles.rulesModal.loadingRules')}
+                </div>
+              ) : baselineError ? (
+                <p className="edError" role="alert">
+                  {baselineError}
+                </p>
+              ) : !baseline || baseline.length === 0 ? (
+                <p className="edHint">
+                  {t('ui.profiles.rulesModal.noRulesDetected')}
+                </p>
+              ) : (
+                baseline.map((line, idx) => {
+                  const parsed = parseRuleLine(line, idx)
+                  if (!matches(parsed.ruleType, parsed.content, parsed.policy))
+                    return null
+                  const isDeleted = deletedBaseline.includes(line)
+                  return (
+                    <RuleLine
+                      key={parsed.id}
+                      ruleType={parsed.ruleType}
+                      content={parsed.content}
+                      policy={parsed.policy}
+                      deleted={isDeleted}
+                      actionLabel={
+                        isDeleted ? t('common.restore') : t('common.delete')
+                      }
+                      actionIcon={isDeleted ? 'refresh' : 'close'}
+                      onAction={() => toggleBaselineDelete(line)}
+                    />
+                  )
+                })
+              )}
+              <AnimatePresence initial={false}>
+                {appendRows
+                  .filter((r) => matches(r.ruleType, r.content, r.policy))
+                  .map((r) => (
                     <RuleLine
                       key={r.id}
                       ruleType={r.ruleType}
@@ -406,70 +468,20 @@ export function ProfileRulesModal({
                       policy={r.policy}
                       pos="append"
                       actionLabel={t('common.remove')}
-                      actionGlyph="×"
+                      actionIcon="close"
                       onAction={() => removeAppendRow(r.id)}
                     />
                   ))}
-                </div>
-              </div>
-
-              <div className="rulesCol">
-                <p className="eyebrow">
-                  {t('ui.profiles.rulesModal.subscriptionReadOnly')}
+              </AnimatePresence>
+              {addedCount === 0 && !baselineLoading && !baselineError ? (
+                <p className="edHint">
+                  {t('ui.profiles.rulesModal.noCustomRules')}
                 </p>
-                <div className="rulesList">
-                  {baselineLoading ? (
-                    <p className="muted small">
-                      {t('ui.profiles.rulesModal.loadingRules')}
-                    </p>
-                  ) : baselineError ? (
-                    <p className="muted small rulesYamlErr">{baselineError}</p>
-                  ) : !baseline || baseline.length === 0 ? (
-                    <p className="muted small">
-                      {t('ui.profiles.rulesModal.noRulesDetected')}
-                    </p>
-                  ) : (
-                    baseline.map((line, idx) => {
-                      const parsed = parseRuleLine(line, idx)
-                      const isDeleted = deletedBaseline.includes(line)
-                      return (
-                        <RuleLine
-                          key={parsed.id}
-                          ruleType={parsed.ruleType}
-                          content={parsed.content}
-                          policy={parsed.policy}
-                          deleted={isDeleted}
-                          actionLabel={
-                            isDeleted ? t('common.restore') : t('common.delete')
-                          }
-                          actionGlyph={isDeleted ? '↺' : '×'}
-                          onAction={() => toggleBaselineDelete(line)}
-                        />
-                      )
-                    })
-                  )}
-                </div>
-              </div>
+              ) : null}
             </div>
           </div>
-        )}
-
-        <div className="modalFooter">
-          <button type="button" className="btn ghost" onClick={onClose}>
-            {t('common.cancel')}
-          </button>
-          <div className="modalFooterRight">
-            <button
-              type="button"
-              className="btn primary"
-              disabled={uiMode === 'advanced' && Boolean(advancedYamlErr)}
-              onClick={() => void save()}
-            >
-              {t('common.save')}
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Dialog>
   )
 }

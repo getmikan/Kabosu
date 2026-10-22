@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
+import '../styles/profile-dialogs.css'
+import { Button, Dialog } from '../ui/M3'
+
 export type DeleteProfileTarget = { id: string; name: string }
 
 export function DeleteProfileModal({
@@ -14,42 +17,25 @@ export function DeleteProfileModal({
   const { t } = useTranslation()
   if (!target) return null
   return (
-    <div
-      className="modalOverlay"
-      role="presentation"
-      style={{ zIndex: 72 }}
-      onClick={onClose}
+    <Dialog
+      open
+      onClose={onClose}
+      title={t('ui.profiles.deleteModal.title')}
+      actions={
+        <>
+          <Button variant="text" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button variant="filled" onClick={() => onConfirm(target.id)}>
+            {t('common.delete')}
+          </Button>
+        </>
+      }
     >
-      <div
-        className="modalCard"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="deleteProfileTitle"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 id="deleteProfileTitle" className="modalTitle">
-          {t('ui.profiles.deleteModal.title')}
-        </h3>
-        <p className="muted small">
-          {t('ui.profiles.deleteModal.bodyPrefix')}{' '}
-          <strong>{target.name}</strong>{' '}
-          {t('ui.profiles.deleteModal.bodySuffix')}
-        </p>
-        <div className="modalFooter">
-          <div className="modalFooterRight" style={{ width: '100%' }}>
-            <button type="button" className="btn ghost" onClick={onClose}>
-              {t('common.cancel')}
-            </button>
-            <button
-              type="button"
-              className="btn primary"
-              onClick={() => onConfirm(target.id)}
-            >
-              {t('common.delete')}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      <p className="pdBody">
+        {t('ui.profiles.deleteModal.bodyPrefix')} <strong>{target.name}</strong>{' '}
+        {t('ui.profiles.deleteModal.bodySuffix')}
+      </p>
+    </Dialog>
   )
 }

@@ -1,6 +1,11 @@
 import Editor, { DiffEditor } from '@monaco-editor/react'
 import type { ComponentType } from 'react'
 
+import './styles/editors.css'
+
+/** Real, bounded height so Monaco lays out inside dialogs. */
+const EDITOR_HEIGHT = 'min(46vh, 460px)'
+
 export type MonacoLanguage = 'yaml' | 'javascript'
 
 type MonacoCodeEditorProps = {
@@ -94,11 +99,11 @@ export function MonacoCodeEditor({
   value,
   onChange,
   className,
-  height = '46vh',
+  height = EDITOR_HEIGHT,
   language = 'yaml',
 }: MonacoCodeEditorProps) {
   const MonacoEditor = Editor as unknown as ComponentType<any>
-  const wrapClass = `${className ? `${className} ` : ''}allowSelect monacoEditorHost`
+  const wrapClass = `${className ? `${className} ` : ''}allowSelect monacoEditorHost edMonaco`
   return (
     <div className={wrapClass}>
       <MonacoEditor
@@ -137,7 +142,7 @@ export function MonacoDiffViewer({
   original,
   modified,
   className,
-  height = '46vh',
+  height = EDITOR_HEIGHT,
   language = 'yaml',
 }: {
   original: string
@@ -147,7 +152,7 @@ export function MonacoDiffViewer({
   language?: MonacoLanguage
 }) {
   const Diff = DiffEditor as unknown as ComponentType<any>
-  const wrapClass = `${className ? `${className} ` : ''}allowSelect monacoEditorHost`
+  const wrapClass = `${className ? `${className} ` : ''}allowSelect monacoEditorHost edMonaco`
   return (
     <div className={wrapClass}>
       <Diff

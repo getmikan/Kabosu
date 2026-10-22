@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import {
   MIN_ACCENT_CONTRAST,
   contrastRatio,
-  deriveAccentVars,
   ensureReadableAccent,
   normalizeHex,
   resolveAccent,
@@ -30,31 +29,6 @@ describe('normalizeHex', () => {
     expect(normalizeHex('')).toBeNull()
     expect(normalizeHex(null)).toBeNull()
     expect(normalizeHex(undefined)).toBeNull()
-  })
-})
-
-describe('deriveAccentVars', () => {
-  it('reproduces the stock recipe for the stock dark accent', () => {
-    const vars = deriveAccentVars('#c9a86c', 'dark')
-    expect(vars.accent).toBe('#c9a86c')
-    expect(vars.dim).toBe('rgba(201, 168, 108, 0.24)')
-    expect(vars.muted).toBe('rgba(201, 168, 108, 0.42)')
-  })
-
-  it('reproduces the stock recipe for the stock light accent', () => {
-    const vars = deriveAccentVars('#936b38', 'light')
-    expect(vars.accent).toBe('#936b38')
-    expect(vars.dim).toBe('rgba(147, 107, 56, 0.18)')
-    expect(vars.muted).toBe('rgba(147, 107, 56, 0.34)')
-  })
-
-  it('uses per-theme alphas from one hex', () => {
-    const dark = deriveAccentVars('#3d7eff', 'dark')
-    const light = deriveAccentVars('#3d7eff', 'light')
-    expect(dark.dim.endsWith(', 0.24)')).toBe(true)
-    expect(dark.muted.endsWith(', 0.42)')).toBe(true)
-    expect(light.dim.endsWith(', 0.18)')).toBe(true)
-    expect(light.muted.endsWith(', 0.34)')).toBe(true)
   })
 })
 

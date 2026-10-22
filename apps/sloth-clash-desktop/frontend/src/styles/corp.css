@@ -1,0 +1,148 @@
+/* Corporate VPN screen. */
+.cpPage {
+  gap: 16px;
+}
+.cpHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.cpHeader h2 {
+  flex: 1;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+}
+.cpStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--pane-high);
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    background var(--dur-base),
+    color var(--dur-base);
+}
+.cpStatus[data-on] {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+.cpGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 16px;
+  align-items: start;
+}
+.cpMain {
+  min-width: 0;
+}
+.cpCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cpCard h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.cpForm {
+  gap: 12px;
+}
+.cpActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cpFingerprint {
+  display: block;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-highest);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  word-break: break-all;
+}
+.cpHero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.cpOrb {
+  --m3e-shape-size: 56px;
+  --m3e-shape-container-color: var(--primary-container);
+  flex-shrink: 0;
+  animation: backdropSpin 24s linear infinite;
+}
+.cpStatusRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.cpStatusRow strong {
+  font-size: 16px;
+  font-weight: 600;
+  word-break: break-all;
+}
+.cpChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cpAside {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  border-radius: var(--radius-xl);
+  background: var(--pane);
+  overflow: hidden;
+}
+.cpAsideShape {
+  --m3e-shape-size: 72px;
+  --m3e-shape-container-color: var(--tertiary-container);
+  animation: backdropSpin 30s linear infinite;
+}
+.cpAsideTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+.cpHow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+}
+.cpProtocols {
+  margin: 0;
+}
+.cpLogBody {
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-highest);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media (max-width: 860px) {
+  .cpGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

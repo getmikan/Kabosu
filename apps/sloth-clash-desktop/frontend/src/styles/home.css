@@ -1,0 +1,495 @@
+/* Home screen: profile row, quotas, connect hero, connection details. */
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100%;
+  padding-top: 4px;
+}
+.homeLinkToast {
+  align-self: center;
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--inverse-surface);
+  color: var(--inverse-on-surface);
+  font-size: 14px;
+}
+
+/* --- Top row --- */
+.homeTopRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.profilePicker {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  height: 64px;
+  padding: 0 16px 0 8px;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--pane-strong);
+  color: var(--on-surface);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-radius var(--dur-slow) var(--ease-spring),
+    background var(--dur-fast);
+}
+.profilePicker:hover {
+  border-radius: var(--radius-lg);
+  background: var(--pane-high);
+}
+.profilePicker:active {
+  border-radius: var(--radius-md);
+}
+.profilePickerIcon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  transition: border-radius var(--dur-slow) var(--ease-spring);
+}
+.profilePicker:hover .profilePickerIcon {
+  border-radius: 50%;
+}
+.profilePickerText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.profilePickerEyebrow {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--on-surface-variant);
+}
+.profilePickerText strong {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chevronForward {
+  width: 20px;
+  height: 20px;
+  rotate: 180deg;
+  color: var(--on-surface-variant);
+  transition: translate var(--dur-base) var(--ease-spring);
+}
+.profilePicker:hover .chevronForward {
+  translate: 4px 0;
+}
+.homeTopActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.providerIdentity img {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+.isSpinning svg {
+  animation: backdropSpin 900ms linear infinite;
+}
+
+.homeStats .m3CardBody {
+  padding: 12px 8px;
+}
+
+/* --- Connect hero --- */
+.homeCanvas {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 300px;
+  padding: 4px 0;
+}
+.connectionHeadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--pane-high);
+  color: var(--on-surface-variant);
+  font-size: 14px;
+  font-weight: 500;
+}
+.connectionHeadline[data-ready] {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+.connectionHeadlineDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+.connectionHeadline[data-ready] .connectionHeadlineDot {
+  background: var(--primary);
+  opacity: 1;
+  animation: liveRing 2s var(--ease-standard) infinite;
+}
+.homeAlertBadge {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--error);
+  color: var(--on-error);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.connectOrb {
+  --orb: 128px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(var(--orb) + 40px);
+  height: calc(var(--orb) + 40px);
+  margin: 4px 0 0;
+}
+.connectOrb > * {
+  grid-area: 1 / 1;
+}
+.connectOrbHalo,
+.connectOrbShape {
+  --m3e-shape-transition: 2400ms var(--ease-emphasized);
+  pointer-events: none;
+}
+.connectOrbHalo {
+  --m3e-shape-size: calc(var(--orb) + 40px);
+  --m3e-shape-container-color: var(--secondary-container);
+  opacity: 0.7;
+  animation: backdropSpin 40s linear infinite reverse;
+}
+.connectOrbShape {
+  --m3e-shape-size: var(--orb);
+  --m3e-shape-container-color: var(--surface-container-highest);
+  animation:
+    backdropSpin 24s linear infinite,
+    orbBreath 4.8s ease-in-out infinite;
+}
+.connectOrb[data-visual="connected"] .connectOrbShape {
+  --m3e-shape-container-color: var(--primary);
+  animation-duration: 12s, 3.2s;
+}
+.connectOrb[data-visual="connected"] .connectOrbHalo {
+  --m3e-shape-container-color: var(--primary-container);
+  animation-duration: 22s;
+}
+.connectOrb[data-visual="connecting"] .connectOrbShape {
+  --m3e-shape-container-color: var(--tertiary-container);
+  animation-duration: 3s, 1.6s;
+}
+.connectOrb:is([data-visual="error"], [data-visual="broken"]) .connectOrbShape {
+  --m3e-shape-container-color: var(--error-container);
+}
+@keyframes orbBreath {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.045;
+  }
+}
+.connectRing {
+  width: var(--orb);
+  height: var(--orb);
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  pointer-events: none;
+  animation: orbRing 2.6s var(--ease-standard) infinite;
+}
+@keyframes orbRing {
+  from {
+    opacity: 0.6;
+    scale: 0.9;
+  }
+  to {
+    opacity: 0;
+    scale: 1.55;
+  }
+}
+.connectBtn {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  cursor: pointer;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 28%, transparent);
+  transition:
+    background var(--dur-base),
+    color var(--dur-base),
+    border-radius var(--dur-slow) var(--ease-spring);
+}
+.connectBtn:hover {
+  border-radius: 36%;
+}
+.connectBtn:disabled {
+  cursor: progress;
+}
+.connectOrb[data-visual="connected"] .connectBtn {
+  background: var(--on-primary);
+  color: var(--primary);
+}
+.connectOrb:is([data-visual="error"], [data-visual="broken"]) .connectBtn {
+  background: var(--error);
+  color: var(--on-error);
+}
+.connectGlyph {
+  display: grid;
+  place-items: center;
+}
+.connectGlyph svg {
+  width: 40px;
+  height: 40px;
+}
+.connectLoader {
+  width: 56px;
+  height: 56px;
+}
+.connectionDuration {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  color: var(--on-surface-variant);
+}
+.connectionDuration[data-live] {
+  color: var(--on-surface);
+}
+.connectionTransfer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.connectionSpeed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px 0 6px;
+  border-radius: var(--radius-sm);
+  background: var(--pane);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--on-surface-variant);
+}
+.connectionTransfer svg {
+  width: 16px;
+  height: 16px;
+}
+.home[data-connected="true"] .connectionSpeed:first-child svg {
+  animation: nudgeUp 1.6s var(--ease-standard) infinite;
+}
+.home[data-connected="true"] .connectionSpeed:last-child svg {
+  animation: nudgeDown 1.6s var(--ease-standard) infinite;
+}
+@keyframes nudgeUp {
+  50% {
+    translate: 0 -2px;
+  }
+}
+@keyframes nudgeDown {
+  50% {
+    translate: 0 2px;
+  }
+}
+.homeTrafficHealth {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.connectionEmptyHint {
+  max-width: 44ch;
+  margin: 0;
+  font-size: 12px;
+  text-align: center;
+  color: var(--on-surface-variant);
+}
+.homeCanvasActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.serverPill img {
+  border-radius: 3px;
+}
+
+/* --- Connection details --- */
+.homeDetailsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+.homeModeRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.homeModeCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.homeModeLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+}
+.homeStatusGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.statusCard {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+}
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+}
+.statusRow + .statusRow {
+  border-top: 1px solid var(--outline-variant);
+}
+.statusRowLabel {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.statusRowValue {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+}
+.statusRowValue strong {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.statusSelect {
+  width: 200px;
+  --m3e-form-field-font-size: 14px;
+}
+.statusErr {
+  text-align: right;
+}
+.flagValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.flagValue img {
+  border-radius: 3px;
+}
+.serviceIssue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.serviceIssue p {
+  flex: 1;
+  margin: 0;
+}
+.speedRow {
+  display: inline-flex;
+  gap: 6px;
+}
+.speedChip {
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-container-highest);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Announcement / errors --- */
+.homeAnnouncement .m3CardBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 20px;
+}
+.homeAnnouncementHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+}
+.homeAnnouncementHead svg {
+  width: 20px;
+  height: 20px;
+}
+.homeAnnouncementText {
+  max-height: 120px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 20px;
+}
+.homeConnError svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .homeModeRow,
+  .homeStatusGrid {
+    grid-template-columns: 1fr;
+  }
+}

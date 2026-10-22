@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -10,6 +11,11 @@ import {
   type main,
 } from '../api/corp'
 import { EventsOn } from '../api/runtime'
+import { Button, Card, Chip, Expansion, Shape, SwitchRow, TextField } from '../ui/M3'
+
+import '../styles/corp.css'
+
+const SPRING = { type: 'spring', stiffness: 420, damping: 34 } as const
 
 type Status = main.CorpVpnStatus
 
@@ -122,11 +128,14 @@ export function CorpVpnPage() {
   // Platform gate: P1 ships macOS-only. Show a friendly note elsewhere.
   if (status && !status.supported) {
     return (
-      <div className="corp panel">
-        <div className="corpHeader">
-          <h2>{t('corp.title')}</h2>
+      <div className="page cpPage">
+        <div className="cpHeader">
+          <h2 className="srOnly">{t('corp.title')}</h2>
         </div>
-        <p className="muted">{t('corp.unsupported')}</p>
+        <div className="emptyState">
+          <Shape name="pentagon" />
+          <p>{t('corp.unsupported')}</p>
+        </div>
       </div>
     )
   }
@@ -135,170 +144,204 @@ export function CorpVpnPage() {
   const fullTunnel = !!status?.fullTunnel
 
   return (
-    <div className="corp panel">
-      <div className="corpHeader">
-        <h2>{t('corp.title')}</h2>
-        <span className={`pill ${connected ? 'corpPillOn' : ''}`}>
+    <div className="page cpPage">
+      <div className="cpHeader">
+        <h2 className="srOnly">{t('corp.title')}</h2>
+        <span className="cpStatus" data-on={connected || undefined}>
+          <span
+            className={`statusDot${connected ? ' statusDotOk' : ''}`}
+            aria-hidden="true"
+          />
           {connected ? t('corp.connected') : t('corp.disconnected')}
         </span>
       </div>
 
-      {error ? <div className="error">{error}</div> : null}
+      <AnimatePresence initial={false}>
+        {error ? (
+          <motion.div
+            key="err"
+            className="inlineError"
+            role="alert"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            <p>{error}</p>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
-      <div className="corpGrid">
-        <div className="corpMain">
-          {/* Cert-trust step: shown after a first connect against an untrusted cert. */}
-          {pendingCert ? (
-            <div className="corpCard corpCert">
-              <h3>{t('corp.certTitle')}</h3>
-              <p className="muted small">{t('corp.certBody')}</p>
-              <code className="corpFingerprint">{pendingCert}</code>
-              <div className="corpActions">
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={busy}
-                  onClick={() => void connect(pendingCert)}
-                >
-                  {t('corp.trustConnect')}
-                </button>
-                <button
-                  type="button"
-                  className="btn subtle"
-                  disabled={busy}
-                  onClick={() => setPendingCert('')}
-                >
-                  {t('corp.cancel')}
-                </button>
-              </div>
-            </div>
-          ) : connected ? (
-            <div className="corpCard">
-              <div className="corpStatusRow">
-                <span className="muted small">{t('corp.gateway')}</span>
-                <strong>
-                  {gateway || status?.routes?.length ? gateway : '—'}
-                </strong>
-              </div>
-              {fullTunnel ? (
-                <p className="corpWarn small">{t('corp.fullTunnelWarn')}</p>
-              ) : (
-                <>
-                  <div className="corpStatusRow">
-                    <span className="muted small">{t('corp.routes')}</span>
-                    <div className="corpChips">
-                      {(status?.routes ?? []).map((r) => (
-                        <span key={r} className="pill">
-                          {r}
-                        </span>
-                      ))}
+      <div className="cpGrid">
+        <div className="cpMain">
+          <AnimatePresence mode="wait" initial={false}>
+            {/* Cert-trust step: shown after a first connect against an untrusted cert. */}
+            {pendingCert ? (
+              <motion.div
+                key="cert"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={SPRING}
+              >
+                <Card variant="filled">
+                  <div className="cpCard">
+                    <h3>{t('corp.certTitle')}</h3>
+                    <p className="muted small">{t('corp.certBody')}</p>
+                    <code className="cpFingerprint allowSelect">
+                      {pendingCert}
+                    </code>
+                    <div className="cpActions">
+                      <Button
+                        disabled={busy}
+                        busy={busy}
+                        onClick={() => void connect(pendingCert)}
+                      >
+                        {t('corp.trustConnect')}
+                      </Button>
+                      <Button
+                        variant="text"
+                        disabled={busy}
+                        onClick={() => setPendingCert('')}
+                      >
+                        {t('corp.cancel')}
+                      </Button>
                     </div>
                   </div>
-                  {(status?.dnsDomains ?? []).length > 0 ? (
-                    <div className="corpStatusRow">
-                      <span className="muted small">
-                        {t('corp.dnsDomains')}
-                      </span>
-                      <div className="corpChips">
-                        {(status?.dnsDomains ?? []).map((d) => (
-                          <span key={d} className="pill">
-                            {d}
-                          </span>
-                        ))}
+                </Card>
+              </motion.div>
+            ) : connected ? (
+              <motion.div
+                key="connected"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={SPRING}
+              >
+                <Card variant="filled">
+                  <div className="cpCard">
+                    <div className="cpHero">
+                      <Shape className="cpOrb" name="sunny" />
+                      <div className="cpStatusRow">
+                        <span className="muted small">{t('corp.gateway')}</span>
+                        <strong className="allowSelect">
+                          {gateway || status?.routes?.length ? gateway : '—'}
+                        </strong>
                       </div>
                     </div>
-                  ) : null}
-                </>
-              )}
-              <div className="corpActions">
-                <button
-                  type="button"
-                  className="btn subtle"
-                  disabled={busy}
-                  onClick={() => void disconnect()}
-                >
-                  {t('corp.disconnect')}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <form
-              className="corpCard corpForm"
-              onSubmit={(e) => {
-                e.preventDefault()
-                void connect('')
-              }}
-            >
-              <label className="corpField">
-                <span className="muted small">{t('corp.gateway')}</span>
-                <input
-                  className="input"
-                  placeholder="vpn.company.com"
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={gateway}
-                  onChange={(e) => setGateway(e.target.value)}
-                />
-              </label>
-              <label className="corpField">
-                <span className="muted small">{t('corp.username')}</span>
-                <input
-                  className="input"
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </label>
-              <label className="corpField">
-                <span className="muted small">{t('corp.password')}</span>
-                <input
-                  className="input"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </label>
-              <label className="corpRemember">
-                <input
-                  type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                />
-                <span className="muted small">{t('corp.remember')}</span>
-              </label>
-              <div className="corpActions">
-                <button
-                  type="submit"
-                  className="btn"
-                  disabled={busy || !gateway.trim() || !username.trim()}
-                >
-                  {busy
-                    ? t(phase ? `corp.phase.${phase}` : 'corp.connecting')
-                    : t('corp.connect')}
-                </button>
-              </div>
-            </form>
-          )}
+                    {fullTunnel ? (
+                      <p className="inlineWarning">{t('corp.fullTunnelWarn')}</p>
+                    ) : (
+                      <>
+                        <div className="cpStatusRow">
+                          <span className="muted small">{t('corp.routes')}</span>
+                          <div className="cpChips">
+                            {(status?.routes ?? []).map((r) => (
+                              <Chip key={r}>{r}</Chip>
+                            ))}
+                          </div>
+                        </div>
+                        {(status?.dnsDomains ?? []).length > 0 ? (
+                          <div className="cpStatusRow">
+                            <span className="muted small">
+                              {t('corp.dnsDomains')}
+                            </span>
+                            <div className="cpChips">
+                              {(status?.dnsDomains ?? []).map((d) => (
+                                <Chip key={d}>{d}</Chip>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </>
+                    )}
+                    <div className="cpActions">
+                      <Button
+                        variant="tonal"
+                        icon="power"
+                        disabled={busy}
+                        busy={busy}
+                        onClick={() => void disconnect()}
+                      >
+                        {t('corp.disconnect')}
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.form
+                key="form"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={SPRING}
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  void connect('')
+                }}
+              >
+                <Card variant="filled">
+                  <div className="cpCard cpForm">
+                    <TextField
+                      label={t('corp.gateway')}
+                      placeholder="vpn.company.com"
+                      autoComplete="off"
+                      spellCheck={false}
+                      value={gateway}
+                      onChange={setGateway}
+                    />
+                    <TextField
+                      label={t('corp.username')}
+                      autoComplete="username"
+                      value={username}
+                      onChange={setUsername}
+                    />
+                    <TextField
+                      label={t('corp.password')}
+                      type="password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={setPassword}
+                    />
+                    <SwitchRow
+                      label={t('corp.remember')}
+                      checked={remember}
+                      onChange={setRemember}
+                    />
+                    <div className="cpActions">
+                      <Button
+                        type="submit"
+                        icon="power"
+                        busy={busy}
+                        disabled={!gateway.trim() || !username.trim()}
+                      >
+                        {busy
+                          ? t(phase ? `corp.phase.${phase}` : 'corp.connecting')
+                          : t('corp.connect')}
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </motion.form>
+            )}
+          </AnimatePresence>
         </div>
 
-        <aside className="corpAside">
-          <h3 className="corpAsideTitle">{t('corp.howTitle')}</h3>
-          <ul className="corpHow">
+        <aside className="cpAside">
+          <Shape className="cpAsideShape" name="12-sided-cookie" />
+          <h3 className="cpAsideTitle">{t('corp.howTitle')}</h3>
+          <ul className="cpHow">
             <li>{t('corp.howCorp')}</li>
             <li>{t('corp.howRest')}</li>
           </ul>
-          <p className="muted small corpProtocols">{t('corp.protocols')}</p>
+          <p className="muted small cpProtocols">{t('corp.protocols')}</p>
         </aside>
       </div>
 
       {(status?.logTail ?? []).length > 0 ? (
-        <details className="corpCard corpLogs" open={connected}>
-          <summary className="muted small">{t('corp.logs')}</summary>
-          <pre className="corpLogBody">
-            {(status?.logTail ?? []).join('\n')}
-          </pre>
-        </details>
+        <Expansion header={t('corp.logs')} open={connected}>
+          <pre className="cpLogBody">{(status?.logTail ?? []).join('\n')}</pre>
+        </Expansion>
       ) : null}
     </div>
   )

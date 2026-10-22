@@ -1,0 +1,197 @@
+/* Connections screen: totals, search, process groups. */
+.cnPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 4px;
+}
+.cnToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-xl);
+  background: var(--pane-strong);
+}
+.cnCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--on-surface-variant);
+}
+.cnCount strong {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--on-surface);
+}
+.cnLiveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation:
+    liveRing 2.4s var(--ease-standard) infinite,
+    livePulse 2.4s var(--ease-standard) infinite;
+}
+.cnSearch {
+  flex: 1 1 200px;
+  min-width: 160px;
+  max-width: 360px;
+}
+.cnTotals {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.cnTotal {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.cnTotal[data-dir="down"] {
+  background: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+}
+.cnGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cnGroup {
+  --m3e-expansion-panel-container-color: var(--pane);
+}
+.cnGroupHead {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.cnGroupIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  transition: border-radius var(--dur-slow) var(--ease-spring);
+}
+.cnGroup:hover .cnGroupIcon {
+  border-radius: 50%;
+}
+.cnGroupText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.cnGroupName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.cnGroupName strong {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cnGroupCount {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.cnGroupBytes {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--on-surface-variant);
+  font-variant-numeric: tabular-nums;
+}
+.cnGroupBar {
+  width: 96px;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+.cnRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 16px 16px;
+}
+.cnRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+  transition: background var(--dur-fast);
+}
+.cnRow:hover {
+  background: var(--surface-container-highest);
+}
+.cnRowMain {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cnRowMain strong {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.cnRowBytes {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--on-surface-variant);
+}
+.cnRowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.cnNodeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}

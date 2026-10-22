@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import '../styles/proxies.css'
 import { isoToFlagEmoji } from '../utils/proxyNames'
 
 export function FlagMark({

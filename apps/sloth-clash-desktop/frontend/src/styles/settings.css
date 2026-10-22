@@ -1,0 +1,370 @@
+/* Settings page, TUN dialog and reset dialog (prefix st). */
+.stPage {
+  padding-bottom: 8px;
+}
+.stGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.stCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.stCol > :nth-child(2) {
+  --i: 1;
+}
+.stCol > :nth-child(3) {
+  --i: 2;
+}
+.stCol > :nth-child(4) {
+  --i: 3;
+}
+@media (max-width: 860px) {
+  .stGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Cards and expandable sections */
+.stCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: var(--radius-xl);
+  background: var(--pane);
+}
+.stCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.stIcon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  transition: border-radius var(--dur-slow) var(--ease-spring);
+}
+.stCard:hover .stIcon {
+  border-radius: 50%;
+}
+.stIcon svg {
+  width: 20px;
+  height: 20px;
+}
+.stSection {
+  --m3e-expansion-panel-container-color: var(--pane);
+}
+.stNested {
+  --m3e-expansion-panel-container-color: var(--surface-container-high);
+  --m3e-expansion-panel-shape: var(--radius-lg);
+  border-radius: var(--radius-lg);
+  margin-top: 8px;
+}
+.stBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 4px 12px;
+}
+.stBody .m3SwitchRow {
+  min-height: 48px;
+  padding: 4px 0;
+}
+.stHint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+}
+.stActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stDanger {
+  --m3e-button-outlined-label-text-color: var(--error);
+  --m3e-button-outlined-outline-color: var(--error);
+}
+.stDangerFilled {
+  --m3e-button-filled-container-color: var(--error);
+  --m3e-button-filled-label-text-color: var(--on-error);
+}
+
+/* Fields */
+.stField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.stFieldLabel {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--on-surface-variant);
+}
+.stPortField {
+  max-width: 240px;
+}
+
+/* Accent swatches: round tiles morph to a flower when selected */
+.stSwatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stSwatch {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: scale var(--dur-base) var(--ease-spring);
+}
+.stSwatch m3e-shape {
+  --m3e-shape-size: 40px;
+  --m3e-shape-transition: 500ms var(--ease-spring);
+  transition: rotate 600ms var(--ease-spring);
+}
+.stSwatch:hover {
+  scale: 1.12;
+}
+.stSwatch:active {
+  scale: 0.94;
+}
+.stSwatch[data-selected] m3e-shape {
+  animation: backdropSpin 24s linear infinite;
+}
+.stSwatchCheck {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  color: var(--surface);
+  mix-blend-mode: difference;
+  pointer-events: none;
+  animation: riseIn 300ms var(--ease-emphasized) both;
+}
+.stSwatchCheck svg {
+  width: 20px;
+  height: 20px;
+}
+.stSwatchCustom m3e-shape {
+  --m3e-shape-container-color: var(--surface-container-highest);
+  outline: 2px dashed var(--outline);
+  outline-offset: -4px;
+  border-radius: var(--radius-sm);
+}
+.stColorInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.stAccentRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.stHexField {
+  flex: 1;
+  min-width: 140px;
+  max-width: 200px;
+}
+.stPreview {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--outline-variant);
+}
+.stPreviewLight {
+  border-radius: 50%;
+}
+
+/* TUN summary */
+.stTunSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.stTunItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-high);
+}
+.stTunItem dt {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--on-surface-variant);
+}
+.stTunItem dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Alerts, notes, banner */
+.stAlert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--warning-container);
+  color: var(--on-warning-container);
+  font-size: 14px;
+}
+.stAlertIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  animation: livePulse 2.4s var(--ease-standard) infinite;
+}
+.stAlertIcon svg {
+  width: 24px;
+  height: 24px;
+}
+.stAlertBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.stNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 14px;
+}
+.stNote svg,
+.stUpToDate svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.stUpToDate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--primary);
+}
+.stBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 8px 4px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 14px;
+  animation: riseIn 400ms var(--ease-emphasized) both;
+}
+
+/* Info */
+.stKpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+.stKpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-high);
+}
+.stKpi span {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--on-surface-variant);
+}
+.stKpi strong {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.stCoreBuild {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0;
+}
+.stChangelog {
+  max-height: 240px;
+  margin: 0;
+  padding: 12px 16px;
+  overflow: auto;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: pre-wrap;
+}
+.stProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Dialogs */
+.stDialogText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+.stTunForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.stTunWide {
+  grid-column: 1 / -1;
+}
+@media (max-width: 640px) {
+  .stTunForm,
+  .stTunSummary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

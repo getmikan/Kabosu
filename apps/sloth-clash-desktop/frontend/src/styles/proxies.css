@@ -1,0 +1,371 @@
+/* Proxies screen: groups accordion, node tiles, latency chips. Prefix px. */
+.pxPage {
+  gap: 12px;
+}
+.pxToolbar {
+  gap: 12px;
+}
+.pxToolbarActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.pxLayoutSelect {
+  width: 160px;
+}
+.pxAccordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pxFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.pxGroupSearch {
+  flex: 1 1 240px;
+  max-width: 360px;
+}
+.pxFilterSelect {
+  flex: 0 1 240px;
+  min-width: 160px;
+}
+.pxList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pxEmpty {
+  padding-top: 64px;
+}
+.pxNoMatch {
+  margin: 8px 4px;
+}
+
+/* --- Group --- */
+.pxGroup {
+  border-radius: var(--radius-xl);
+  background: var(--pane);
+  overflow: hidden;
+  transition:
+    background var(--dur-base) var(--ease-standard),
+    border-radius var(--dur-slow) var(--ease-spring);
+}
+.pxGroup.open {
+  background: var(--pane-strong);
+}
+.pxHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 20px 8px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--on-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+.pxHeader:hover {
+  background: color-mix(in srgb, var(--on-surface) 6%, transparent);
+}
+.pxHeader:active {
+  background: color-mix(in srgb, var(--on-surface) 10%, transparent);
+}
+.proxyGroupSymbol,
+.proxyGroupIcon,
+.proxyGroupIconEmoji {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  transition: border-radius var(--dur-slow) var(--ease-spring);
+}
+.proxyGroupSymbol {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+.proxyGroupSymbol svg {
+  width: 24px;
+  height: 24px;
+}
+.proxyGroupIcon {
+  object-fit: contain;
+  padding: 4px;
+  background: var(--surface-container-high);
+}
+.proxyGroupIconEmoji {
+  background: var(--surface-container-high);
+  font-size: 20px;
+  line-height: 1;
+}
+.pxGroup.open .proxyGroupSymbol,
+.pxGroup.open .proxyGroupIcon,
+.pxGroup.open .proxyGroupIconEmoji,
+.pxHeader:hover .proxyGroupSymbol {
+  border-radius: 50%;
+}
+.pxName {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pxChip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pxChipType {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+.pxType-urltest,
+.pxType-fallback,
+.pxType-loadbalance {
+  background: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+}
+.pxType-selector {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+.pxChipHidden {
+  background: var(--warning-container);
+  color: var(--on-warning-container);
+}
+.pxChipCount {
+  font-variant-numeric: tabular-nums;
+}
+.pxHealth {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pxCurrent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  margin-left: auto;
+  max-width: 40%;
+  color: var(--on-surface-variant);
+  font-size: 14px;
+}
+.pxCurrentName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pxChevron {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--on-surface-variant);
+  rotate: -90deg;
+  transition: rotate var(--dur-slow) var(--ease-spring);
+}
+.pxChevron svg {
+  width: 20px;
+  height: 20px;
+}
+.pxGroup.open .pxChevron {
+  rotate: 90deg;
+}
+
+/* --- Body --- */
+.pxBodyWrap {
+  overflow: hidden;
+}
+.pxBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 16px 16px;
+}
+.pxActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.pxSort {
+  width: 160px;
+}
+.pxNodeSearch {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+.pxAutoHint {
+  margin: 0;
+}
+.pxGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+.pxGrid.compact {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 4px 8px;
+}
+
+/* --- Node tile --- */
+.pxNode {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-radius var(--dur-slow) var(--ease-spring),
+    background var(--dur-fast),
+    scale var(--dur-base) var(--ease-spring);
+}
+.pxGrid.compact .pxNode {
+  min-height: 40px;
+  padding: 4px 12px;
+}
+.pxNode:hover:not(:disabled) {
+  border-radius: var(--radius-sm);
+  background: color-mix(
+    in srgb,
+    var(--on-surface) 8%,
+    var(--surface-container-high)
+  );
+}
+.pxNode:active:not(:disabled) {
+  border-radius: var(--radius-xs);
+  scale: 0.98;
+}
+.pxNode.active {
+  border-radius: var(--radius-lg);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+.pxNode.active:hover:not(:disabled) {
+  border-radius: var(--radius-md);
+  background: var(--secondary-container);
+}
+.pxNode.readonly {
+  cursor: default;
+}
+.pxNode:disabled:not(.active) {
+  opacity: 0.7;
+}
+.pxNodeTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.pxNodeTop img {
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.pxNodeName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pxNode.active .pxNodeName {
+  font-weight: 600;
+}
+.pxNodeTags {
+  display: inline-flex;
+  gap: 4px;
+  max-width: 40%;
+  overflow: hidden;
+  flex-shrink: 1;
+}
+.pxNodeTag {
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--on-surface) 10%, transparent);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+/* --- Latency chip --- */
+.pxDelay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--on-surface) 8%, transparent);
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background var(--dur-base), color var(--dur-base);
+}
+.pxDelay.good {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+.pxDelay.ok {
+  background: var(--warning-container);
+  color: var(--on-warning-container);
+}
+.pxDelay.slow {
+  background: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+}
+.pxDelay.fail {
+  background: var(--error-container);
+  color: var(--on-error-container);
+}
+.pxDelayLoader {
+  width: 20px;
+  height: 20px;
+}
+
+/* --- Flags (FlagMark) --- */
+.proxyFlagEmoji {
+  font-size: 14px;
+  line-height: 1;
+}
+.proxyFlagIso {
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--on-surface-variant);
+}

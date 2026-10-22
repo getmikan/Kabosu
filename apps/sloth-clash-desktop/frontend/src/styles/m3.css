@@ -1,0 +1,867 @@
+/*
+ * Kabosu — Material 3 Expressive base layer.
+ * Color roles come from <m3e-theme> (--md-sys-color-*); the short aliases
+ * below keep page styles readable. Spacing is a 4px grid.
+ */
+.shell {
+  --primary: var(--md-sys-color-primary);
+  --on-primary: var(--md-sys-color-on-primary);
+  --primary-container: var(--md-sys-color-primary-container);
+  --on-primary-container: var(--md-sys-color-on-primary-container);
+  --secondary: var(--md-sys-color-secondary);
+  --on-secondary: var(--md-sys-color-on-secondary);
+  --secondary-container: var(--md-sys-color-secondary-container);
+  --on-secondary-container: var(--md-sys-color-on-secondary-container);
+  --tertiary: var(--md-sys-color-tertiary);
+  --on-tertiary: var(--md-sys-color-on-tertiary);
+  --tertiary-container: var(--md-sys-color-tertiary-container);
+  --on-tertiary-container: var(--md-sys-color-on-tertiary-container);
+  --error: var(--md-sys-color-error);
+  --on-error: var(--md-sys-color-on-error);
+  --error-container: var(--md-sys-color-error-container);
+  --on-error-container: var(--md-sys-color-on-error-container);
+  --surface: var(--md-sys-color-surface);
+  --surface-dim: var(--md-sys-color-surface-dim);
+  --surface-bright: var(--md-sys-color-surface-bright);
+  --surface-container-lowest: var(--md-sys-color-surface-container-lowest);
+  --surface-container-low: var(--md-sys-color-surface-container-low);
+  --surface-container: var(--md-sys-color-surface-container);
+  --surface-container-high: var(--md-sys-color-surface-container-high);
+  --surface-container-highest: var(--md-sys-color-surface-container-highest);
+  --on-surface: var(--md-sys-color-on-surface);
+  --on-surface-variant: var(--md-sys-color-on-surface-variant);
+  --outline: var(--md-sys-color-outline);
+  --outline-variant: var(--md-sys-color-outline-variant);
+  --inverse-surface: var(--md-sys-color-inverse-surface);
+  --inverse-on-surface: var(--md-sys-color-inverse-on-surface);
+
+  --warning: #7a5900;
+  --on-warning: #ffffff;
+  --warning-container: #ffdf9e;
+  --on-warning-container: #261a00;
+
+  /* Legacy names still referenced by older page styles. */
+  --accent: var(--primary);
+  --accent-dim: color-mix(in srgb, var(--primary) 12%, transparent);
+  --accent-muted: color-mix(in srgb, var(--primary) 24%, transparent);
+  --text: var(--on-surface);
+  --text-muted: var(--on-surface-variant);
+  --panel: var(--surface-container-low);
+  --panel-deep: var(--surface-container);
+  --hairline: var(--outline-variant);
+  --hairline-strong: var(--outline);
+  --border: var(--outline-variant);
+  --border-strong: var(--outline);
+  --surface-deep: var(--surface-container-lowest);
+  --ok: var(--primary);
+  --warn: var(--warning);
+  --danger: var(--error);
+
+  /* Translucent surfaces let the animated backdrop breathe through. */
+  --pane: color-mix(in srgb, var(--surface-container-low) 84%, transparent);
+  --pane-strong: color-mix(in srgb, var(--surface-container) 90%, transparent);
+  --pane-high: color-mix(in srgb, var(--surface-container-high) 92%, transparent);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
+  --radius-2xl: 40px;
+  --radius-pill: 999px;
+  --radius-full: 999px;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+  /* Expressive fast spatial spring (overshoot), as a CSS linear() curve. */
+  --ease-spring: linear(
+    0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.5%,
+    1.067 22.6%, 1.087 25.8%, 1.085 29.4%, 1.04 37.5%, 1.009 45.2%, 0.996 54.3%,
+    0.999 72.9%, 1
+  );
+  --ease-expressive: var(--ease-spring);
+  --dur-fast: 150ms;
+  --dur-base: 300ms;
+  --dur-slow: 500ms;
+
+  --nav-w: 96px;
+  --nav-w-expanded: 220px;
+
+  --scrollbar-thumb: color-mix(in srgb, var(--outline) 40%, transparent);
+  --scrollbar-thumb-hover: var(--outline);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--nav-w) minmax(0, 1fr);
+  height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: grid-template-columns var(--dur-slow) var(--ease-emphasized);
+}
+.shell[data-theme="dark"] {
+  --warning: #f0c048;
+  --on-warning: #3f2e00;
+  --warning-container: #5b4300;
+  --on-warning-container: #ffdf9e;
+}
+.shell.navCollapsed {
+  grid-template-columns: var(--nav-w) minmax(0, 1fr);
+}
+.shell:not(.navCollapsed) {
+  grid-template-columns: var(--nav-w-expanded) minmax(0, 1fr);
+}
+
+.shell :is(input, textarea, [contenteditable="true"], .allowSelect) {
+  -webkit-user-select: text;
+  user-select: text;
+}
+.shell :is(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid var(--md-sys-color-secondary);
+  outline-offset: 2px;
+}
+.shell :is(h1, h2, h3, h4) {
+  margin: 0;
+  font-weight: 500;
+  text-wrap: balance;
+}
+.shell ::selection {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+.shell ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.shell ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.shell ::-webkit-scrollbar-thumb {
+  border: 4px solid transparent;
+  border-radius: 999px;
+  background: var(--scrollbar-thumb) padding-box;
+}
+.shell ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover) padding-box;
+}
+.shell ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.muted,
+.optional,
+.small {
+  color: var(--on-surface-variant);
+}
+.small {
+  font-size: var(--font-size-xs);
+}
+.mono,
+.m3Mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.skipLink {
+  position: fixed;
+  top: -80px;
+  left: 16px;
+  z-index: 10000;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.skipLink:focus {
+  top: 12px;
+}
+
+/* ---------- Animated Material backdrop ---------- */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 90% at 100% 0%,
+      color-mix(in srgb, var(--primary-container) 55%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      90% 80% at 0% 100%,
+      color-mix(in srgb, var(--tertiary-container) 45%, transparent),
+      transparent 65%
+    ),
+    var(--surface);
+}
+.backdropShape {
+  position: absolute;
+  --m3e-shape-size: var(--size);
+  --m3e-shape-transition: 1600ms var(--ease-emphasized);
+  width: var(--size);
+  height: var(--size);
+  opacity: var(--alpha, 0.5);
+  will-change: transform;
+  animation:
+    backdropDrift var(--drift, 60s) ease-in-out infinite alternate,
+    backdropSpin var(--spin, 90s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+.backdropShape:nth-child(1) {
+  --size: 520px;
+  --m3e-shape-container-color: var(--primary-container);
+  --alpha: 0.55;
+  --drift: 46s;
+  --spin: 120s;
+  top: -160px;
+  right: -120px;
+}
+.backdropShape:nth-child(2) {
+  --size: 420px;
+  --m3e-shape-container-color: var(--tertiary-container);
+  --alpha: 0.5;
+  --drift: 58s;
+  --spin: 150s;
+  --delay: -20s;
+  bottom: -160px;
+  left: 80px;
+}
+.backdropShape:nth-child(3) {
+  --size: 260px;
+  --m3e-shape-container-color: var(--secondary-container);
+  --alpha: 0.6;
+  --drift: 38s;
+  --spin: 70s;
+  --delay: -9s;
+  top: 38%;
+  right: 18%;
+}
+.backdropShape:nth-child(4) {
+  --size: 180px;
+  --m3e-shape-container-color: var(--primary);
+  --alpha: 0.12;
+  --drift: 32s;
+  --spin: 54s;
+  --delay: -14s;
+  top: 14%;
+  left: 32%;
+}
+.backdropShape:nth-child(5) {
+  --size: 340px;
+  --m3e-shape-container-color: var(--surface-container-highest);
+  --alpha: 0.7;
+  --drift: 64s;
+  --spin: 200s;
+  --delay: -31s;
+  bottom: -120px;
+  right: -80px;
+}
+.shell[data-theme="dark"] .backdropShape {
+  opacity: calc(var(--alpha, 0.5) * 0.45);
+}
+.shell[data-theme="dark"] .backdropShape:nth-child(5) {
+  --m3e-shape-container-color: var(--surface-container-high);
+}
+@keyframes backdropDrift {
+  0% {
+    translate: 0 0;
+    scale: 1;
+  }
+  33% {
+    translate: 60px -40px;
+    scale: 1.08;
+  }
+  66% {
+    translate: -40px 50px;
+    scale: 0.94;
+  }
+  100% {
+    translate: 30px 20px;
+    scale: 1.04;
+  }
+}
+@keyframes backdropSpin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* ---------- Navigation rail ---------- */
+.nav {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 12px 0 16px;
+  gap: 8px;
+  background: transparent;
+  --wails-draggable: drag;
+}
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+.navBrandLogo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+.navBrandLogo m3e-shape {
+  position: absolute;
+  inset: 0;
+  --m3e-shape-size: 56px;
+  --m3e-shape-container-color: var(--primary-container);
+  --m3e-shape-transition: 1200ms var(--ease-emphasized);
+  animation: backdropSpin 24s linear infinite;
+}
+.navBrandLogo img {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+.navBrand strong {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+.navRail {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden auto;
+  --wails-draggable: no-drag;
+  --m3e-nav-rail-compact-width: var(--nav-w);
+  --m3e-nav-rail-expanded-width: var(--nav-w-expanded);
+  --m3e-nav-rail-top-space: 8px;
+  --m3e-nav-rail-bottom-space: 8px;
+  --m3e-nav-item-active-container-color: var(--secondary-container);
+  --m3e-nav-bar-container-color: transparent;
+}
+.navRail m3e-nav-item {
+  position: relative;
+}
+.navActiveDot {
+  position: absolute;
+  top: 2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tertiary);
+  animation: livePulse 1.8s var(--ease-standard) infinite;
+}
+.navFooter {
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+  --wails-draggable: no-drag;
+}
+.shell:not(.navCollapsed) .navFooter {
+  justify-content: flex-start;
+}
+.navToggleIcon {
+  display: inline-flex;
+  transition: rotate var(--dur-slow) var(--ease-spring);
+}
+.shell.navCollapsed .navToggleIcon {
+  rotate: 180deg;
+}
+
+/* ---------- Workspace / top app bar ---------- */
+.workspace {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.appChrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 64px;
+  flex-shrink: 0;
+  padding: 0 8px 0 24px;
+  --wails-draggable: drag;
+}
+.appChromeTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.appChromeTitle h1 {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.appChromeActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  --wails-draggable: no-drag;
+}
+.chromeStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px 0 8px;
+  margin-right: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--pane-high);
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+}
+.chromeStatus svg {
+  width: 18px;
+  height: 18px;
+}
+.chromeStatus.connected {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+.chromeStatus.connected svg {
+  animation: livePulse 2.4s var(--ease-standard) infinite;
+}
+.windowControls {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+.windowControls button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 36px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+.windowControls button svg {
+  width: 18px;
+  height: 18px;
+}
+.windowControls button:hover {
+  background: color-mix(in srgb, var(--on-surface) 8%, transparent);
+}
+.windowControls .windowClose:hover {
+  background: var(--error);
+  color: var(--on-error);
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden auto;
+  padding: 0 24px 24px;
+  outline: none;
+  scrollbar-gutter: stable;
+}
+.screenView {
+  min-height: 100%;
+}
+.screenView > :is(.home, .panel, .page) {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+}
+
+/* ---------- Shared building blocks ---------- */
+.m3Icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.m3Icon svg {
+  width: 1.25em;
+  height: 1.25em;
+}
+m3e-button .m3Icon svg,
+m3e-icon-button svg {
+  width: 20px;
+  height: 20px;
+}
+m3e-icon-button[size="medium"] svg {
+  width: 24px;
+  height: 24px;
+}
+.m3InlineLoader {
+  width: 20px;
+  height: 20px;
+}
+m3e-card {
+  --m3e-card-container-color: var(--pane);
+  --m3e-card-padding: 0;
+  display: block;
+}
+m3e-card[variant="filled"] {
+  --m3e-filled-card-container-color: var(--pane);
+}
+m3e-card[variant="elevated"] {
+  --m3e-elevated-card-container-color: var(--surface-container-low);
+}
+m3e-card[variant="outlined"] {
+  --m3e-outlined-card-container-color: color-mix(
+    in srgb,
+    var(--surface) 70%,
+    transparent
+  );
+}
+.m3CardBody {
+  display: block;
+  padding: 20px;
+}
+.m3Field {
+  width: 100%;
+  /* Desktop density: fields line up with the 40px buttons beside them. */
+  --md-sys-density-scale: -3;
+}
+.m3Field textarea {
+  resize: vertical;
+}
+.m3SwitchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 8px 0;
+}
+.m3SwitchRow[data-disabled] {
+  opacity: 0.5;
+}
+.m3SwitchRowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  cursor: pointer;
+}
+.m3SwitchRowLabel {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--on-surface);
+}
+.m3SwitchRowDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--on-surface-variant);
+}
+.m3Segmented {
+  flex-wrap: nowrap;
+}
+.m3Expansion {
+  --m3e-expansion-panel-container-color: var(--pane);
+  --m3e-expansion-panel-shape: var(--radius-xl);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+.m3ExpansionHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+.m3ExpansionHeader svg {
+  width: 20px;
+  height: 20px;
+  color: var(--on-surface-variant);
+}
+.m3ListItem[data-actionable] {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background var(--dur-fast);
+}
+.m3ListItem[data-actionable]:hover {
+  background: color-mix(in srgb, var(--on-surface) 6%, transparent);
+}
+.m3ListItem[data-selected] {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+.m3DialogWide {
+  --m3e-dialog-max-width: min(880px, 92vw);
+  --m3e-dialog-min-width: min(640px, 92vw);
+}
+.m3DialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  /* Room for the floating label of a first outlined field. */
+  padding-top: 8px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+m3e-dialog [slot="actions"] {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Page scaffolding shared by the secondary screens. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 4px;
+}
+.pageToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.pageToolbar .spacer {
+  flex: 1;
+}
+.pageLead {
+  max-width: 72ch;
+  margin: 0;
+  color: var(--on-surface-variant);
+}
+.sectionTitle {
+  margin: 8px 4px 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--primary);
+  letter-spacing: 0.1px;
+}
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--on-surface-variant);
+}
+.emptyState m3e-shape {
+  --m3e-shape-size: 96px;
+  --m3e-shape-container-color: var(--secondary-container);
+  animation: backdropSpin 18s linear infinite;
+}
+.emptyState strong {
+  font-size: 18px;
+  color: var(--on-surface);
+}
+.inlineError {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--error-container);
+  color: var(--on-error-container);
+  font-size: 14px;
+}
+.inlineError p {
+  margin: 0;
+  flex: 1;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.inlineWarning {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--warning-container);
+  color: var(--on-warning-container);
+  font-size: 14px;
+}
+.statusDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--outline);
+}
+.statusDotOk {
+  background: var(--primary);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 50%, transparent);
+  animation: liveRing 2.4s var(--ease-standard) infinite;
+}
+.statusDotBad {
+  background: var(--error);
+}
+
+/* Staggered entrance for lists and grids; children set --i. */
+.stagger > * {
+  animation: riseIn 520ms var(--ease-emphasized) both;
+  animation-delay: calc(min(var(--i, 0), 12) * 40ms);
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+    scale: 0.98;
+  }
+}
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+  50% {
+    opacity: 0.55;
+    scale: 0.86;
+  }
+}
+@keyframes liveRing {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 55%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+@keyframes shimmerText {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Service banner above the screen */
+.serviceUpdateBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto 12px;
+  width: min(100%, 1200px);
+  padding: 8px 8px 8px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--warning-container);
+  color: var(--on-warning-container);
+  animation: riseIn 520ms var(--ease-emphasized) both;
+}
+.serviceUpdateBarIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  animation: livePulse 2.4s var(--ease-standard) infinite;
+}
+.serviceUpdateBarText {
+  flex: 1;
+  font-size: 14px;
+}
+
+/* Toasts */
+.toastHub {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  max-width: min(420px, calc(100vw - 48px));
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 4px 4px 4px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--inverse-surface);
+  color: var(--inverse-on-surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 22%);
+  font-size: 14px;
+}
+.toastMsg {
+  flex: 1;
+  padding: 10px 0;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.toast-error {
+  background: var(--error-container);
+  color: var(--on-error-container);
+}
+.toast m3e-button {
+  --m3e-text-button-label-text-color: var(--md-sys-color-inverse-primary);
+}
+.toast m3e-icon-button {
+  --m3e-standard-icon-button-icon-color: currentColor;
+}
+
+/* Skeleton page */
+.pageSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+.pageSkeleton .skLine {
+  height: 20px;
+  width: 40%;
+}
+.pageSkeleton .skLine.short {
+  width: 24%;
+}
+.pageSkeleton .skGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.pageSkeleton .skCard {
+  height: 140px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell *,
+  .shell *::before,
+  .shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

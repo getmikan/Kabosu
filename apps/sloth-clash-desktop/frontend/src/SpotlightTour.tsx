@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import './styles/tour.css'
 import { SPOTLIGHT_TOUR_STEPS } from './spotlightTourConfig'
+import { Button } from './ui/M3'
 
 type Props = {
   open: boolean
@@ -69,11 +71,11 @@ export function SpotlightTour({
   const hasHole = r && r.width > 2 && r.height > 2
 
   return (
-    <div className="spotlightRoot" aria-hidden={false}>
+    <div className="tourRoot" aria-hidden={false}>
       {hasHole ? (
         <>
           <div
-            className="spotlightDim"
+            className="tourDim"
             style={{
               position: 'fixed',
               left: 0,
@@ -87,7 +89,7 @@ export function SpotlightTour({
             role="presentation"
           />
           <div
-            className="spotlightDim"
+            className="tourDim"
             style={{
               position: 'fixed',
               left: 0,
@@ -101,7 +103,7 @@ export function SpotlightTour({
             role="presentation"
           />
           <div
-            className="spotlightDim"
+            className="tourDim"
             style={{
               position: 'fixed',
               left: 0,
@@ -115,7 +117,7 @@ export function SpotlightTour({
             role="presentation"
           />
           <div
-            className="spotlightDim"
+            className="tourDim"
             style={{
               position: 'fixed',
               left: r.right + PAD,
@@ -129,7 +131,7 @@ export function SpotlightTour({
             role="presentation"
           />
           <div
-            className="spotlightRing"
+            className="tourRing"
             style={{
               position: 'fixed',
               left: r.left - PAD,
@@ -137,9 +139,6 @@ export function SpotlightTour({
               width: r.width + PAD * 2,
               height: r.height + PAD * 2,
               borderRadius: 14,
-              border: '2px solid var(--accent, #b8d78b)',
-              boxShadow:
-                '0 0 0 1px color-mix(in srgb, var(--accent, #b8d78b) 35%, transparent)',
               pointerEvents: 'none',
               zIndex: 1001,
             }}
@@ -147,7 +146,7 @@ export function SpotlightTour({
         </>
       ) : (
         <div
-          className="spotlightDim"
+          className="tourDim"
           style={{
             position: 'fixed',
             inset: 0,
@@ -160,39 +159,52 @@ export function SpotlightTour({
       )}
 
       <div
-        className="spotlightCard"
+        key={stepIndex}
+        className="tourCard"
         role="dialog"
         aria-modal="true"
         aria-labelledby="spotlightTitle"
         style={{ zIndex: 1002 }}
       >
-        <p className="spotlightStep">
-          {stepIndex + 1} / {total}
-        </p>
-        <h3 id="spotlightTitle" className="spotlightTitle">
+        <div className="tourStepRow">
+          <span className="tourStepLabel">
+            {stepIndex + 1} / {total}
+          </span>
+          <span className="tourDots" aria-hidden>
+            {SPOTLIGHT_TOUR_STEPS.map((s, i) => (
+              <span
+                key={s.selector}
+                className="tourDot"
+                data-active={i === stepIndex || undefined}
+                data-done={i < stepIndex || undefined}
+              />
+            ))}
+          </span>
+        </div>
+        <h3 id="spotlightTitle" className="tourTitle">
           {t(step.titleKey)}
         </h3>
-        <p className="spotlightBody muted small">{t(step.bodyKey)}</p>
-        <div className="spotlightActions">
-          <button
-            type="button"
-            className="btn ghost"
+        <p className="tourBody">{t(step.bodyKey)}</p>
+        <div className="tourActions">
+          <Button variant="text" onClick={onSkip}>
+            {t('tour.skip')}
+          </Button>
+          <span className="tourSpacer" />
+          <Button
+            variant="outlined"
             disabled={stepIndex === 0}
             onClick={onPrev}
           >
             {t('tour.back')}
-          </button>
-          <button type="button" className="btn" onClick={onSkip}>
-            {t('tour.skip')}
-          </button>
+          </Button>
           {stepIndex < total - 1 ? (
-            <button type="button" className="btn primary" onClick={onNext}>
+            <Button trailingIcon="chevron" onClick={onNext}>
               {t('tour.next')}
-            </button>
+            </Button>
           ) : (
-            <button type="button" className="btn primary" onClick={onSkip}>
+            <Button icon="check" onClick={onSkip}>
               {t('tour.done')}
-            </button>
+            </Button>
           )}
         </div>
       </div>

@@ -1,5 +1,5 @@
-import { motion } from 'motion/react'
-import { type CSSProperties, type Ref, useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { type CSSProperties, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CopyTunDiagnostics } from '../api/diagnostics'
@@ -8,6 +8,17 @@ import { FlagMark } from '../components/FlagMark'
 import { MaterialSymbol } from '../components/MaterialSymbol'
 import { ServerGroups } from '../components/ServerGroups'
 import { SubscriptionStats } from '../components/SubscriptionStats'
+import {
+  Button,
+  Card,
+  Expansion,
+  IconButton,
+  Loading,
+  Segmented,
+  Select,
+  Shape,
+  type ShapeName,
+} from '../ui/M3'
 import { formatSpeedKbps } from '../utils/format'
 import {
   decodeSubscriptionAnnouncementDisplay,
@@ -16,12 +27,12 @@ import {
   isUnsafeGroupName,
   proxyNodeLabelBesideFlag,
 } from '../utils/proxyNames'
-import { supportSubscriptionUrlKind } from '../utils/subscription'
+
+import '../styles/home.css'
 
 // Announcement card — always expanded so users see provider notices without
 // extra clicks. The text body is height-bounded with internal scroll so a
-// long announcement never pushes the Home layout below the viewport (which
-// would force the whole page to scroll and put the sidebar nav out of reach).
+// long announcement never pushes the Home layout below the viewport.
 function SubscriptionAnnouncement({
   text,
   url,
@@ -35,25 +46,123 @@ function SubscriptionAnnouncement({
   const trimmed = text.trim()
   if (!trimmed) return null
   return (
-    <div className="homeSubscriptionExtras">
-      <div className="homeSubscriptionCard">
-        <p className="homeSubscriptionCardTitle">
-          {t('ui.home.subscriptionAnnouncement')}
-        </p>
-        <p className="homeSubscriptionAnnounce allowSelect">
-          {decodeSubscriptionAnnouncementDisplay(trimmed)}
-          {url ? (
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => onOpen(url)}
-            >
-              {t('settings.operatorHelp')}
-            </button>
-          ) : null}
-        </p>
+    <Card className="homeAnnouncement" variant="outlined">
+      <div className="homeAnnouncementHead">
+        <MaterialSymbol name="help" />
+        <strong>{t('ui.home.subscriptionAnnouncement')}</strong>
       </div>
+      <p className="homeAnnouncementText allowSelect">
+        {decodeSubscriptionAnnouncementDisplay(trimmed)}
+      </p>
+      {url ? (
+        <Button variant="text" onClick={() => onOpen(url)}>
+          {t('settings.operatorHelp')}
+        </Button>
+      ) : null}
+    </Card>
+  )
+}
+
+// The orb behind the connect button keeps morphing between two outlines of
+// the current state, so the hero is alive even while the user just looks.
+const ORB_SHAPES: Record<string, [ShapeName, ShapeName]> = {
+  idle: ['9-sided-cookie', '12-sided-cookie'],
+  connecting: ['soft-burst', 'burst'],
+  connected: ['sunny', 'very-sunny'],
+  broken: ['puffy-diamond', 'pentagon'],
+  error: ['puffy-diamond', 'pentagon'],
+}
+
+function ConnectOrb({
+  visual,
+  busy,
+  hasAnyProfile,
+  connected,
+  label,
+  onClick,
+}: {
+  visual: string
+  busy: boolean
+  hasAnyProfile: boolean
+  connected: boolean
+  label: string
+  onClick: () => void
+}) {
+  const [phase, setPhase] = useState(0)
+  useEffect(() => {
+    const id = window.setInterval(() => setPhase((p) => p + 1), 3200)
+    return () => window.clearInterval(id)
+  }, [])
+  const pair = ORB_SHAPES[visual] ?? ORB_SHAPES.idle
+  return (
+    <div className="connectOrb" data-visual={visual}>
+      {connected ? (
+        <>
+          <span className="connectRing" />
+          <span className="connectRing" style={{ animationDelay: '1.3s' }} />
+        </>
+      ) : null}
+      <Shape className="connectOrbHalo" name={pair[(phase + 1) % 2]} />
+      <Shape className="connectOrbShape" name={pair[phase % 2]} />
+      <motion.button
+        className="connectBtn"
+        type="button"
+        data-tour="connect"
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 520, damping: 22 }}
+        disabled={busy}
+        aria-busy={busy}
+        aria-label={label}
+        onClick={onClick}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={busy ? 'busy' : !hasAnyProfile ? 'add' : connected ? 'on' : 'off'}
+            className="connectGlyph"
+            initial={{ opacity: 0, scale: 0.6, rotate: -45 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.6, rotate: 45 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+          >
+            {busy ? (
+              <Loading className="connectLoader" label={label} />
+            ) : (
+              <MaterialSymbol
+                name={!hasAnyProfile ? 'add' : connected ? 'pause' : 'power'}
+              />
+            )}
+          </motion.span>
+        </AnimatePresence>
+      </motion.button>
     </div>
+  )
+}
+
+function StatusRow({
+  label,
+  children,
+  tour,
+}: {
+  label: string
+  children: React.ReactNode
+  tour?: string
+}) {
+  return (
+    <div className="statusRow" data-tour={tour}>
+      <span className="statusRowLabel">{label}</span>
+      <div className="statusRowValue">{children}</div>
+    </div>
+  )
+}
+
+function FlagValue({ iso, text, title }: { iso?: string; text?: string; title?: string }) {
+  if (!iso && !text) return <span className="muted">—</span>
+  return (
+    <span className="flagValue" title={title}>
+      {iso ? <FlagMark iso2={iso} width={20} height={14} /> : null}
+      {text ? <strong>{text}</strong> : null}
+    </span>
   )
 }
 
@@ -79,8 +188,6 @@ export function HomePage({
   showProtectedBadge,
   homeTrafficHealthSubtitle,
   nodePickerGroup,
-  homeActiveNodeOpen,
-  homeActiveNodeRef,
   activeNode,
   activeNodeVisual,
   showBuiltinProxyGroups,
@@ -105,7 +212,6 @@ export function HomePage({
   onRefreshService,
   onSelectGroup,
   onSelectNode,
-  onToggleActiveNodeOpen,
 }: {
   state: any
   activeProfile: any
@@ -124,8 +230,6 @@ export function HomePage({
   showProtectedBadge: boolean
   homeTrafficHealthSubtitle: string
   nodePickerGroup: any
-  homeActiveNodeOpen: boolean
-  homeActiveNodeRef: Ref<HTMLDivElement>
   activeNode: string
   activeNodeVisual: HomeActiveNodeVisual
   showBuiltinProxyGroups: boolean
@@ -154,7 +258,6 @@ export function HomePage({
   onRefreshService: () => void
   onSelectGroup: (name: string) => void
   onSelectNode: (group: string, node: string) => void
-  onToggleActiveNodeOpen: () => void
 }) {
   const { t } = useTranslation()
   const [diagCopied, setDiagCopied] = useState(false)
@@ -169,19 +272,18 @@ export function HomePage({
     }
   }
   const connectionStatus = state?.connection?.status ?? ''
+  const connected = connectionStatus === 'connected'
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     const timer = window.setInterval(
       () => setNow(Date.now()),
-      connectionStatus === 'connected' ? 1000 : 60000,
+      connected ? 1000 : 60000,
     )
     return () => window.clearInterval(timer)
-  }, [connectionStatus])
+  }, [connected])
   const since = Number(state?.connection?.since ?? 0)
   const seconds =
-    connectionStatus === 'connected' && since > 0
-      ? Math.max(0, Math.floor(now / 1000) - since)
-      : 0
+    connected && since > 0 ? Math.max(0, Math.floor(now / 1000) - since) : 0
   const duration = [
     Math.floor(seconds / 3600),
     Math.floor(seconds / 60) % 60,
@@ -205,65 +307,140 @@ export function HomePage({
     }
     return lines
   })()
-  return (
-    <div className="home" data-connected={connectionStatus === 'connected'}>
-      {linkToast ? (
-        <p className="homeLinkToast" role="status">
-          {linkToast}
-        </p>
-      ) : null}
 
-      <div className="profileOverviewBar">
+  const supportUrl = String(
+    (activeProfile?.panel?.brand?.supportUrl ||
+      activeProfile?.subscriptionSupportUrl) ??
+      '',
+  ).trim()
+  const trafficError = Boolean(state?.insight?.trafficError)
+  const upload = trafficError
+    ? '—'
+    : formatSpeedKbps(state?.insight?.uploadKbps ?? 0)
+  const download = trafficError
+    ? '—'
+    : formatSpeedKbps(state?.insight?.downloadKbps ?? 0)
+  const latency = Number(state?.insight?.nodeLatencyMs ?? 0)
+  const exitTitle =
+    [state?.insight?.exitLine, state?.insight?.exitIp]
+      .map((s) => String(s ?? '').trim())
+      .filter(Boolean)
+      .join(' · ') || undefined
+  const ruleMode = String(state?.mode?.current ?? '') === 'rule'
+
+  const groupOptions = (state?.proxy?.groups ?? [])
+    .filter((g: any) => {
+      const name = String(g?.name ?? '')
+      if (isUnsafeGroupName(name)) return false
+      // GLOBAL is mihomo's catch-all selector used only in Global mode; in
+      // Rule mode it is dead weight and confuses the active-group pick.
+      if (displayMode === 'rule' && name.toUpperCase() === 'GLOBAL')
+        return false
+      return true
+    })
+    .map((g: any) => ({ value: String(g.name), label: String(g.name) }))
+  const nodeOptions = nodePickerGroup
+    ? filterProxyNodesForDisplay(
+        (nodePickerGroup.proxies ?? []) as string[],
+        showBuiltinProxyGroups,
+        String(nodePickerGroup.selected ?? ''),
+      ).map((p: string) => ({
+        value: p,
+        label: (
+          <span className="flagValue">
+            <FlagMark iso2={extractNodeFlagIso(p)} width={16} height={11} />
+            {proxyNodeLabelBesideFlag(p)}
+          </span>
+        ),
+      }))
+    : []
+
+  return (
+    <div className="home" data-connected={connected}>
+      <AnimatePresence>
+        {linkToast ? (
+          <motion.p
+            className="homeLinkToast"
+            role="status"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+          >
+            {linkToast}
+          </motion.p>
+        ) : null}
+      </AnimatePresence>
+
+      <div className="homeTopRow stagger">
         <button
           type="button"
-          className="profileOverviewSelect"
-          onClick={
-            hasAnyProfile ? onOpenProfiles : () => onOpenImport('manual')
-          }
+          className="profilePicker"
+          style={{ '--i': 0 } as CSSProperties}
+          onClick={hasAnyProfile ? onOpenProfiles : () => onOpenImport('manual')}
         >
-          <span className="profileOverviewSymbol">
+          <span className="profilePickerIcon">
             <MaterialSymbol name="profiles" />
           </span>
-          <strong>
-            {activeProfile?.name || t('expressive.chooseProfile')}
-          </strong>
+          <span className="profilePickerText">
+            <span className="profilePickerEyebrow">
+              {hasAnyProfile
+                ? activeProfile?.type === 'subscription'
+                  ? t('ui.common.subscription')
+                  : t('ui.common.local')
+                : t('expressive.start')}
+            </span>
+            <strong>
+              {activeProfile?.name || t('expressive.chooseProfile')}
+            </strong>
+          </span>
           <MaterialSymbol name="chevron" className="chevronForward" />
         </button>
-        {brandName ? (
-          <button
-            className="providerIdentity"
-            type="button"
-            onClick={onOpenOperator}
-          >
-            {brandLogo ? <img src={brandLogo} alt="" /> : null}
-            {brandName}
-          </button>
-        ) : null}
-        {updateSnap?.hasUpdate ? (
-          <button
-            className="btn subtle btnCompact"
-            type="button"
-            onClick={onOpenUpdate}
-          >
-            {t('ui.home.updateAvailable')}
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="chromeIconButton profileRefresh"
-          onClick={onRefreshProfile}
-          disabled={
-            !activeProfile?.id ||
-            activeProfile?.type !== 'subscription' ||
-            profileRefreshBusy
-          }
-          title={t('ui.connections.refresh')}
-          aria-label={t('ui.connections.refresh')}
-        >
-          <MaterialSymbol name="refresh" />
-        </button>
+        <div className="homeTopActions" style={{ '--i': 1 } as CSSProperties}>
+          {brandName ? (
+            <Button
+              variant="tonal"
+              className="providerIdentity"
+              icon={brandLogo ? <img src={brandLogo} alt="" /> : 'corp'}
+              onClick={onOpenOperator}
+            >
+              {brandName}
+            </Button>
+          ) : null}
+          {updateSnap?.hasUpdate ? (
+            <Button
+              variant="filled"
+              icon="download"
+              title={homeUpdateTooltip}
+              onClick={onOpenUpdate}
+            >
+              {t('ui.home.updateAvailable')}
+            </Button>
+          ) : null}
+          {corpConnected ? (
+            <Button variant="tonal" icon="corp" onClick={() => onOpenCorp?.()}>
+              {t('corp.homeIndicator')}
+            </Button>
+          ) : null}
+          <IconButton
+            variant="tonal"
+            className={profileRefreshBusy ? 'isSpinning' : undefined}
+            icon="refresh"
+            label={t('ui.connections.refresh')}
+            disabled={
+              !activeProfile?.id ||
+              activeProfile?.type !== 'subscription' ||
+              profileRefreshBusy
+            }
+            onClick={onRefreshProfile}
+          />
+        </div>
       </div>
-      <SubscriptionStats profile={activeProfile} />
+
+      {hasAnyProfile ? (
+        <Card className="homeStats">
+          <SubscriptionStats profile={activeProfile} />
+        </Card>
+      ) : null}
       <ServerGroups
         metadata={activeProfile?.panel?.groups}
         pageUrl={
@@ -274,392 +451,189 @@ export function HomePage({
       />
       {activeProfile?.panel?.hwidMaxDevicesReached ||
       activeProfile?.panel?.hwidLimit ? (
-        <p className="panelPolicyNotice" role="status">
+        <p className="inlineWarning" role="status">
           {t('panel.deviceLimit')}
         </p>
       ) : null}
       {activeProfile?.panel?.hwidNotSupported ? (
-        <p className="panelPolicyNotice">{t('panel.hwidUnsupported')}</p>
+        <p className="inlineWarning">{t('panel.hwidUnsupported')}</p>
       ) : null}
 
-      <div className="homeCanvas">
-        <div className="homeWorldMap" aria-hidden="true" />
-        <div className="connectionHeadline" role="status">
-          <span className={showProtectedBadge ? 'connectionReady' : ''}>
+      <section className="homeCanvas" aria-label={t('expressive.overview')}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={connectionLabel}
+            className="connectionHeadline"
+            data-ready={showProtectedBadge || undefined}
+            role="status"
+            initial={{ opacity: 0, y: 6, scale: 0.94 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.94 }}
+          >
+            <span className="connectionHeadlineDot" />
             {connectionLabel}
-          </span>
-        </div>
-        <motion.button
-          className="connectBtn"
-          type="button"
-          data-tour="connect"
-          data-visual={connectVisual}
-          animate={{ borderRadius: showProtectedBadge ? '36%' : '50%' }}
-          whileTap={{ scale: 0.93, borderRadius: '30%' }}
-          disabled={connectBusy}
-          aria-busy={connectBusy}
-          onClick={onConnectClick}
-          aria-label={
+            {homeAlertTooltip ? (
+              <span
+                className="homeAlertBadge"
+                title={homeAlertTooltip}
+                aria-label={homeAlertTooltip}
+              >
+                !
+              </span>
+            ) : null}
+          </motion.div>
+        </AnimatePresence>
+        <ConnectOrb
+          visual={connectVisual}
+          busy={connectBusy}
+          hasAnyProfile={hasAnyProfile}
+          connected={connected}
+          label={
             !hasAnyProfile
               ? t('expressive.addProfile')
-              : connectionStatus === 'connected'
+              : connected
                 ? t('ui.home.disconnect')
                 : t('ui.home.connect')
           }
-        >
-          <MaterialSymbol
-            name={
-              !hasAnyProfile
-                ? 'add'
-                : connectionStatus === 'connected'
-                  ? 'pause'
-                  : 'power'
-            }
-            className="connectSymbol"
-          />
-        </motion.button>
+          onClick={onConnectClick}
+        />
         <div
           className="connectionDuration"
           aria-label={t('expressive.session')}
+          data-live={connected || undefined}
         >
           {duration}
         </div>
         <div className="connectionTransfer">
-          <span>
+          <span className="connectionSpeed" title={t('expressive.upload')}>
             <MaterialSymbol name="upload" />
-            {state?.insight?.trafficError
-              ? '—'
-              : formatSpeedKbps(state?.insight?.uploadKbps ?? 0)}
+            {upload}
           </span>
-          <span>
+          {homeTrafficHealthSubtitle ? (
+            <span className="homeTrafficHealth">
+              {homeTrafficHealthSubtitle}
+            </span>
+          ) : null}
+          <span className="connectionSpeed" title={t('expressive.download')}>
             <MaterialSymbol name="download" />
-            {state?.insight?.trafficError
-              ? '—'
-              : formatSpeedKbps(state?.insight?.downloadKbps ?? 0)}
+            {download}
           </span>
         </div>
         {!hasAnyProfile ? (
           <p className="connectionEmptyHint">{t('expressive.importBody')}</p>
         ) : null}
-        {homeTrafficHealthSubtitle ? (
-          <p className="homeTrafficHealth">{homeTrafficHealthSubtitle}</p>
-        ) : null}
-        <button
-          className="serverPill"
-          type="button"
-          onClick={hasAnyProfile ? onOpenProxies : () => onOpenImport('manual')}
-        >
-          <MaterialSymbol name="proxies" />
-          <span>
-            {activeNodeVisual.text ||
-              activeNode ||
-              t('expressive.chooseServer')}
-          </span>
-          <MaterialSymbol name="chevron" className="chevronForward" />
-        </button>
-        {activeProfile?.panel?.brand?.supportUrl ||
-        activeProfile?.subscriptionSupportUrl ? (
-          <button
-            type="button"
-            className="homeSupportLink"
-            onClick={() =>
-              onOpenSupport(
-                activeProfile?.panel?.brand?.supportUrl ||
-                  activeProfile.subscriptionSupportUrl,
+        <div className="homeCanvasActions">
+          <Button
+            variant="tonal"
+            size="medium"
+            className="serverPill"
+            icon={
+              activeNodeVisual.iso ? (
+                <FlagMark iso2={activeNodeVisual.iso} width={20} height={14} />
+              ) : (
+                'proxies'
               )
             }
+            trailingIcon={
+              <MaterialSymbol name="chevron" className="chevronForward" />
+            }
+            onClick={
+              hasAnyProfile ? onOpenProxies : () => onOpenImport('manual')
+            }
           >
-            <MaterialSymbol name="help" />
-            {t('ui.home.supportShort')}
-          </button>
-        ) : null}
-      </div>
-      <details className="homeDetails">
-        <summary>
-          <MaterialSymbol name="advanced" />
-          {t('expressive.connectionDetails')}
-          <MaterialSymbol name="chevron" />
-        </summary>
-        <header className="homeHeader" hidden={!hasAnyProfile}>
-          <div>
-            {hasAnyProfile ? (
-              <p className="eyebrow">{t('ui.home.activeProfile')}</p>
-            ) : null}
-            <div className="homeTitleWithAlert">
-              <h2>{activeProfile?.name ?? t('expressive.overview')}</h2>
-              {updateSnap?.hasUpdate ? (
-                <button
-                  type="button"
-                  className="homeUpdatePill"
-                  title={homeUpdateTooltip}
-                  aria-label={homeUpdateTooltip}
-                  onClick={onOpenUpdate}
-                >
-                  <span className="homeUpdatePillLabel">
-                    {t('ui.home.updateAvailable')}
-                  </span>
-                  <span className="homeUpdatePillArrow" aria-hidden>
-                    ➤
-                  </span>
-                </button>
-              ) : null}
-              {homeAlertTooltip ? (
-                <span
-                  className="homeAlertBadge"
-                  title={homeAlertTooltip}
-                  role="status"
-                  aria-label={homeAlertTooltip}
-                >
-                  !
-                </span>
-              ) : null}
-            </div>
-            <p className="muted">
-              {activeProfile?.type === 'subscription'
-                ? t('ui.common.subscription')
-                : t('ui.common.local')}
-            </p>
-            {corpConnected ? (
-              <button
-                type="button"
-                className="homeCorpPill"
-                onClick={() => onOpenCorp?.()}
-                title={t('corp.title')}
-              >
-                <span className="homeCorpDot" aria-hidden />
-                {t('corp.homeIndicator')}
-              </button>
-            ) : null}
-          </div>
-          <div className="homeHeaderActions">
-            {/* Operator (brand) entry point — opens the dialog with the panel's
-              logo/name and its links (cabinet, renew, …). Only rendered when a
-              brand manifest is actually present. */}
-            {brandName ? (
-              <button
-                type="button"
-                className="btn subtle homeOperatorBtn"
-                title={brandName}
-                onClick={onOpenOperator}
-              >
-                {brandLogo ? (
-                  <img
-                    className="homeOperatorBtnLogo"
-                    src={brandLogo}
-                    alt=""
-                    aria-hidden
-                  />
-                ) : null}
-                <span>{brandName}</span>
-              </button>
-            ) : null}
-            {!hasAnyProfile ? (
-              <button
-                type="button"
-                className="pulseBeacon"
-                onClick={() => onOpenImport('beacon')}
-              >
-                {t('ui.home.addSubscription')}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn subtle"
-                onClick={() => onOpenImport('manual')}
-              >
-                {t('ui.home.addSubscriptionShort')}
-              </button>
-            )}
-            {activeProfile?.type === 'subscription' &&
-            String(
-              (activeProfile?.panel?.brand?.supportUrl ||
-                activeProfile?.subscriptionSupportUrl) ??
-                '',
-            ).trim() ? (
-              <button
-                type="button"
-                className="homeSupportHeaderBtn"
-                title={String(
-                  (activeProfile?.panel?.brand?.supportUrl ||
-                    activeProfile?.subscriptionSupportUrl) ??
-                    '',
-                ).trim()}
-                aria-label={t('ui.home.subscriptionSupport')}
-                onClick={() =>
-                  onOpenSupport(
-                    String(
-                      (activeProfile?.panel?.brand?.supportUrl ||
-                        activeProfile?.subscriptionSupportUrl) ??
-                        '',
-                    ).trim(),
-                  )
-                }
-              >
-                <span>{t('ui.home.supportShort')}</span>
-                {supportSubscriptionUrlKind(
-                  String(
-                    (activeProfile?.panel?.brand?.supportUrl ||
-                      activeProfile?.subscriptionSupportUrl) ??
-                      '',
-                  ),
-                ) === 'telegram' ? (
-                  <svg
-                    className="homeSupportHeaderGlyph"
-                    viewBox="0 0 24 24"
-                    aria-hidden
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="homeSupportHeaderGlyph"
-                    viewBox="0 0 24 24"
-                    aria-hidden
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
-                    />
-                  </svg>
-                )}
-              </button>
-            ) : null}
-          </div>
-        </header>
-        <div className="homeModeControls">
-          <div className="homeModeRow">
-            <div className="connectSide connectSideLeft" data-tour="mode">
-              {
-                <>
-                  <span className="sideLabel sideLabelCentered">
-                    {t('ui.home.mode')}
-                  </span>
-                  <div
-                    className={
-                      hideGlobalMode
-                        ? 'segmentInset segmentInset1'
-                        : 'segmentInset segmentInset2'
-                    }
-                    role="group"
-                    aria-label={t('ui.home.routingModeAria')}
-                  >
-                    <div
-                      className="segmentGlider"
-                      aria-hidden
-                      style={
-                        {
-                          '--seg-i':
-                            !hideGlobalMode && displayMode === 'global' ? 1 : 0,
-                        } as CSSProperties
-                      }
-                    />
-                    {/* Hide-Global-Mode drops the Global OPTION, it does not hide
-                      the whole control — the user still needs to see which mode
-                      is active. */}
-                    {(hideGlobalMode
-                      ? (['rule'] as const)
-                      : (['rule', 'global'] as const)
-                    ).map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        title={
-                          m === 'rule'
-                            ? t('ui.home.ruleTitle')
-                            : t('ui.home.globalTitle')
-                        }
-                        className={
-                          displayMode === m
-                            ? 'segmentInsetBtn isOn'
-                            : 'segmentInsetBtn'
-                        }
-                        onClick={() => onSetMode(m)}
-                      >
-                        {m === 'rule'
-                          ? t('ui.common.rule')
-                          : t('ui.common.global')}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              }
-            </div>
-            <div className="connectSide connectSideRight" data-tour="traffic">
-              {
-                <>
-                  <span className="sideLabel sideLabelCentered">
-                    {t('ui.home.traffic')}
-                  </span>
-                  <div
-                    className={
-                      hideProxyMode
-                        ? 'segmentInset segmentInset1'
-                        : 'segmentInset segmentInset2'
-                    }
-                    role="group"
-                    aria-label={t('ui.home.trafficModeAria')}
-                  >
-                    <div
-                      className="segmentGlider"
-                      aria-hidden
-                      style={
-                        {
-                          '--seg-i':
-                            hideProxyMode || displayTraffic === 'proxy' ? 0 : 1,
-                        } as CSSProperties
-                      }
-                    />
-                    {/* Like Hide-Global-Mode: drops the Proxy OPTION (TUN-only
-                      deployment), keeps the control so the state stays visible. */}
-                    {hideProxyMode ? null : (
-                      <button
-                        type="button"
-                        title={t('ui.home.systemProxyTitle')}
-                        className={
-                          displayTraffic === 'proxy'
-                            ? 'segmentInsetBtn isOn'
-                            : 'segmentInsetBtn'
-                        }
-                        onClick={() => onSwitchTraffic('proxy')}
-                      >
-                        {t('ui.common.proxy')}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      title={t('ui.home.tunTitle')}
-                      className={
-                        displayTraffic === 'tun'
-                          ? 'segmentInsetBtn isOn'
-                          : 'segmentInsetBtn'
-                      }
-                      onClick={() => onSwitchTraffic('tun')}
-                    >
-                      TUN
-                    </button>
-                  </div>
-                </>
-              }
-            </div>
-          </div>
+            {activeNodeVisual.text || activeNode || t('expressive.chooseServer')}
+          </Button>
+          {!hasAnyProfile ? (
+            <Button
+              variant="filled"
+              size="medium"
+              icon="add"
+              onClick={() => onOpenImport('beacon')}
+            >
+              {t('ui.home.addSubscription')}
+            </Button>
+          ) : null}
+          {supportUrl ? (
+            <Button
+              variant="text"
+              icon="help"
+              title={supportUrl}
+              onClick={() => onOpenSupport(supportUrl)}
+            >
+              {t('ui.home.supportShort')}
+            </Button>
+          ) : null}
         </div>
+      </section>
 
-        <div className="homeStatusGrid">
-          <div className="statusCard statusCardCompact">
-            <div className="statusRow" data-tour="service">
-              <span>{t('ui.home.service')}</span>
-              <div className="statusRowValue">
+      <Expansion
+        className="homeDetails"
+        icon="advanced"
+        header={t('expressive.connectionDetails')}
+      >
+        <div className="homeDetailsBody">
+          <div className="homeModeRow">
+            <div className="homeModeCell" data-tour="mode">
+              <span className="homeModeLabel">{t('ui.home.mode')}</span>
+              <Segmented
+                ariaLabel={t('ui.home.routingModeAria')}
+                value={displayMode === 'global' && !hideGlobalMode ? 'global' : 'rule'}
+                onChange={(m) => onSetMode(m)}
+                options={[
+                  {
+                    value: 'rule' as const,
+                    label: t('ui.common.rule'),
+                    title: t('ui.home.ruleTitle'),
+                  },
+                  // Hide-Global-Mode drops the Global option, not the control:
+                  // the user still needs to see which mode is active.
+                  ...(hideGlobalMode
+                    ? []
+                    : [
+                        {
+                          value: 'global' as const,
+                          label: t('ui.common.global'),
+                          title: t('ui.home.globalTitle'),
+                        },
+                      ]),
+                ]}
+              />
+            </div>
+            <div className="homeModeCell" data-tour="traffic">
+              <span className="homeModeLabel">{t('ui.home.traffic')}</span>
+              <Segmented
+                ariaLabel={t('ui.home.trafficModeAria')}
+                value={hideProxyMode || displayTraffic === 'tun' ? 'tun' : 'proxy'}
+                onChange={(m) => onSwitchTraffic(m)}
+                options={[
+                  // Like Hide-Global-Mode: drops the Proxy option (TUN-only
+                  // deployment), keeps the control so the state stays visible.
+                  ...(hideProxyMode
+                    ? []
+                    : [
+                        {
+                          value: 'proxy' as const,
+                          label: t('ui.common.proxy'),
+                          title: t('ui.home.systemProxyTitle'),
+                        },
+                      ]),
+                  {
+                    value: 'tun' as const,
+                    label: 'TUN',
+                    title: t('ui.home.tunTitle'),
+                  },
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="homeStatusGrid">
+            <div className="statusCard">
+              <StatusRow label={t('ui.home.service')} tour="service">
                 {!service?.installed ? (
-                  <button
-                    type="button"
-                    className="btn btnCompact"
-                    onClick={onInstallService}
-                  >
+                  <Button variant="tonal" size="extra-small" onClick={onInstallService}>
                     {t('settings.installService')}
-                  </button>
+                  </Button>
                 ) : null}
                 <span
                   className={
@@ -679,287 +653,122 @@ export function HomePage({
                   }
                   role="img"
                 />
-              </div>
-            </div>
-            {service?.installed &&
-            (!service?.running || String(service?.lastError ?? '').trim()) ? (
-              <div className="statusRow serviceIssueRow">
-                <p className="muted serviceIssueText">
-                  {String(service?.lastError ?? '').trim()
-                    ? String(service.lastError).trim()
-                    : t('ui.home.serviceStoppedHint')}
-                </p>
-                <button
-                  type="button"
-                  className="btn btnCompact"
-                  onClick={onRefreshService}
-                >
-                  {t('ui.home.serviceRetry')}
-                </button>
-              </div>
-            ) : null}
-            <div className="statusRow">
-              <span>{t('ui.home.activeGroup')}</span>
-              <strong>
-                {String(state?.proxy?.activeGroup ?? '').trim() || '—'}
-              </strong>
-            </div>
-            <div className="statusRow statusRowNode">
-              <span>{t('ui.home.pickGroup')}</span>
-              <div className="statusRowValue statusRowNodeValue">
-                {connectionStatus === 'connected' ? (
-                  <div className="statusNodePick">
-                    <select
-                      className="selectModern selectInline selectCompact"
-                      aria-label={t('ui.home.activeProxyGroupAria')}
-                      value={String(state?.proxy?.activeGroup ?? '')}
-                      onChange={(e) => {
-                        const v = e.target.value
-                        if (!v) return
-                        onSelectGroup(v)
-                      }}
-                    >
-                      {(state?.proxy?.groups ?? [])
-                        .filter((g: any) => {
-                          const name = String(g?.name ?? '')
-                          if (isUnsafeGroupName(name)) return false
-                          // Same rule as the Proxies sidebar: GLOBAL is mihomo's
-                          // catch-all selector used only in Global mode. In Rule
-                          // mode it is dead weight and can confuse the user into
-                          // picking it as an active group.
-                          if (
-                            displayMode === 'rule' &&
-                            name.toUpperCase() === 'GLOBAL'
-                          )
-                            return false
-                          return true
-                        })
-                        .map((g: any) => (
-                          <option key={g.name} value={g.name}>
-                            {g.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+              </StatusRow>
+              {service?.installed &&
+              (!service?.running || String(service?.lastError ?? '').trim()) ? (
+                <div className="serviceIssue">
+                  <p>
+                    {String(service?.lastError ?? '').trim()
+                      ? String(service.lastError).trim()
+                      : t('ui.home.serviceStoppedHint')}
+                  </p>
+                  <Button variant="text" size="extra-small" onClick={onRefreshService}>
+                    {t('ui.home.serviceRetry')}
+                  </Button>
+                </div>
+              ) : null}
+              <StatusRow label={t('ui.home.pickGroup')}>
+                {connected && groupOptions.length ? (
+                  <Select
+                    className="statusSelect"
+                    ariaLabel={t('ui.home.activeProxyGroupAria')}
+                    value={String(state?.proxy?.activeGroup ?? '')}
+                    options={groupOptions}
+                    onChange={(v) => {
+                      if (v) onSelectGroup(v)
+                    }}
+                  />
                 ) : (
-                  <strong className="monoTight statusNodeTextClamp">—</strong>
+                  <strong>
+                    {String(state?.proxy?.activeGroup ?? '').trim() || '—'}
+                  </strong>
                 )}
-              </div>
-            </div>
-            <div className="statusRow statusRowNode">
-              <span>{t('ui.home.activeNode')}</span>
-              <div className="statusRowValue statusRowNodeValue">
-                {nodePickerGroup && connectionStatus === 'connected' ? (
-                  <div className="statusNodeMenu" ref={homeActiveNodeRef}>
-                    <button
-                      type="button"
-                      className="statusNodeMenuTrigger selectModern selectInline selectCompact"
-                      aria-haspopup="listbox"
-                      aria-expanded={homeActiveNodeOpen}
-                      aria-label={t('ui.home.activeNode')}
-                      onClick={onToggleActiveNodeOpen}
-                    >
-                      <span className="statusNodeMenuTriggerInner">
-                        <FlagMark
-                          iso2={extractNodeFlagIso(
-                            String(nodePickerGroup.selected ?? ''),
-                          )}
-                          width={20}
-                          height={14}
-                        />
-                        <span className="statusNodeMenuTriggerLabel">
-                          {proxyNodeLabelBesideFlag(
-                            String(nodePickerGroup.selected ?? ''),
-                          )}
-                        </span>
-                      </span>
-                    </button>
-                    {homeActiveNodeOpen ? (
-                      <ul
-                        className="statusNodeMenuList"
-                        role="listbox"
-                        aria-label={t('ui.home.activeNode')}
-                      >
-                        {filterProxyNodesForDisplay(
-                          (nodePickerGroup.proxies ?? []) as string[],
-                          showBuiltinProxyGroups,
-                          String(nodePickerGroup.selected ?? ''),
-                        ).map((p: string) => {
-                          const sel = String(nodePickerGroup.selected ?? '')
-                          const isSel = sel === p
-                          return (
-                            <li
-                              key={p}
-                              role="option"
-                              aria-selected={isSel}
-                              className={
-                                'statusNodeMenuItem' +
-                                (isSel ? ' isActive' : '')
-                              }
-                              onClick={() => {
-                                if (!p || isSel) return
-                                onSelectNode(String(nodePickerGroup.name), p)
-                              }}
-                            >
-                              <FlagMark
-                                iso2={extractNodeFlagIso(p)}
-                                width={16}
-                                height={11}
-                              />
-                              <span className="statusNodeMenuItemLabel">
-                                {proxyNodeLabelBesideFlag(p)}
-                              </span>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    ) : null}
-                  </div>
+              </StatusRow>
+              <StatusRow label={t('ui.home.activeNode')}>
+                {nodePickerGroup && connected && nodeOptions.length ? (
+                  <Select
+                    className="statusSelect"
+                    ariaLabel={t('ui.home.activeNode')}
+                    value={String(nodePickerGroup.selected ?? '')}
+                    options={nodeOptions}
+                    onChange={(p) => {
+                      if (p && p !== nodePickerGroup.selected)
+                        onSelectNode(String(nodePickerGroup.name), p)
+                    }}
+                  />
                 ) : (
-                  <span className="statusNodeStatic">
-                    {activeNodeVisual.iso ? (
-                      <FlagMark
-                        iso2={activeNodeVisual.iso}
-                        width={20}
-                        height={14}
-                      />
-                    ) : null}
-                    <strong className="monoTight statusNodeTextClamp">
-                      {activeNodeVisual.text || activeNode || '—'}
-                    </strong>
-                  </span>
+                  <FlagValue
+                    iso={activeNodeVisual.iso}
+                    text={activeNodeVisual.text || activeNode}
+                  />
                 )}
-              </div>
+              </StatusRow>
+              <StatusRow label="Core">
+                <span
+                  className={
+                    state?.core?.running
+                      ? 'statusDot statusDotOk'
+                      : 'statusDot statusDotBad'
+                  }
+                  title={state?.core?.running ? 'Running' : 'Not running'}
+                  aria-label={state?.core?.running ? 'Running' : 'Not running'}
+                  role="img"
+                />
+              </StatusRow>
             </div>
-            <div className="statusRow">
-              <span>Core</span>
-              <span
-                className={
-                  state?.core?.running
-                    ? 'statusDot statusDotOk'
-                    : 'statusDot statusDotBad'
-                }
-                title={state?.core?.running ? 'Running' : 'Not running'}
-                aria-label={state?.core?.running ? 'Running' : 'Not running'}
-                role="img"
-              />
-            </div>
-          </div>
 
-          <div className="statusCard statusCardCompact">
-            <div className="statusRow">
-              <span>{t('ui.home.insightLatency')}</span>
-              <strong
-                title={
-                  (state?.insight?.nodeLatencyMs ?? 0) <= 0 &&
-                  state?.insight?.latencyError
-                    ? state.insight.latencyError
-                    : undefined
-                }
-              >
-                {(state?.insight?.nodeLatencyMs ?? 0) > 0
-                  ? `${state.insight.nodeLatencyMs} ms`
-                  : '—'}
-              </strong>
-            </div>
-            <div className="statusRow">
-              <span>{t('ui.home.insightExit')}</span>
-              <div
-                className="statusRowValue insightFlagCell"
-                title={
-                  [state?.insight?.exitLine, state?.insight?.exitIp]
-                    .map((s) => String(s ?? '').trim())
-                    .filter(Boolean)
-                    .join(' · ') || undefined
-                }
-              >
+            <div className="statusCard">
+              <StatusRow label={t('ui.home.insightLatency')}>
+                <strong
+                  className="mono"
+                  title={
+                    latency <= 0 && state?.insight?.latencyError
+                      ? state.insight.latencyError
+                      : undefined
+                  }
+                >
+                  {latency > 0 ? `${latency} ms` : '—'}
+                </strong>
+              </StatusRow>
+              <StatusRow label={t('ui.home.insightExit')}>
                 {state?.insight?.exitFlagIso2 ? (
-                  <FlagMark
-                    iso2={String(state.insight.exitFlagIso2)}
-                    width={22}
-                    height={15}
+                  <FlagValue
+                    iso={String(state.insight.exitFlagIso2)}
+                    text={state?.insight?.exitIp}
+                    title={exitTitle}
                   />
                 ) : state?.insight?.lastError ? (
-                  <span className="muted small insightExitErr">
+                  <span className="muted small statusErr">
                     {state.insight.lastError}
                   </span>
-                ) : state?.insight?.exitIp || state?.insight?.exitLine ? (
-                  <span
-                    className="muted small"
-                    title={[state?.insight?.exitLine, state?.insight?.exitIp]
-                      .map((s) => String(s ?? '').trim())
-                      .filter(Boolean)
-                      .join(' · ')}
-                  >
-                    …
+                ) : (
+                  <FlagValue text={state?.insight?.exitIp} title={exitTitle} />
+                )}
+              </StatusRow>
+              <StatusRow label={t('ui.home.insightDirect')}>
+                {ruleMode && state?.insight?.directError && !state?.insight?.directFlagIso2 ? (
+                  <span className="muted small statusErr">
+                    {state.insight.directError}
                   </span>
+                ) : ruleMode ? (
+                  <FlagValue
+                    iso={state?.insight?.directFlagIso2}
+                    text={state?.insight?.directIp}
+                  />
                 ) : (
                   <span className="muted">—</span>
                 )}
-              </div>
-            </div>
-            <div className="statusRow">
-              <span>{t('ui.home.insightDirect')}</span>
-              <div
-                className="statusRowValue insightFlagCell"
-                title={
-                  String(state?.mode?.current ?? '') === 'rule'
-                    ? [state?.insight?.directIp, state?.insight?.directError]
-                        .map((s) => String(s ?? '').trim())
-                        .filter(Boolean)
-                        .join(' — ') || undefined
-                    : undefined
-                }
-              >
-                {String(state?.mode?.current ?? '') === 'rule' ? (
-                  state?.insight?.directFlagIso2 ? (
-                    <FlagMark
-                      iso2={String(state.insight.directFlagIso2)}
-                      width={22}
-                      height={15}
-                    />
-                  ) : state?.insight?.directError ? (
-                    <span className="muted small insightExitErr">
-                      {state.insight.directError}
-                    </span>
-                  ) : state?.insight?.directIp ? (
-                    <span
-                      className="muted small"
-                      title={state.insight.directIp}
-                    >
-                      …
-                    </span>
-                  ) : (
-                    <span className="muted">—</span>
-                  )
-                ) : (
-                  <span className="muted">—</span>
-                )}
-              </div>
-            </div>
-            <div className="statusRow">
-              <span>{t('ui.home.insightSpeed')}</span>
-              <div
-                className="statusRowValue speedRow"
-                title={state?.insight?.trafficError || undefined}
-              >
-                <span className="speedChip" title="Upload">
-                  ↑{' '}
-                  {state?.insight?.trafficError
-                    ? '—'
-                    : formatSpeedKbps(state?.insight?.uploadKbps ?? 0)}
+              </StatusRow>
+              <StatusRow label={t('ui.home.insightSpeed')}>
+                <span className="speedRow" title={state?.insight?.trafficError || undefined}>
+                  <span className="speedChip">↑ {upload}</span>
+                  <span className="speedChip">↓ {download}</span>
                 </span>
-                <span className="speedChip" title="Download">
-                  ↓{' '}
-                  {state?.insight?.trafficError
-                    ? '—'
-                    : formatSpeedKbps(state?.insight?.downloadKbps ?? 0)}
-                </span>
-              </div>
+              </StatusRow>
             </div>
           </div>
         </div>
-      </details>
+      </Expansion>
 
       {activeProfile?.type === 'subscription' ? (
         <SubscriptionAnnouncement
@@ -971,18 +780,19 @@ export function HomePage({
       ) : null}
 
       {errorLines.length ? (
-        <div className="error homeConnError">
+        <div className="inlineError homeConnError" role="alert">
+          <MaterialSymbol name="error" />
           <p>{errorLines.join(' · ')}</p>
-          <button
-            type="button"
-            className="btn btnCompact subtle"
-            onClick={onCopyDiagnostics}
+          <Button
+            variant="text"
+            size="extra-small"
             title={t('ui.home.copyDiagnosticsHint')}
+            onClick={onCopyDiagnostics}
           >
             {diagCopied
               ? t('ui.home.diagnosticsCopied')
               : t('ui.home.copyDiagnostics')}
-          </button>
+          </Button>
         </div>
       ) : null}
     </div>

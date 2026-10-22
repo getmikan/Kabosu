@@ -1,0 +1,353 @@
+/* Advanced diagnostics screen, brand debug panel and error fallbacks. */
+.adPage {
+  gap: 16px;
+}
+.adGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.adCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.adCard {
+  display: block;
+}
+.adCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+}
+.adCardToggle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.adCardChevron {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--on-surface-variant);
+  transition: rotate var(--dur-base) var(--ease-spring);
+  rotate: -90deg;
+}
+.adCardChevron svg {
+  width: 20px;
+  height: 20px;
+}
+.adCardChevron[data-open] {
+  rotate: -270deg;
+}
+.adCardTitle {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.adCardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.adCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+}
+.adNote {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--on-surface-variant);
+}
+.adKv {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+.adRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-high);
+  font-size: 14px;
+}
+.adRow > :first-child {
+  color: var(--on-surface-variant);
+}
+.adRow > :last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+.adMono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  font-size: 12px;
+}
+.adBtnRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Connectivity results as chips */
+.adChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.adCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-container-highest);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background var(--dur-base);
+}
+.adCheck[data-state="ok"] {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+.adCheck[data-state="fail"] {
+  background: var(--error-container);
+  color: var(--on-error-container);
+}
+.adCheck[data-state="busy"] {
+  animation: livePulse 1.4s var(--ease-standard) infinite;
+}
+.adCheck strong {
+  font-weight: 600;
+}
+
+/* Device identity */
+.adHwid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+}
+.adHwid[data-disabled] {
+  opacity: 0.6;
+}
+.adHwidValue {
+  flex: 1;
+  min-width: 160px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  word-break: break-all;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.adFlags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+.adFlag {
+  display: inline-flex;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 12px;
+}
+.adFlag dt {
+  font-family: var(--font-mono);
+}
+.adFlag dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Runtime trace */
+.adTrace {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  overflow: hidden auto;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-highest);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+}
+.adTraceRow {
+  display: flex;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.adTraceRow:hover {
+  background: color-mix(in srgb, var(--on-surface) 6%, transparent);
+}
+.adTraceTime {
+  color: var(--on-surface-variant);
+}
+.adTraceCat {
+  color: var(--primary);
+  font-weight: 600;
+}
+.adTraceMsg {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Paths and tools */
+.adPaths {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.adPaths m3e-button {
+  width: 100%;
+}
+.adTools {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.adTool {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+}
+.adTool m3e-button {
+  flex-shrink: 0;
+}
+.adTool span {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--on-surface-variant);
+}
+
+/* Brand debug */
+.adDebugResult {
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-highest);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: pre-wrap;
+}
+.adDebug .m3CardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Error fallbacks. Also rendered outside the themed shell, so fall back to
+   system colors when the aliases are undefined. */
+.adErrorPage {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: 24px;
+  color: var(--on-surface, CanvasText);
+}
+.adErrorCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 560px);
+  padding: 32px 24px 24px;
+  border-radius: var(--radius-xl, 28px);
+  background: var(--pane-strong, var(--md-sys-color-surface-container, Canvas));
+  text-align: center;
+  animation: riseIn 520ms var(--ease-emphasized, ease-out) both;
+}
+.adErrorShape m3e-shape {
+  --m3e-shape-size: 88px;
+  --m3e-shape-container-color: var(--md-sys-color-error-container, #fdd);
+  animation: backdropSpin 20s linear infinite;
+}
+.adErrorTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+}
+.adErrorLead {
+  margin: 0;
+  max-width: 44ch;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--on-surface-variant, GrayText);
+}
+.adErrorDetail {
+  width: 100%;
+  max-height: 160px;
+  margin: 0;
+  overflow: auto;
+  padding: 12px 16px;
+  border-radius: var(--radius-md, 16px);
+  background: var(--md-sys-color-error-container, #fdd);
+  color: var(--md-sys-color-on-error-container, #410002);
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.adErrorActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 860px) {
+  .adGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

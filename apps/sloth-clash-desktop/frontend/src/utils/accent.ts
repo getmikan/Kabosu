@@ -1,14 +1,8 @@
-// Custom accent color: validation, per-theme derivation of the --accent
-// variable family, and a WCAG-based contrast guard. Pure functions only —
-// DOM application lives in App.tsx.
+// Custom accent color: validation, source resolution and a WCAG-based
+// contrast guard. Pure functions only; <m3e-theme> in App.tsx turns the
+// resolved seed into the Material color scheme.
 
 export type AccentTheme = 'dark' | 'light'
-
-// Alphas mirror the stock stylesheet recipe (App.css --accent-dim/--accent-muted).
-const ACCENT_ALPHAS: Record<AccentTheme, { dim: number; muted: number }> = {
-  dark: { dim: 0.24, muted: 0.42 },
-  light: { dim: 0.18, muted: 0.34 },
-}
 
 // Neutral surfaces of the Material theme, used by the custom color preview.
 const THEME_BG: Record<AccentTheme, string> = {
@@ -136,27 +130,6 @@ export function ensureReadableAccent(hex: string, theme: AccentTheme): string {
   // Degenerate hues that never reach the ratio inside 0..1 clamp to the most
   // readable value found.
   return best
-}
-
-export type AccentVars = {
-  accent: string
-  dim: string
-  muted: string
-}
-
-/**
- * Full variable family for one theme from a single normalized hex. Applies the
- * contrast guard, then derives dim/muted with the stock alpha recipe.
- */
-export function deriveAccentVars(hex: string, theme: AccentTheme): AccentVars {
-  const applied = ensureReadableAccent(hex, theme)
-  const { r, g, b } = hexToRgb(applied)
-  const { dim, muted } = ACCENT_ALPHAS[theme]
-  return {
-    accent: applied,
-    dim: `rgba(${r}, ${g}, ${b}, ${dim})`,
-    muted: `rgba(${r}, ${g}, ${b}, ${muted})`,
-  }
 }
 
 /**

@@ -1,0 +1,186 @@
+/* Companion devices: discovery, pairing, control. */
+.dvPage {
+  gap: 16px;
+}
+.dvHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.dvHead h2 {
+  flex: 1;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+}
+.dvNotice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 14px;
+}
+.dvSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dvSection h3 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.dvPairRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.dvPairRow > .m3Field {
+  flex: 1 1 180px;
+  min-width: 0;
+  width: auto;
+}
+.dvBody {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.dvList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dvScan {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.dvScan m3e-loading-indicator {
+  width: 32px;
+  height: 32px;
+}
+.dvGroupLabel {
+  margin: 8px 4px 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--primary);
+}
+.dvRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--pane-strong);
+  color: var(--on-surface);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-radius var(--dur-slow) var(--ease-spring),
+    background var(--dur-fast);
+}
+.dvRow:hover {
+  background: var(--pane-high);
+  border-radius: var(--radius-md);
+}
+.dvRow:active {
+  border-radius: var(--radius-sm);
+}
+.dvRow[data-selected] {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+.dvRowName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+}
+.dvRowName > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dvRowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.dvRow[data-selected] .dvRowMeta {
+  color: inherit;
+}
+.dvPill {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-container-highest);
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+}
+.dvControl {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dvControlHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dvControlHead h3 {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dvStatus {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+.dvStatus strong {
+  font-variant-numeric: tabular-nums;
+}
+.dvCaps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dvActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dvHint {
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .dvBody {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

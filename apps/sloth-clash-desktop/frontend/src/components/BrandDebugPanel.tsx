@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ApplyBrandDebugHeaders } from '../api/branding'
+import '../styles/advanced.css'
+import { Button, Card, TextField } from '../ui/M3'
 
 const SAMPLE = `X-Brand-Desktop-Enabled: true
 X-Brand-Desktop-Name: ExampleVPN
@@ -39,35 +41,31 @@ export function BrandDebugPanel() {
   }
 
   return (
-    <div className="panel brandDebugPanel">
-      <h3 className="homeCardTitle">{t('ui.advanced.brandDebugTitle')}</h3>
-      <p className="muted small">{t('ui.advanced.brandDebugHint')}</p>
-      <textarea
-        className="input brandDebugTextarea"
-        value={text}
+    <Card className="adCard adDebug">
+      <h3 className="adCardTitle">{t('ui.advanced.brandDebugTitle')}</h3>
+      <p className="adNote">{t('ui.advanced.brandDebugHint')}</p>
+      <TextField
+        multiline
+        mono
         rows={9}
         spellCheck={false}
-        onChange={(e) => setText(e.target.value)}
+        ariaLabel={t('ui.advanced.brandDebugTitle')}
+        value={text}
+        onChange={setText}
       />
-      <div className="row brandDebugActions">
-        <button
-          type="button"
-          className="btn"
-          disabled={busy}
-          onClick={() => void apply(text)}
-        >
+      <div className="adBtnRow">
+        <Button busy={busy} onClick={() => void apply(text)}>
           {t('ui.advanced.brandDebugApply')}
-        </button>
-        <button
-          type="button"
-          className="btn ghost"
+        </Button>
+        <Button
+          variant="outlined"
           disabled={busy}
           onClick={() => void apply('')}
         >
           {t('ui.advanced.brandDebugClear')}
-        </button>
+        </Button>
       </div>
-      {result ? <pre className="brandDebugResult">{result}</pre> : null}
-    </div>
+      {result ? <pre className="adDebugResult allowSelect">{result}</pre> : null}
+    </Card>
   )
 }

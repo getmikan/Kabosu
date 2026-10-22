@@ -1,6 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '../styles/advanced.css'
+import { Button, Shape } from '../ui/M3'
+
 // The screen-content error boundary. A render crash in one page (bad data from
 // the core, a null deref in a rarely-hit branch) used to blank the whole app —
 // this catches it, shows a recoverable fallback in the content area, and leaves
@@ -55,21 +58,23 @@ function ErrorFallback({
     .join('\n')
     .trim()
   return (
-    <div className="panel errorBoundary" role="alert">
-      <h2 className="errorBoundaryTitle">⚠️ {t('ui.errorBoundary.title')}</h2>
-      <p className="muted">{t('ui.errorBoundary.body')}</p>
-      <pre className="errorBoundaryDetails">{details}</pre>
-      <div className="row">
-        <button
-          type="button"
-          className="btn"
-          onClick={() => void navigator.clipboard.writeText(details)}
-        >
-          {t('ui.errorBoundary.copy')}
-        </button>
-        <button type="button" className="btn primary" onClick={onReload}>
-          {t('ui.errorBoundary.reload')}
-        </button>
+    <div className="page adErrorPage" role="alert">
+      <div className="adErrorCard">
+        <span className="adErrorShape">
+          <Shape name="boom" />
+        </span>
+        <h2 className="adErrorTitle">{t('ui.errorBoundary.title')}</h2>
+        <p className="adErrorLead">{t('ui.errorBoundary.body')}</p>
+        <pre className="adErrorDetail allowSelect">{details}</pre>
+        <div className="adErrorActions">
+          <Button
+            variant="outlined"
+            onClick={() => void navigator.clipboard.writeText(details)}
+          >
+            {t('ui.errorBoundary.copy')}
+          </Button>
+          <Button onClick={onReload}>{t('ui.errorBoundary.reload')}</Button>
+        </div>
       </div>
     </div>
   )

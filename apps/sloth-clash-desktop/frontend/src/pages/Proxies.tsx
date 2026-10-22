@@ -1,9 +1,12 @@
+import { AnimatePresence, motion } from 'motion/react'
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
 import { FlagMark } from '../components/FlagMark'
 import { MaterialSymbol } from '../components/MaterialSymbol'
+import '../styles/proxies.css'
+import { Button, Loading, Segmented, Select, Shape, TextField } from '../ui/M3'
 import {
   extractNodeFlagIso,
   filterProxyNodesForDisplay,
@@ -35,15 +38,6 @@ function delayBand(ms: number): 'good' | 'ok' | 'slow' | '' {
   if (ms < 120) return 'good'
   if (ms < 300) return 'ok'
   return 'slow'
-}
-
-// Bar fill (%) by band — a quick visual on top of the colour.
-function delayBarPct(ms: number): number {
-  const b = delayBand(ms)
-  if (b === 'good') return 100
-  if (b === 'ok') return 66
-  if (b === 'slow') return 33
-  return 0
 }
 
 type GroupHealth = { alive: number; total: number; best: number }
@@ -205,84 +199,62 @@ export function ProxiesPage({
     : baseVisibleGroups.filter((g: any) => g?.hidden !== true)
 
   return (
-    <div className="panel proxiesPanel">
-      <h2>{t('ui.proxies.title')}</h2>
-      <p className="muted small proxiesLead">{t('ui.proxies.lead')}</p>
-      <div className="proxyToolbar">
+    <div className="page pxPage">
+      <h2 className="srOnly">{t('ui.proxies.title')}</h2>
+      <p className="srOnly">{t('ui.proxies.lead')}</p>
+      <div className="pageToolbar pxToolbar">
         {!hideGlobalMode ? (
-          <div
-            className="segmentInset segmentInset2 proxyModeInset"
-            role="group"
-            aria-label={t('ui.proxies.proxyModeAria')}
-          >
-            <div
-              className="segmentGlider"
-              aria-hidden
-              style={
-                { '--seg-i': displayMode === 'rule' ? 0 : 1 } as CSSProperties
-              }
-            />
-            <button
-              type="button"
-              className={
-                displayMode === 'rule'
-                  ? 'segmentInsetBtn isOn'
-                  : 'segmentInsetBtn'
-              }
-              onClick={() => onSetMode('rule')}
-            >
-              {t('ui.common.rule')}
-            </button>
-            <button
-              type="button"
-              className={
-                displayMode === 'global'
-                  ? 'segmentInsetBtn isOn'
-                  : 'segmentInsetBtn'
-              }
-              onClick={() => onSetMode('global')}
-            >
-              {t('ui.common.global')}
-            </button>
-          </div>
+          <Segmented
+            ariaLabel={t('ui.proxies.proxyModeAria')}
+            value={displayMode === 'global' ? 'global' : 'rule'}
+            onChange={(next) => onSetMode(next)}
+            options={[
+              { value: 'rule', label: t('ui.common.rule') },
+              { value: 'global', label: t('ui.common.global') },
+            ]}
+          />
         ) : null}
-        <select
-          aria-label={t('panel.groupLayout')}
-          className="selectModern selectInline"
+        <Select
+          ariaLabel={t('panel.groupLayout')}
+          className="pxLayoutSelect"
           value={layout}
-          onChange={(event) => {
-            setLayout(event.target.value)
-            lsSet(`kabosu.groupLayout.${profileID || ''}`, event.target.value)
+          onChange={(next) => {
+            setLayout(next)
+            lsSet(`kabosu.groupLayout.${profileID || ''}`, next)
           }}
-        >
-          <option value="tabs">{t('panel.tabs')}</option>
-          <option value="dropdown">{t('panel.dropdown')}</option>
-        </select>
-        <div className="proxyToolbarActions">
-          <button
-            type="button"
-            className="btn"
+          options={[
+            { value: 'tabs', label: t('panel.tabs') },
+            { value: 'dropdown', label: t('panel.dropdown') },
+          ]}
+        />
+        <span className="spacer" />
+        <div className="pxToolbarActions">
+          <Button
+            variant="tonal"
+            icon="refresh"
             disabled={connectionStatus !== 'connected'}
             onClick={onRefreshProxies}
           >
             {t('ui.proxies.refreshGroups')}
-          </button>
-          <button
-            type="button"
-            className={showBuiltin ? 'btn' : 'btn ghost'}
+          </Button>
+          <Button
+            variant={showBuiltin ? 'tonal' : 'outlined'}
+            toggle
+            selected={showBuiltin}
             onClick={onToggleShowBuiltin}
           >
             {t('ui.proxies.showBuiltin')}
-          </button>
+          </Button>
           {hiddenGroupCount > 0 ? (
-            <button
-              type="button"
-              className={showHidden ? 'btn' : 'btn ghost'}
-              onClick={() => setShowHidden((v) => !v)}
+            <Button
+              variant={showHidden ? 'tonal' : 'outlined'}
+              toggle
+              selected={showHidden}
               title={t('ui.proxies.showHiddenHint')}
+              onClick={() => setShowHidden((v) => !v)}
             >
               {t('ui.proxies.showHidden')} ({hiddenGroupCount})
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -298,7 +270,11 @@ export function ProxiesPage({
         onSelectNode={onSelectNode}
         onPingAll={onPingAll}
       />
-      {error ? <p className="error">{friendlyErrorMessage(error)}</p> : null}
+      {error ? (
+        <div className="inlineError" role="alert">
+          <p>{friendlyErrorMessage(error)}</p>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -405,9 +381,12 @@ function ProxyGroupsAccordion({
 
   if (visibleGroups.length === 0) {
     return (
-      <p className="muted">
-        {connected ? t('ui.proxies.noGroups') : t('ui.proxies.connectFirst')}
-      </p>
+      <div className="emptyState pxEmpty">
+        <Shape name={connected ? 'soft-burst' : 'pill'} />
+        <strong>
+          {connected ? t('ui.proxies.noGroups') : t('ui.proxies.connectFirst')}
+        </strong>
+      </div>
     )
   }
 
@@ -444,56 +423,51 @@ function ProxyGroupsAccordion({
   }
 
   return (
-    <div className="proxyAccordion">
-      <div className="proxyAccFilterRow">
-        <input
-          type="text"
+    <div className="pxAccordion">
+      <div className="pxFilters">
+        <TextField
+          className="pxGroupSearch"
+          leadingIcon="search"
           value={groupSearch}
-          onChange={(e) => setGroupSearch(e.target.value)}
+          onChange={setGroupSearch}
           placeholder={t('ui.proxies.searchGroup')}
-          className="inputModern proxyAccGroupSearch"
-          aria-label={t('ui.proxies.searchGroup')}
+          ariaLabel={t('ui.proxies.searchGroup')}
         />
-      </div>
-      <div className="proxyQuotaFilters">
         {layout === 'dropdown' ? (
-          <select
-            className="selectModern"
-            aria-label={t('ui.proxies.searchGroup')}
+          <Select
+            className="pxFilterSelect"
+            ariaLabel={t('ui.proxies.searchGroup')}
             value={chosenGroupName}
-            onChange={(event) => setOpenName(event.target.value)}
-          >
-            {shownGroups.map((group: any) => (
-              <option key={group.name} value={group.name}>
-                {group.name}
-              </option>
-            ))}
-          </select>
+            onChange={setOpenName}
+            options={shownGroups.map((group: any) => ({
+              value: String(group.name),
+              label: String(group.name),
+            }))}
+          />
         ) : null}
         {panelGroups?.groups.some((group) => group.proxies?.length) ? (
-          <select
-            className="selectModern"
-            aria-label={t('panel.serverGroups')}
+          <Select
+            className="pxFilterSelect"
+            ariaLabel={t('panel.serverGroups')}
             value={serverGroupID}
-            onChange={(event) => setServerGroupID(event.target.value)}
-          >
-            <option value="">{t('panel.allGroups')}</option>
-            {panelGroups.groups
-              .filter((group) => group.proxies?.length)
-              .map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                  {group.exhausted ? ` · ${t('panel.exhausted')}` : ''}
-                </option>
-              ))}
-          </select>
+            onChange={setServerGroupID}
+            options={[
+              { value: '', label: t('panel.allGroups') },
+              ...panelGroups.groups
+                .filter((group) => group.proxies?.length)
+                .map((group) => ({
+                  value: String(group.id),
+                  label: `${group.name}${group.exhausted ? ` · ${t('panel.exhausted')}` : ''}`,
+                })),
+            ]}
+          />
         ) : null}
       </div>
-      <div className="proxyAccList">
+      <div className="pxList stagger">
         {(layout === 'dropdown'
           ? shownGroups.filter((g: any) => g.name === chosenGroupName)
           : shownGroups
-        ).map((g: any) => {
+        ).map((g: any, gi: number) => {
           const name = String(g.name ?? '')
           const isOpen = layout === 'dropdown' || name === openName
           const selected = String(g.selected ?? '')
@@ -535,78 +509,78 @@ function ProxyGroupsAccordion({
           }
 
           return (
-            <div className={`proxyAccGroup${isOpen ? ' open' : ''}`} key={name}>
+            <div
+              className={`pxGroup${isOpen ? ' open' : ''}`}
+              key={name}
+              style={{ '--i': gi } as CSSProperties}
+            >
               <button
                 type="button"
-                className="proxyAccHeader"
+                className="pxHeader"
                 aria-expanded={isOpen}
                 onClick={() => setOpenName(isOpen ? '' : name)}
               >
                 <GroupIcon icon={g.icon} />
-                <span className="proxyAccName">{name}</span>
+                <span className="pxName">{name}</span>
                 {g.hidden === true ? (
                   <span
-                    className="proxyHiddenChip"
+                    className="pxChip pxChipHidden"
                     title={t('ui.proxies.hiddenChipHint')}
                   >
                     {t('ui.proxies.hiddenChip')}
                   </span>
                 ) : null}
-                <span className={`proxyTypeChip proxyType-${type}`}>
+                <span className={`pxChip pxChipType pxType-${type}`}>
                   {g.type}
                 </span>
-                <span className="proxyCountChip">
+                <span className="pxChip pxChipCount">
                   {(g.proxies ?? []).length}
                 </span>
                 {health.best > 0 ? (
                   <span
-                    className="proxyAccHealth"
+                    className="pxHealth"
                     title={t('ui.proxies.healthTitle')}
                   >
                     {health.alive}/{health.total} · {health.best} ms
                   </span>
                 ) : null}
-                <span className="proxyAccCurrent">
+                <span className="pxCurrent">
                   <FlagMark iso2={selectedIso} width={12} height={9} />
-                  <span className="proxyAccCurrentName">
+                  <span className="pxCurrentName">
                     {nodeDisplayName(selected) || '—'}
                   </span>
                 </span>
-                <svg
-                  className="proxyAccChevron"
-                  viewBox="0 0 24 24"
-                  aria-hidden
-                >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 9l6 6 6-6"
-                  />
-                </svg>
+                <span className="pxChevron" aria-hidden>
+                  <MaterialSymbol name="chevron" />
+                </span>
               </button>
 
-              {isOpen ? (
-                <div className="proxyAccBody">
-                  <div className="proxyAccActions">
-                    <button
-                      type="button"
-                      className="btn ghost proxyAccAction"
-                      disabled={!connected || Boolean(proxyDelayBusy[pingKey])}
+              <AnimatePresence initial={false}>
+                {isOpen ? (
+                  <motion.div
+                    className="pxBodyWrap"
+                    key="body"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 38 }}
+                  >
+                <div className="pxBody">
+                  <div className="pxActions">
+                    <Button
+                      variant="tonal"
+                      icon="speed"
+                      busy={Boolean(proxyDelayBusy[pingKey])}
+                      disabled={!connected}
                       title={t('ui.proxies.pingAll')}
                       onClick={() => onPingAll(name, allProxies)}
                     >
-                      <span className="proxyAccActionSymbol" aria-hidden>
-                        <MaterialSymbol name="speed" />
-                      </span>
                       {t('ui.proxies.pingAllShort')}
-                    </button>
+                    </Button>
                     {!readOnly ? (
-                      <button
-                        type="button"
-                        className="btn ghost proxyAccAction proxyAccFastest"
+                      <Button
+                        variant="outlined"
+                        icon="check"
                         title={t('ui.proxies.selectFastest')}
                         disabled={
                           !fastestNode(allProxies, proxyDelayMap, proxyDelayErr)
@@ -620,61 +594,55 @@ function ProxyGroupsAccordion({
                           if (f && f !== selected) onSelectNode(name, f)
                         }}
                       >
-                        <span className="proxyAccActionSymbol" aria-hidden>
-                          <MaterialSymbol name="speed" />
-                        </span>
                         {t('ui.proxies.fastest')}
-                      </button>
+                      </Button>
                     ) : null}
-                    <select
-                      className="selectModern selectInline proxyAccSort"
+                    <Select
+                      className="pxSort"
                       disabled={isChain}
                       value={sortMode}
-                      onChange={(e) => setSortMode(e.target.value as SortMode)}
-                      aria-label={t('ui.proxies.sortLabel')}
-                    >
-                      <option value="default">
-                        {t('ui.proxies.sortDefault')}
-                      </option>
-                      <option value="latency">
-                        {t('ui.proxies.sortLatency')}
-                      </option>
-                      <option value="name">{t('ui.proxies.sortName')}</option>
-                    </select>
-                    <button
-                      type="button"
-                      className={`btn ghost proxyAccHideDead${hideDead ? ' isOn' : ''}`}
-                      aria-pressed={hideDead}
+                      onChange={(next) => setSortMode(next as SortMode)}
+                      ariaLabel={t('ui.proxies.sortLabel')}
+                      options={[
+                        { value: 'default', label: t('ui.proxies.sortDefault') },
+                        { value: 'latency', label: t('ui.proxies.sortLatency') },
+                        { value: 'name', label: t('ui.proxies.sortName') },
+                      ]}
+                    />
+                    <Button
+                      variant={hideDead ? 'tonal' : 'outlined'}
+                      toggle
+                      selected={hideDead}
+                      aria-label={t('ui.proxies.hideDead')}
                       onClick={() => setHideDead((v) => !v)}
                     >
                       {t('ui.proxies.hideDead')}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn ghost proxyAccDensity"
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      title={t('ui.proxies.density')}
                       onClick={() =>
                         setDensity((d) =>
                           d === 'compact' ? 'comfortable' : 'compact',
                         )
                       }
-                      title={t('ui.proxies.density')}
                     >
                       {density === 'compact'
                         ? t('ui.proxies.densityComfortable')
                         : t('ui.proxies.densityCompact')}
-                    </button>
-                    <input
-                      type="text"
+                    </Button>
+                    <TextField
+                      className="pxNodeSearch"
+                      leadingIcon="search"
                       value={nodeSearch}
-                      onChange={(e) => setNodeSearch(e.target.value)}
+                      onChange={setNodeSearch}
                       placeholder={t('ui.proxies.searchNode')}
-                      className="inputModern proxySplitNodeSearch proxyAccSearch"
-                      aria-label={t('ui.proxies.searchNode')}
+                      ariaLabel={t('ui.proxies.searchNode')}
                     />
                   </div>
 
                   {readOnly ? (
-                    <p className="muted small proxyAutoGroupHint">
+                    <p className="muted small pxAutoHint">
                       {t(
                         isChain
                           ? 'ui.proxies.chainHint'
@@ -687,9 +655,9 @@ function ProxyGroupsAccordion({
                   ) : null}
 
                   <div
-                    className={`proxyNodesGrid${density === 'compact' ? ' compact' : ''}`}
+                    className={`pxGrid stagger${density === 'compact' ? ' compact' : ''}`}
                   >
-                    {nodes.map((p: string) => {
+                    {nodes.map((p: string, ni: number) => {
                       const active = selected === p
                       const iso = extractNodeFlagIso(p)
                       const rawErr = proxyDelayErr[p]
@@ -712,7 +680,8 @@ function ProxyGroupsAccordion({
                           key={p}
                           type="button"
                           ref={active ? activeCardRef : undefined}
-                          className={`proxyNodeCard${active ? ' active' : ''}${readOnly ? ' proxyNodeDisabled' : ''}`}
+                          className={`pxNode${active ? ' active' : ''}${readOnly ? ' readonly' : ''}`}
+                          style={{ '--i': ni } as CSSProperties}
                           title={titleParts.join(' — ')}
                           disabled={readOnly}
                           onClick={() => {
@@ -720,16 +689,16 @@ function ProxyGroupsAccordion({
                             onSelectNode(name, p)
                           }}
                         >
-                          <div className="proxyNodeTop">
+                          <div className="pxNodeTop">
                             <FlagMark iso2={iso} width={16} height={12} />
-                            <span className="proxyNodeName">
+                            <span className="pxNodeName">
                               {isChain ? `${allProxies.indexOf(p) + 1}. ` : ''}
                               {nodeDisplayName(p)}
                             </span>
-                            <div className="proxyNodeTags">
+                            <div className="pxNodeTags">
                               {quotaByProxy.has(p) ? (
                                 <span
-                                  className="proxyNodeTag"
+                                  className="pxNodeTag"
                                   title={
                                     quotaByProxy.get(p)?.exhausted
                                       ? t('panel.exhausted')
@@ -740,52 +709,43 @@ function ProxyGroupsAccordion({
                                 </span>
                               ) : null}
                               {nodeFeatureTags(p).map((tag) => (
-                                <span key={tag} className="proxyNodeTag">
+                                <span key={tag} className="pxNodeTag">
                                   {tag}
                                 </span>
                               ))}
                             </div>
-                            <div className="proxyDelayBox proxyDelayBoxReadonly">
-                              <span
-                                className={`proxyDelayText${shortErr ? ' proxyDelayFail' : band ? ` proxyDelay${band[0].toUpperCase()}${band.slice(1)}` : ''}`}
-                              >
-                                {proxyDelayBusy[p]
-                                  ? '…'
-                                  : shortErr
-                                    ? shortErr
-                                    : ms > 0
-                                      ? `${ms} ms`
-                                      : '—'}
-                              </span>
-                            </div>
-                          </div>
-                          {band ? (
                             <span
-                              className={`proxyDelayBar proxyDelayBar${band[0].toUpperCase()}${band.slice(1)}`}
-                              aria-hidden
+                              className={`pxDelay${shortErr ? ' fail' : band ? ` ${band}` : ''}`}
                             >
-                              <span
-                                className="proxyDelayBarFill"
-                                style={{ width: `${delayBarPct(ms)}%` }}
-                              />
+                              {proxyDelayBusy[p] ? (
+                                <Loading className="pxDelayLoader" />
+                              ) : shortErr ? (
+                                shortErr
+                              ) : ms > 0 ? (
+                                `${ms} ms`
+                              ) : (
+                                '—'
+                              )}
                             </span>
-                          ) : null}
+                          </div>
                         </button>
                       )
                     })}
                     {nodes.length === 0 ? (
-                      <p className="muted small">
+                      <p className="muted small pxNoMatch">
                         {t('ui.proxies.noNodeMatch')}
                       </p>
                     ) : null}
                   </div>
                 </div>
-              ) : null}
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </div>
           )
         })}
         {shownGroups.length === 0 ? (
-          <p className="muted small proxyAccEmpty">
+          <p className="muted small pxNoMatch">
             {t('ui.proxies.noGroupMatch')}
           </p>
         ) : null}

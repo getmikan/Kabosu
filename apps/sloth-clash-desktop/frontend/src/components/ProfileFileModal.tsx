@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
 import { MonacoYamlEditor } from '../MonacoYamlEditor'
+import '../styles/editors.css'
+import { Button, Dialog } from '../ui/M3'
 
 import type { ProfileModalTarget } from './ProfileMergeModal'
 
@@ -28,73 +30,52 @@ export function ProfileFileModal({
   const { t } = useTranslation()
   if (!target) return null
   return (
-    <div
-      className="modalOverlay"
-      role="presentation"
-      style={{ zIndex: 70 }}
-      onClick={onClose}
+    <Dialog
+      open
+      wide
+      onClose={onClose}
+      className="edDialogWide"
+      title={t('ui.profiles.fileModal.title')}
+      actions={
+        <>
+          <Button
+            variant="outlined"
+            disabled={!path}
+            onClick={() => onCopyPath(path)}
+          >
+            {t('ui.profiles.fileModal.copyPath')}
+          </Button>
+          <Button variant="text" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button disabled={Boolean(yamlError)} onClick={() => onSave(target.id)}>
+            {t('common.save')}
+          </Button>
+        </>
+      }
     >
-      <div
-        className="modalCard modalCardWide yamlModalCard modalCardFullscreen vergeModal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="editFileTitle"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="vergeModalHead">
-          <h3 id="editFileTitle" className="modalTitle vergeModalTitle">
-            {t('ui.profiles.fileModal.title')}
-          </h3>
-        </div>
-        <p className="muted small mono tight">{path}</p>
+      <div className="edBody">
+        <p className="edPath mono allowSelect">{path}</p>
         {loadError ? (
-          <p className="muted small tight">
+          <p className="edError" role="alert">
             {t('ui.profiles.fileModal.readErrorLead', { error: loadError })}
           </p>
         ) : null}
-        <label className="field modalField">
-          <span className="fieldLab">
+        <div className="edField">
+          <span className="edFieldLabel">
             {target.name}{' '}
             <span className="optional">
               {t('ui.profiles.fileModal.loadedConfig')}
             </span>
           </span>
-          <MonacoYamlEditor
-            className="modalMonacoWrap"
-            value={value}
-            onChange={onChange}
-            height="50vh"
-          />
+          <MonacoYamlEditor value={value} onChange={onChange} />
           {yamlError ? (
-            <span className="muted small" style={{ color: '#ff6b6b' }}>
+            <p className="edError" role="alert">
               {t('common.yamlError', { error: yamlError })}
-            </span>
+            </p>
           ) : null}
-        </label>
-        <div className="modalFooter">
-          <button
-            type="button"
-            className="btn btnModalSecondary"
-            disabled={!path}
-            onClick={() => onCopyPath(path)}
-          >
-            {t('ui.profiles.fileModal.copyPath')}
-          </button>
-          <div className="modalFooterRight">
-            <button type="button" className="btn ghost" onClick={onClose}>
-              {t('common.cancel')}
-            </button>
-            <button
-              type="button"
-              className="btn primary"
-              disabled={Boolean(yamlError)}
-              onClick={() => onSave(target.id)}
-            >
-              {t('common.save')}
-            </button>
-          </div>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

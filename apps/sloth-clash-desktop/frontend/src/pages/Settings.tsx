@@ -1,12 +1,27 @@
-import { useState } from 'react'
+import { type CSSProperties, type ReactNode, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
-import { MaterialSymbol } from '../components/MaterialSymbol'
+import {
+  MaterialSymbol,
+  type MaterialSymbolName,
+} from '../components/MaterialSymbol'
 import type { SettingsResetMode } from '../components/SettingsResetModal'
 import { APP_DOWNLOADS_URL, APP_REPO_URL } from '../constants'
 import { useCoreBuild } from '../hooks/queries/useCoreBuild'
+import '../styles/settings.css'
 import type { CompactSettings } from '../types/app'
+import {
+  Button,
+  Expansion,
+  IconButton,
+  Progress,
+  Segmented,
+  Select,
+  Shape,
+  SwitchRow,
+  TextField,
+} from '../ui/M3'
 import {
   STOCK_ACCENTS,
   ensureReadableAccent,
@@ -18,31 +33,33 @@ import { friendlyErrorMessage } from '../utils/yaml'
 export type ThemeMode = 'dark' | 'light' | 'system'
 export type Lang = 'en' | 'ru' | 'zh'
 
-// iOS-style sliding switch for boolean settings (scoped to Settings; the Home
-// Proxy/TUN selector keeps its own .trafficKnob style).
-function SettingsSwitch({
-  checked,
-  disabled,
-  onToggle,
-  label,
+// Quick-pick accents next to the free colour picker. Stored as raw hex like
+// any custom accent; the contrast guard still decides what renders per theme.
+const ACCENT_PRESETS = [
+  '#b8d78b',
+  '#4a662b',
+  '#6750a4',
+  '#0b6bcb',
+  '#00796b',
+  '#c2185b',
+  '#e65100',
+  '#8d6e63',
+] as const
+
+function SectionHead({
+  icon,
+  children,
 }: {
-  checked: boolean
-  disabled?: boolean
-  onToggle: () => void
-  label: string
+  icon: MaterialSymbolName
+  children: ReactNode
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      disabled={disabled}
-      className={`settingsSwitch${checked ? ' on' : ''}`}
-      onClick={onToggle}
-    >
-      <span className="settingsSwitchKnob" aria-hidden />
-    </button>
+    <h3 className="stCardTitle">
+      <span className="stIcon" aria-hidden>
+        <MaterialSymbol name={icon} />
+      </span>
+      {children}
+    </h3>
   )
 }
 
@@ -89,31 +106,25 @@ function PortLockRow({
 
   return (
     <>
-      <div className="settingsToggleRow">
-        <span>{t('settings.lockPort')}</span>
-        <SettingsSwitch
-          checked={locked}
-          label={t('settings.lockPort')}
-          onToggle={toggle}
-        />
-      </div>
+      <SwitchRow
+        label={t('settings.lockPort')}
+        checked={locked}
+        onChange={toggle}
+      />
       {locked ? (
-        <div className="settingsToggleRow">
-          <span className="muted small">{t('settings.lockPortValue')}</span>
-          <input
-            type="number"
-            className="input settingsPortInput"
-            min={1}
-            max={65535}
-            value={draft}
-            aria-label={t('settings.lockPortValue')}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-            }}
-          />
-        </div>
+        <TextField
+          className="stPortField"
+          type="number"
+          min={1}
+          max={65535}
+          label={t('settings.lockPortValue')}
+          value={draft}
+          onChange={setDraft}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+          }}
+        />
       ) : null}
     </>
   )
@@ -154,63 +165,42 @@ function RealityCard({
     if (draft.trim() !== saved) onCommit({ clientVersion: draft.trim() })
   }
   return (
-    <details className="homeCard settingsCardCompact settingsDisclosure">
-      <summary>
-        <h3 className="homeCardTitle">
-          <span className="settingsCardIcon" aria-hidden>
-            <MaterialSymbol name="shield" />
-          </span>
-          {t('settings.reality.title')}
-        </h3>
-        <MaterialSymbol name="chevron" />
-      </summary>
-      <label className="field">
-        <span className="fieldLab">{t('settings.reality.mlkem')}</span>
-        <select
-          className="selectModern"
+    <Expansion icon="shield" header={t('settings.reality.title')}>
+      <div className="stBody">
+        <Select
+          label={t('settings.reality.mlkem')}
           value={prefs.mlkem || 'auto'}
-          onChange={(e) => onCommit({ mlkem: e.target.value })}
-        >
-          <option value="auto">{t('settings.reality.mlkemAuto')}</option>
-          <option value="always">{t('settings.reality.mlkemAlways')}</option>
-          <option value="never">{t('settings.reality.mlkemNever')}</option>
-        </select>
-      </label>
-      <div className="settingsToggleRow">
-        <span>{t('settings.reality.clientVersion')}</span>
-        <input
-          type="text"
-          className={
-            invalid
-              ? 'input realityVersionInput invalid'
-              : 'input realityVersionInput'
-          }
+          onChange={(v) => onCommit({ mlkem: v })}
+          options={[
+            { value: 'auto', label: t('settings.reality.mlkemAuto') },
+            { value: 'always', label: t('settings.reality.mlkemAlways') },
+            { value: 'never', label: t('settings.reality.mlkemNever') },
+          ]}
+        />
+        <TextField
+          label={t('settings.reality.clientVersion')}
           value={draft}
           placeholder={t('settings.reality.clientVersionPlaceholder')}
           spellCheck={false}
-          aria-label={t('settings.reality.clientVersion')}
-          aria-invalid={invalid}
-          title={
+          error={
             invalid ? t('settings.reality.clientVersionInvalid') : undefined
           }
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={setDraft}
           onBlur={commit}
           onKeyDown={(e) => {
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
           }}
         />
+        <p className="muted stHint">{t('settings.reality.hint')}</p>
+        <p className="muted stHint">{t('settings.reality.applyHint')}</p>
       </div>
-      <p className="muted settingsMicroHint">{t('settings.reality.hint')}</p>
-      <p className="muted settingsMicroHint">
-        {t('settings.reality.applyHint')}
-      </p>
-    </details>
+    </Expansion>
   )
 }
 
-// Accent color field: picker + hex input + per-theme applied previews + reset.
-// The stored value is the raw user hex; swatches show what actually renders
-// after the contrast guard per theme.
+// Accent colour field: preset tiles + picker + hex input + per-theme applied
+// previews + reset. The stored value is the raw user hex; previews show what
+// actually renders after the contrast guard per theme.
 function AccentField({
   accent,
   onSetAccent,
@@ -240,57 +230,98 @@ function AccentField({
     const hex = normalizeHex(raw)
     if (hex) onSetAccent(hex)
   }
+  const current = normalizeHex(accent)
   return (
-    <label className="field">
-      <span className="fieldLab">{t('settings.accent')}</span>
-      <div className="accentRow">
-        <input
-          type="color"
-          className="accentPicker"
-          value={pickerValue}
-          aria-label={t('settings.accent')}
-          onChange={(e) => commit(e.target.value)}
-        />
-        <input
-          type="text"
-          className={
-            invalid ? 'input accentHexInput invalid' : 'input accentHexInput'
-          }
+    <div className="stField">
+      <span className="stFieldLabel">{t('settings.accent')}</span>
+      <div
+        className="stSwatches"
+        role="radiogroup"
+        aria-label={t('settings.accent')}
+      >
+        {ACCENT_PRESETS.map((hex) => {
+          const selected = current === hex
+          return (
+            <button
+              key={hex}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-label={hex}
+              title={hex}
+              className="stSwatch"
+              data-selected={selected || undefined}
+              onClick={() => commit(hex)}
+            >
+              <Shape
+                name={selected ? 'flower' : 'circle'}
+                style={{ '--m3e-shape-container-color': hex } as CSSProperties}
+              />
+              {selected ? (
+                <span className="stSwatchCheck" aria-hidden>
+                  <MaterialSymbol name="check" />
+                </span>
+              ) : null}
+            </button>
+          )
+        })}
+        <label className="stSwatch stSwatchCustom" title={t('settings.accent')}>
+          <Shape name="square" />
+          <input
+            type="color"
+            className="stColorInput"
+            value={pickerValue}
+            aria-label={t('settings.accent')}
+            onChange={(e) => commit(e.target.value)}
+          />
+        </label>
+      </div>
+      <div className="stAccentRow">
+        <TextField
+          className="stHexField"
           value={draft}
           placeholder={t('settings.accentHexPlaceholder')}
           spellCheck={false}
-          aria-invalid={invalid}
-          title={invalid ? t('settings.accentInvalid') : undefined}
-          onChange={(e) => commit(e.target.value)}
+          ariaLabel={t('settings.accent')}
+          error={invalid ? t('settings.accentInvalid') : undefined}
+          onChange={commit}
         />
         <span
-          className="accentSwatch"
+          className="stPreview"
           style={{ background: darkApplied }}
           title={t('settings.accentPreviewDark')}
           aria-hidden
         />
         <span
-          className="accentSwatch accentSwatchLight"
+          className="stPreview stPreviewLight"
           style={{ background: lightApplied }}
           title={t('settings.accentPreviewLight')}
           aria-hidden
         />
         {accent ? (
-          <button
-            type="button"
-            className="btn ghost accentResetBtn"
+          <Button
+            variant="text"
             onClick={() => {
               onSetAccent(null)
               setDraft('')
             }}
           >
             {t('settings.accentReset')}
-          </button>
+          </Button>
         ) : null}
       </div>
-    </label>
+    </div>
   )
 }
+
+const GITHUB_ICON = (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+    <path
+      fill="currentColor"
+      d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+    />
+  </svg>
+)
 
 export function SettingsPage({
   theme,
@@ -410,452 +441,320 @@ export function SettingsPage({
 }) {
   const { t } = useTranslation()
   const coreBuild = useCoreBuild()
+  const tristate = (v: boolean | undefined) =>
+    v === undefined ? t('settings.tun.inherit') : v ? t('common.on') : t('common.off')
+  const hasAsset = Boolean(String(updateSnap?.assetDownloadUrl ?? '').trim())
   return (
-    <div className="panel settingsPanel">
-      <div className="settingsTopBar">
-        <h2>{t('settings.title')}</h2>
-        <div className="settingsTopActions">
-          <button
-            type="button"
-            className="settingsGithubBtn settingsGithubTopBtn"
-            title={t('settings.openGithubRepo')}
-            aria-label={t('settings.openGithubRepo')}
-            onClick={() => onBrowserOpen(APP_REPO_URL)}
-          >
-            <svg
-              className="settingsGithubSvg"
-              viewBox="0 0 24 24"
-              width="22"
-              height="22"
-              aria-hidden
-            >
-              <path
-                fill="currentColor"
-                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-              />
-            </svg>
-          </button>
-        </div>
+    <div className="page stPage">
+      <div className="pageToolbar">
+        <h2 className="srOnly">{t('settings.title')}</h2>
+        <span className="spacer" />
+        <IconButton
+          icon={GITHUB_ICON}
+          label={t('settings.openGithubRepo')}
+          onClick={() => onBrowserOpen(APP_REPO_URL)}
+        />
       </div>
-      <p className="muted settingsPanelLead">{t('settings.lead')}</p>
+      <p className="pageLead">{t('settings.lead')}</p>
 
-      <div className="settingsGridCompact">
-        <div className="settingsCol">
-          <div className="homeCard settingsCardCompact">
-            <h3 className="homeCardTitle">
-              <span className="settingsCardIcon" aria-hidden>
-                <MaterialSymbol name="settings" />
-              </span>
-              {t('settings.general')}
-            </h3>
-            <div className="settingsToggleRow">
-              <span>{t('settings.startMinimized')}</span>
-              <SettingsSwitch
-                checked={settings.startMinimized}
-                label={t('settings.startMinimized')}
-                onToggle={() =>
-                  onSetUiPref('startMinimized', !settings.startMinimized)
-                }
-              />
-            </div>
-            <div className="settingsToggleRow">
-              <span>{t('settings.launchOnStartup')}</span>
-              <SettingsSwitch
-                checked={settings.launchOnStartup}
-                label={t('settings.launchOnStartup')}
-                onToggle={() => onSetLaunchOnStartup(!settings.launchOnStartup)}
-              />
-            </div>
-            <div className="settingsToggleRow">
-              <span>{t('settings.autoConnectOnStartup')}</span>
-              <SettingsSwitch
-                checked={settings.autoConnectOnStartup}
-                label={t('settings.autoConnectOnStartup')}
-                onToggle={() =>
-                  onSetUiPref(
-                    'autoConnectOnStartup',
-                    !settings.autoConnectOnStartup,
-                  )
-                }
-              />
-            </div>
-            <div className="settingsToggleRow">
-              <span>{t('settings.closeToTray')}</span>
-              <SettingsSwitch
-                checked={settings.closeToTray}
-                disabled={!trayAvailable}
-                label={t('settings.closeToTray')}
-                onToggle={() =>
-                  onSetUiPref('closeToTray', !settings.closeToTray)
-                }
-              />
-            </div>
-            <div className="settingsToggleRow">
-              <span>{t('settings.autoUpdate')}</span>
-              <SettingsSwitch
-                checked={appUpdateEnabled}
-                label={t('settings.autoUpdate')}
-                onToggle={() => onToggleAppUpdate(!appUpdateEnabled)}
-              />
-            </div>
-            <label className="field">
-              <span className="fieldLab">{t('settings.language')}</span>
-              <select
-                className="selectModern"
-                value={lang}
-                onChange={(e) => onSetLang(e.target.value as Lang)}
-              >
-                <option value="en">English</option>
-                <option value="ru">Русский</option>
-                <option value="zh">简体中文</option>
-              </select>
-            </label>
-            <details className="appearanceDisclosure">
-              <summary>
-                <MaterialSymbol name="sun" />
-                {t('expressive.appearance')}
-                <MaterialSymbol name="chevron" />
-              </summary>
-              <div className="settingsAppearanceBody">
-                <label className="field">
-                  <span className="fieldLab">{t('settings.theme')}</span>
-                  <div className="segPill">
-                    {(['system', 'dark', 'light'] as const).map((th) => (
-                      <button
-                        key={th}
-                        type="button"
-                        className={theme === th ? 'pillOpt active' : 'pillOpt'}
-                        onClick={() => onSetTheme(th)}
-                      >
-                        {th === 'system'
-                          ? t('settings.themeSystem')
-                          : th === 'dark'
-                            ? t('settings.themeDark')
-                            : t('settings.themeLight')}
-                      </button>
-                    ))}
-                  </div>
-                </label>
+      <div className="stGrid stagger">
+        <div className="stCol stagger" style={{ '--i': 0 } as CSSProperties}>
+          <section className="stCard">
+            <SectionHead icon="settings">{t('settings.general')}</SectionHead>
+            <SwitchRow
+              label={t('settings.startMinimized')}
+              checked={settings.startMinimized}
+              onChange={(v) => onSetUiPref('startMinimized', v)}
+            />
+            <SwitchRow
+              label={t('settings.launchOnStartup')}
+              checked={settings.launchOnStartup}
+              onChange={onSetLaunchOnStartup}
+            />
+            <SwitchRow
+              label={t('settings.autoConnectOnStartup')}
+              checked={settings.autoConnectOnStartup}
+              onChange={(v) => onSetUiPref('autoConnectOnStartup', v)}
+            />
+            <SwitchRow
+              label={t('settings.closeToTray')}
+              checked={settings.closeToTray}
+              disabled={!trayAvailable}
+              onChange={(v) => onSetUiPref('closeToTray', v)}
+            />
+            <SwitchRow
+              label={t('settings.autoUpdate')}
+              checked={appUpdateEnabled}
+              onChange={onToggleAppUpdate}
+            />
+            <Select
+              label={t('settings.language')}
+              value={lang}
+              onChange={(v) => onSetLang(v as Lang)}
+              options={[
+                { value: 'en', label: 'English' },
+                { value: 'ru', label: 'Русский' },
+                { value: 'zh', label: '简体中文' },
+              ]}
+            />
+            <Expansion
+              className="stNested"
+              icon="sun"
+              header={t('expressive.appearance')}
+            >
+              <div className="stBody">
+                <div className="stField">
+                  <span className="stFieldLabel">{t('settings.theme')}</span>
+                  <Segmented<ThemeMode>
+                    ariaLabel={t('settings.theme')}
+                    value={theme}
+                    onChange={onSetTheme}
+                    options={[
+                      { value: 'system', label: t('settings.themeSystem') },
+                      {
+                        value: 'dark',
+                        label: t('settings.themeDark'),
+                        icon: 'moon',
+                      },
+                      {
+                        value: 'light',
+                        label: t('settings.themeLight'),
+                        icon: 'sun',
+                      },
+                    ]}
+                  />
+                </div>
                 <AccentField accent={accent} onSetAccent={onSetAccent} />
-                <label className="field">
-                  <span className="fieldLab">{t('settings.uiScale')}</span>
-                  <select
-                    className="selectModern"
-                    value={String(settings.uiScale)}
-                    onChange={(e) =>
-                      onSetSetting('uiScale', Number(e.target.value))
-                    }
-                  >
-                    {UI_SCALE_OPTIONS.map((s) => (
-                      <option key={s} value={String(s)}>
-                        {Math.round(s * 100)}%
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <Select
+                  label={t('settings.uiScale')}
+                  value={String(settings.uiScale)}
+                  onChange={(v) => onSetSetting('uiScale', Number(v))}
+                  options={UI_SCALE_OPTIONS.map((s) => ({
+                    value: String(s),
+                    label: `${Math.round(s * 100)}%`,
+                  }))}
+                />
                 {trayAvailable ? (
-                  <label className="field">
-                    <span className="fieldLab">{t('settings.trayIcon')}</span>
-                    <select
-                      className="selectModern"
-                      value={trayIconStyle}
-                      onChange={(e) => onSetTrayIconStyle(e.target.value)}
-                    >
-                      <option value="">{t('settings.trayIconAuto')}</option>
-                      <option value="colorful">
-                        {t('settings.trayIconColorful')}
-                      </option>
-                      <option value="mono">{t('settings.trayIconMono')}</option>
-                    </select>
-                    <p className="muted settingsMicroHint">
-                      {t('settings.trayIconHint')}
-                    </p>
-                  </label>
+                  <div className="stField">
+                    <Select
+                      label={t('settings.trayIcon')}
+                      value={trayIconStyle || 'auto'}
+                      onChange={(v) => onSetTrayIconStyle(v === 'auto' ? '' : v)}
+                      options={[
+                        { value: 'auto', label: t('settings.trayIconAuto') },
+                        {
+                          value: 'colorful',
+                          label: t('settings.trayIconColorful'),
+                        },
+                        { value: 'mono', label: t('settings.trayIconMono') },
+                      ]}
+                    />
+                    <p className="muted stHint">{t('settings.trayIconHint')}</p>
+                  </div>
                 ) : null}
               </div>
-            </details>
-          </div>
+            </Expansion>
+          </section>
 
-          <details className="homeCard settingsCardCompact settingsDisclosure">
-            <summary>
-              <h3 className="homeCardTitle">
-                <span className="settingsCardIcon" aria-hidden>
-                  <MaterialSymbol name="proxies" />
-                </span>
-                {t('settings.connection')}
-              </h3>
-              <MaterialSymbol name="chevron" />
-            </summary>
-            <div className="settingsToggleRow">
-              <span>{t('settings.smartDns')}</span>
-              <SettingsSwitch
-                checked={smartDns}
+          <Expansion
+            icon="proxies"
+            header={t('settings.connection')}
+            className="stSection"
+          >
+            <div className="stBody">
+              <SwitchRow
                 label={t('settings.smartDns')}
-                onToggle={() => onSetSmartDns(!smartDns)}
+                checked={smartDns}
+                onChange={onSetSmartDns}
               />
-            </div>
-            <div className="settingsToggleRow">
-              <span>{t('settings.ipv6Dns')}</span>
-              <SettingsSwitch
-                checked={dnsIpv6}
+              <SwitchRow
                 label={t('settings.ipv6Dns')}
-                onToggle={() => onSetDnsIpv6(!dnsIpv6)}
+                checked={dnsIpv6}
+                onChange={onSetDnsIpv6}
               />
-            </div>
-            <div className="settingsToggleRow">
-              <span>{t('settings.allowLanBinding')}</span>
-              <SettingsSwitch
-                checked={allowLan}
+              <SwitchRow
                 label={t('settings.allowLanBinding')}
-                onToggle={() => onSetAllowLan(!allowLan)}
+                checked={allowLan}
+                onChange={onSetAllowLan}
               />
-            </div>
-            <PortLockRow
-              mixedPort={mixedPort}
-              runningMixedPort={runningMixedPort}
-              onSetMixedPort={onSetMixedPort}
-            />
-            <p className="muted settingsMicroHint">
-              {t('settings.lockPortHint')}
-            </p>
-            <p className="muted settingsMicroHint">{t('settings.dnsHint')}</p>
-            {serviceInfo?.updateRequired ? (
-              <div className="serviceUpdateBanner" role="alert">
-                <span className="serviceUpdateIcon" aria-hidden>
-                  ⚠️
-                </span>
-                <div className="serviceUpdateBody">
-                  <strong>{t('settings.serviceUpdateTitle')}</strong>
-                  <span className="muted">
-                    {t('settings.serviceUpdateBody', {
-                      version: serviceInfo.version || '—',
-                      expected: serviceInfo.expectedVersion,
-                    })}
+              <PortLockRow
+                mixedPort={mixedPort}
+                runningMixedPort={runningMixedPort}
+                onSetMixedPort={onSetMixedPort}
+              />
+              <p className="muted stHint">{t('settings.lockPortHint')}</p>
+              <p className="muted stHint">{t('settings.dnsHint')}</p>
+              {serviceInfo?.updateRequired ? (
+                <div className="stAlert" role="alert">
+                  <span className="stAlertIcon" aria-hidden>
+                    <MaterialSymbol name="error" />
                   </span>
-                  <span className="serviceUpdateHint muted">
-                    {t('settings.serviceUpdateAdminHint')}
-                  </span>
+                  <div className="stAlertBody">
+                    <strong>{t('settings.serviceUpdateTitle')}</strong>
+                    <span>
+                      {t('settings.serviceUpdateBody', {
+                        version: serviceInfo.version || '—',
+                        expected: serviceInfo.expectedVersion,
+                      })}
+                    </span>
+                    <span className="stHint">
+                      {t('settings.serviceUpdateAdminHint')}
+                    </span>
+                  </div>
+                  <Button onClick={onInstallService}>
+                    {t('settings.serviceUpdateAction')}
+                  </Button>
                 </div>
-                <button
-                  type="button"
-                  className="btn primary"
-                  onClick={onInstallService}
-                >
-                  {t('settings.serviceUpdateAction')}
-                </button>
+              ) : null}
+              <div className="stActions">
+                <Button variant="outlined" onClick={onInstallService}>
+                  {t('settings.installService')}
+                </Button>
+                <Button variant="outlined" onClick={onEnsureTun}>
+                  {t('settings.guidedTun')}
+                </Button>
               </div>
-            ) : null}
-            <div className="row">
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={onInstallService}
-              >
-                {t('settings.installService')}
-              </button>
-              <button type="button" className="btn ghost" onClick={onEnsureTun}>
-                {t('settings.guidedTun')}
-              </button>
             </div>
-          </details>
+          </Expansion>
 
           <RealityCard prefs={realityPrefs} onCommit={onSetReality} />
 
-          <details className="homeCard settingsCardCompact settingsDisclosure">
-            <summary>
-              <h3 className="homeCardTitle">
-                <span className="settingsCardIcon" aria-hidden>
-                  <MaterialSymbol name="shield" />
-                </span>
-                {t('settings.tun.title')}
-              </h3>
-              <MaterialSymbol name="chevron" />
-            </summary>
-            <p className="muted settingsMicroHint">{t('settings.tun.hint')}</p>
-            <div className="settingsTunSummary">
-              <span className="settingsTunSummaryItem">
-                <span className="settingsTunSummaryLabel">
-                  {t('settings.tun.stackLabel')}:
-                </span>
-                <span className="settingsTunSummaryValue">
-                  {tunStackValue || t('settings.tun.inherit')}
-                </span>
-              </span>
-              <span className="settingsTunSummaryItem">
-                <span className="settingsTunSummaryLabel">
-                  {t('settings.tun.autoRouteLabel')}:
-                </span>
-                <span className="settingsTunSummaryValue">
-                  {tunPrefs.autoRoute === undefined
-                    ? t('settings.tun.inherit')
-                    : tunPrefs.autoRoute
-                      ? t('common.on')
-                      : t('common.off')}
-                </span>
-              </span>
-              <span className="settingsTunSummaryItem">
-                <span className="settingsTunSummaryLabel">
-                  {t('settings.tun.snifferLabel')}:
-                </span>
-                <span className="settingsTunSummaryValue">
-                  {trafficPrefs.snifferEnabled === undefined
-                    ? t('settings.tun.inherit')
-                    : trafficPrefs.snifferEnabled
-                      ? t('common.on')
-                      : t('common.off')}
-                </span>
-              </span>
+          <Expansion
+            icon="shield"
+            header={t('settings.tun.title')}
+            className="stSection"
+          >
+            <div className="stBody">
+              <p className="muted stHint">{t('settings.tun.hint')}</p>
+              <dl className="stTunSummary">
+                <div className="stTunItem">
+                  <dt>{t('settings.tun.stackLabel')}</dt>
+                  <dd>{tunStackValue || t('settings.tun.inherit')}</dd>
+                </div>
+                <div className="stTunItem">
+                  <dt>{t('settings.tun.autoRouteLabel')}</dt>
+                  <dd>{tristate(tunPrefs.autoRoute)}</dd>
+                </div>
+                <div className="stTunItem">
+                  <dt>{t('settings.tun.snifferLabel')}</dt>
+                  <dd>{tristate(trafficPrefs.snifferEnabled)}</dd>
+                </div>
+              </dl>
+              <div className="stActions">
+                <Button variant="tonal" onClick={onShowTunModal}>
+                  {t('settings.tun.configure')}
+                </Button>
+              </div>
             </div>
-            <div className="settingsInlineActions">
-              <button type="button" className="btn" onClick={onShowTunModal}>
-                {t('settings.tun.configure')}
-              </button>
-            </div>
-          </details>
+          </Expansion>
         </div>
 
-        <div className="settingsCol">
-          <details className="homeCard settingsCardCompact settingsDisclosure">
-            <summary>
-              <h3 className="homeCardTitle">
-                <span className="settingsCardIcon" aria-hidden>
-                  <MaterialSymbol name="refresh" />
-                </span>
-                {t('settings.profilesUpdates')}
-              </h3>
-              <MaterialSymbol name="chevron" />
-            </summary>
-            <label className="field">
-              <span className="fieldLab">
-                Default auto-update interval (min)
-              </span>
-              <input
-                className="input"
+        <div className="stCol stagger" style={{ '--i': 1 } as CSSProperties}>
+          <Expansion
+            icon="refresh"
+            header={t('settings.profilesUpdates')}
+            className="stSection"
+          >
+            <div className="stBody">
+              <TextField
+                type="number"
+                label="Default auto-update interval (min)"
+                placeholder="360"
                 value={String(settings.defaultAutoUpdateMinutes)}
-                onChange={(e) =>
+                onChange={(v) =>
                   onSetSetting(
                     'defaultAutoUpdateMinutes',
-                    Math.max(5, Number(e.target.value || 360)),
+                    Math.max(5, Number(v || 360)),
                   )
                 }
-                placeholder="360"
               />
-            </label>
-            <div className="settingsToggleRow">
-              <span>{t('settings.reconnectOnManualProfileUpdate')}</span>
-              <SettingsSwitch
-                checked={settings.reconnectOnManualProfileUpdate}
+              <SwitchRow
                 label={t('settings.reconnectOnManualProfileUpdate')}
-                onToggle={() =>
-                  onSetSetting(
-                    'reconnectOnManualProfileUpdate',
-                    !settings.reconnectOnManualProfileUpdate,
-                  )
+                checked={settings.reconnectOnManualProfileUpdate}
+                onChange={(v) =>
+                  onSetSetting('reconnectOnManualProfileUpdate', v)
                 }
               />
+              <div className="stActions">
+                <Button
+                  variant="outlined"
+                  disabled={settingsBusy}
+                  onClick={onApplyDefaultAutoUpdate}
+                >
+                  {t('settings.applyDefaultsToProfiles')}
+                </Button>
+                <Button
+                  variant="tonal"
+                  busy={settingsBusy}
+                  onClick={onRefreshAllSubs}
+                >
+                  {t('settings.refreshAllSubs')}
+                </Button>
+              </div>
             </div>
-            <div className="row">
-              <button
-                type="button"
-                className="btn ghost"
-                disabled={settingsBusy}
-                onClick={onApplyDefaultAutoUpdate}
-              >
-                {t('settings.applyDefaultsToProfiles')}
-              </button>
-              <button
-                type="button"
-                className="btn"
-                disabled={settingsBusy}
-                onClick={onRefreshAllSubs}
-              >
-                {t('settings.refreshAllSubs')}
-              </button>
-            </div>
-          </details>
+          </Expansion>
 
-          <details className="homeCard settingsCardCompact settingsDisclosure">
-            <summary>
-              <h3 className="homeCardTitle">
-                <span className="settingsCardIcon" aria-hidden>
-                  <MaterialSymbol name="advanced" />
-                </span>
-                {t('settings.dataDiag')}
-              </h3>
-              <MaterialSymbol name="chevron" />
-            </summary>
-            <label className="field">
-              <span className="fieldLab">{t('settings.logLevel')}</span>
-              <select
-                className="selectModern"
+          <Expansion
+            icon="advanced"
+            header={t('settings.dataDiag')}
+            className="stSection"
+          >
+            <div className="stBody">
+              <Select
+                label={t('settings.logLevel')}
                 value={settings.logLevel}
-                onChange={(e) =>
-                  onSetSetting(
-                    'logLevel',
-                    e.target.value as CompactSettings['logLevel'],
-                  )
+                onChange={(v) =>
+                  onSetSetting('logLevel', v as CompactSettings['logLevel'])
                 }
-              >
-                <option value="error">error</option>
-                <option value="warn">warn</option>
-                <option value="info">info</option>
-                <option value="debug">debug</option>
-              </select>
-            </label>
-            <div className="row">
-              <button
-                type="button"
-                className="btn ghost"
-                disabled={settingsBusy}
-                onClick={onExportDiagnostics}
-              >
-                {t('settings.exportDiagnostics')}
-              </button>
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={onClearCache}
-              >
-                {t('settings.clearCache')}
-              </button>
+                options={['error', 'warn', 'info', 'debug'].map((l) => ({
+                  value: l,
+                  label: l,
+                }))}
+              />
+              <div className="stActions">
+                <Button
+                  variant="outlined"
+                  busy={settingsBusy}
+                  onClick={onExportDiagnostics}
+                >
+                  {t('settings.exportDiagnostics')}
+                </Button>
+                <Button variant="outlined" onClick={onClearCache}>
+                  {t('settings.clearCache')}
+                </Button>
+              </div>
+              <div className="stActions">
+                <Button
+                  variant="outlined"
+                  onClick={() => onOpenResetModal('keep_profiles')}
+                >
+                  {t('settings.resetAppSettings')}
+                </Button>
+                <Button
+                  variant="outlined"
+                  className="stDanger"
+                  onClick={() => onOpenResetModal('with_profiles')}
+                >
+                  {t('settings.resetRemoveProfiles')}
+                </Button>
+              </div>
             </div>
-            <div className="row">
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={() => onOpenResetModal('keep_profiles')}
-              >
-                {t('settings.resetAppSettings')}
-              </button>
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={() => onOpenResetModal('with_profiles')}
-              >
-                {t('settings.resetRemoveProfiles')}
-              </button>
-            </div>
-          </details>
+          </Expansion>
 
-          <details className="homeCard settingsCardCompact settingsDisclosure settingsInfoDevCard">
-            <summary>
-              <h3 className="homeCardTitle settingsInfoDevTitle">
-                <span className="settingsCardIcon" aria-hidden>
-                  <MaterialSymbol name="devices" />
-                </span>
-                {t('settings.info')}
-              </h3>
-              <MaterialSymbol name="chevron" />
-            </summary>
-            <div className="settingsInfoDevBody">
-              <div className="settingsKpiGrid">
-                <div className="settingsKpi">
+          <Expansion
+            icon="devices"
+            header={t('settings.info')}
+            className="stSection"
+          >
+            <div className="stBody">
+              <div className="stKpiGrid">
+                <div className="stKpi">
                   <span>Core</span>
                   <strong title={t('settings.coreTitle')}>
                     {state?.core?.version?.trim() ? state.core.version : '—'}
                   </strong>
                 </div>
-                <div className="settingsKpi">
+                <div className="stKpi">
                   <span>{t('settings.appVersionLabel')}</span>
                   <strong>
                     {String(updateSnap?.currentVersion ?? '').trim()
@@ -865,14 +764,14 @@ export function SettingsPage({
                           | undefined) ?? 'dev')}
                   </strong>
                 </div>
-                <div className="settingsKpi">
+                <div className="stKpi">
                   <span>{t('settings.updateChannelLabel')}</span>
                   <strong>{updateSnap?.channel ?? 'stable'}</strong>
                 </div>
                 {/* Privileged service version. Previously only visible inside
                     the "update required" banner, so a healthy install had no
                     way to show which service is actually running. */}
-                <div className="settingsKpi">
+                <div className="stKpi">
                   <span>{t('settings.serviceVersionLabel')}</span>
                   <strong title={serviceInfo?.expectedVersion}>
                     {!serviceInfo?.installed
@@ -882,7 +781,7 @@ export function SettingsPage({
                         : '—'}
                   </strong>
                 </div>
-                <div className="settingsKpi">
+                <div className="stKpi">
                   <span>{t('settings.lastCheckedLabel')}</span>
                   <strong>
                     {updateSnap?.lastCheckedAt
@@ -894,7 +793,7 @@ export function SettingsPage({
                 </div>
               </div>
               {coreBuild?.source ? (
-                <p className="small muted settingsCoreBuild">
+                <p className="small muted stCoreBuild">
                   <span>
                     {coreBuild.source === 'citrus'
                       ? t('settings.coreBuildCitrus', {
@@ -904,140 +803,119 @@ export function SettingsPage({
                           version: coreBuild.version,
                         })}
                   </span>
-                  {coreBuild.source ? (
-                    <>
-                      <button
-                        type="button"
-                        className="linkBtn"
-                        onClick={() => onBrowserOpen(coreBuild.patchesUrl)}
-                      >
-                        {t('settings.coreBuildPatches')}
-                      </button>
-                      <button
-                        type="button"
-                        className="linkBtn"
-                        onClick={() => onBrowserOpen(coreBuild.docUrl)}
-                      >
-                        {t('settings.coreBuildDoc')}
-                      </button>
-                    </>
-                  ) : null}
+                  <Button
+                    variant="text"
+                    size="extra-small"
+                    onClick={() => onBrowserOpen(coreBuild.patchesUrl)}
+                  >
+                    {t('settings.coreBuildPatches')}
+                  </Button>
+                  <Button
+                    variant="text"
+                    size="extra-small"
+                    onClick={() => onBrowserOpen(coreBuild.docUrl)}
+                  >
+                    {t('settings.coreBuildDoc')}
+                  </Button>
                 </p>
               ) : null}
-              <div className="settingsInfoDevActions">
-                <div className="settingsToggleRow">
-                  <div>
-                    <span>{t('settings.corpVpnToggle')}</span>
-                    <p className="small muted">{t('settings.corpVpnHint')}</p>
-                  </div>
-                  <SettingsSwitch
-                    checked={corpVpnEnabled}
-                    label={t('settings.corpVpnToggle')}
-                    onToggle={() => onToggleCorpVpn(!corpVpnEnabled)}
-                  />
+              <SwitchRow
+                label={t('settings.corpVpnToggle')}
+                description={t('settings.corpVpnHint')}
+                checked={corpVpnEnabled}
+                onChange={onToggleCorpVpn}
+              />
+              {updateSnap?.hasUpdate ? (
+                <p className="stNote" role="status">
+                  <MaterialSymbol name="download" />
+                  {t('settings.updateAvailable', {
+                    version: String(updateSnap.latestVersion ?? ''),
+                  })}
+                </p>
+              ) : updateSnap?.lastCheckedAt && !updateSnap?.lastError ? (
+                <p className="small stUpToDate" role="status">
+                  <MaterialSymbol name="check" />
+                  {t('settings.upToDate')}
+                </p>
+              ) : null}
+              {updateSnap?.lastError ? (
+                <div className="inlineError">
+                  <p>{String(updateSnap.lastError)}</p>
                 </div>
-                {updateSnap?.hasUpdate ? (
-                  <p className="banner" role="status">
-                    {t('settings.updateAvailable', {
-                      version: String(updateSnap.latestVersion ?? ''),
+              ) : null}
+              {updateSnap?.hasUpdate && !hasAsset ? (
+                <p className="muted small">{t('settings.updatePlatformNote')}</p>
+              ) : null}
+              {updateSnap?.hasUpdate &&
+              String(updateSnap?.releaseNotes ?? '').trim() ? (
+                <Expansion className="stNested" header={t('settings.whatsNew')}>
+                  <pre className="stChangelog allowSelect">
+                    {String(updateSnap.releaseNotes)}
+                  </pre>
+                </Expansion>
+              ) : null}
+              {updateProgress ? (
+                <div className="stProgress">
+                  <Progress
+                    value={Math.min(100, Math.max(0, updateProgress.pct))}
+                    indeterminate={updateProgress.pct < 0}
+                    ariaLabel={t('settings.updateDownloading', {
+                      pct:
+                        updateProgress.pct >= 0
+                          ? Math.round(updateProgress.pct)
+                          : '…',
                     })}
-                  </p>
-                ) : updateSnap?.lastCheckedAt && !updateSnap?.lastError ? (
-                  <p className="small settingsUpToDate" role="status">
-                    ✓ {t('settings.upToDate')}
-                  </p>
-                ) : null}
-                {updateSnap?.lastError ? (
-                  <p className="error small">{String(updateSnap.lastError)}</p>
-                ) : null}
-                {updateSnap?.hasUpdate &&
-                !String(updateSnap?.assetDownloadUrl ?? '').trim() ? (
-                  <p className="muted small">
-                    {t('settings.updatePlatformNote')}
-                  </p>
-                ) : null}
-                {updateSnap?.hasUpdate &&
-                String(updateSnap?.releaseNotes ?? '').trim() ? (
-                  <details className="settingsChangelog">
-                    <summary>{t('settings.whatsNew')}</summary>
-                    <pre className="settingsChangelogBody">
-                      {String(updateSnap.releaseNotes)}
-                    </pre>
-                  </details>
-                ) : null}
-                {updateProgress ? (
-                  <div className="updateProgress">
-                    <div className="updateProgressTrack">
-                      <div
-                        className={`updateProgressBar${updateProgress.pct < 0 ? ' indeterminate' : ''}`}
-                        style={
-                          updateProgress.pct >= 0
-                            ? {
-                                width: `${Math.min(100, Math.max(0, updateProgress.pct))}%`,
-                              }
-                            : undefined
-                        }
-                      />
-                    </div>
-                    <span className="muted small">
-                      {updateProgress.pct >= 100
-                        ? t('settings.updateStarting')
-                        : t('settings.updateDownloading', {
-                            pct:
-                              updateProgress.pct >= 0
-                                ? Math.round(updateProgress.pct)
-                                : '…',
-                          })}
-                    </span>
-                  </div>
-                ) : null}
-                <div className="row settingsInfoDevBtnRow">
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={onCheckUpdates}
-                  >
-                    {t('settings.checkUpdates')}
-                  </button>
-                  {updateSnap?.hasUpdate &&
-                  String(updateSnap?.assetDownloadUrl ?? '').trim() ? (
-                    <button
-                      type="button"
-                      className="btn primary"
-                      disabled={Boolean(updateProgress)}
-                      onClick={onApplyUpdate}
-                    >
-                      {t('settings.downloadInstaller')}
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="btn ghost"
-                    onClick={() => onBrowserOpen(APP_DOWNLOADS_URL)}
-                  >
-                    {t('settings.openReleasePage')}
-                  </button>
+                  />
+                  <span className="muted small">
+                    {updateProgress.pct >= 100
+                      ? t('settings.updateStarting')
+                      : t('settings.updateDownloading', {
+                          pct:
+                            updateProgress.pct >= 0
+                              ? Math.round(updateProgress.pct)
+                              : '…',
+                        })}
+                  </span>
                 </div>
+              ) : null}
+              <div className="stActions">
+                <Button variant="tonal" onClick={onCheckUpdates}>
+                  {t('settings.checkUpdates')}
+                </Button>
+                {updateSnap?.hasUpdate && hasAsset ? (
+                  <Button
+                    busy={Boolean(updateProgress)}
+                    onClick={onApplyUpdate}
+                  >
+                    {t('settings.downloadInstaller')}
+                  </Button>
+                ) : null}
+                <Button
+                  variant="outlined"
+                  onClick={() => onBrowserOpen(APP_DOWNLOADS_URL)}
+                >
+                  {t('settings.openReleasePage')}
+                </Button>
               </div>
             </div>
-          </details>
+          </Expansion>
         </div>
       </div>
       {tunBanner ? (
-        <div className="banner bannerDismissable" role="status">
+        <div className="stBanner" role="status">
           <span>{tunBanner}</span>
-          <button
-            type="button"
-            className="bannerClose"
-            aria-label={t('common.dismiss')}
-            title={t('common.dismiss')}
+          <IconButton
+            icon="close"
+            label={t('common.dismiss')}
             onClick={onDismissBanner}
-          >
-            ✕
-          </button>
+          />
         </div>
       ) : null}
-      {error ? <p className="error">{friendlyErrorMessage(error)}</p> : null}
+      {error ? (
+        <div className="inlineError">
+          <p>{friendlyErrorMessage(error)}</p>
+        </div>
+      ) : null}
     </div>
   )
 }

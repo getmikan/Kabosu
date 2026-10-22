@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
+import '../styles/profile-dialogs.css'
 
 export type ProfileMenuTarget = {
   id: string

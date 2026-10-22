@@ -7,6 +7,8 @@ import {
   SetProfileScriptOverride,
 } from '../api/profile'
 import { MonacoDiffViewer, MonacoScriptEditor } from '../MonacoYamlEditor'
+import '../styles/editors.css'
+import { Button, Dialog, Segmented } from '../ui/M3'
 
 import type { ProfileModalTarget } from './ProfileMergeModal'
 
@@ -147,46 +149,61 @@ export function ProfileScriptModal({
       : ''
 
   return (
-    <div
-      className="modalOverlay"
-      role="presentation"
-      style={{ zIndex: 70 }}
-      onClick={onClose}
+    <Dialog
+      open
+      wide
+      onClose={onClose}
+      className="edDialogWide"
+      title={
+        <span className="edTitleRow">
+          <span>{t('ui.profiles.scriptModal.title')}</span>
+          <Segmented<'editor' | 'diff'>
+            ariaLabel={t('ui.profiles.scriptModal.title')}
+            value={showDiff ? 'diff' : 'editor'}
+            options={[
+              {
+                value: 'editor',
+                label: t('ui.profiles.scriptModal.editorTab'),
+              },
+              {
+                value: 'diff',
+                label: t('ui.profiles.scriptModal.diffTab'),
+                disabled: !preview,
+              },
+            ]}
+            onChange={(next) => setShowDiff(next === 'diff')}
+          />
+        </span>
+      }
+      actions={
+        <>
+          <Button variant="text" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button variant="outlined" disabled={busy} onClick={() => void clear()}>
+            {t('ui.profiles.scriptModal.clear')}
+          </Button>
+          <Button
+            variant="tonal"
+            busy={previewing}
+            disabled={busy}
+            onClick={() => void runPreview()}
+          >
+            {previewing
+              ? t('ui.profiles.scriptModal.previewing')
+              : t('ui.profiles.scriptModal.preview')}
+          </Button>
+          <Button busy={busy} onClick={() => void save()}>
+            {t('common.save')}
+          </Button>
+        </>
+      }
     >
-      <div
-        className="modalCard modalCardWide modalCardFullscreen scriptEditorModal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="scriptEdTitle"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="vergeModalHead">
-          <h3 id="scriptEdTitle" className="modalTitle vergeModalTitle">
-            {t('ui.profiles.scriptModal.title')}
-          </h3>
-          <div className="vergeToggleRow">
-            <button
-              type="button"
-              className={`btn vergeToggle ${showDiff ? 'ghost' : 'primary'}`}
-              onClick={() => setShowDiff(false)}
-            >
-              {t('ui.profiles.scriptModal.editorTab')}
-            </button>
-            <button
-              type="button"
-              className={`btn vergeToggle ${showDiff ? 'primary' : 'ghost'}`}
-              disabled={!preview}
-              onClick={() => setShowDiff(true)}
-            >
-              {t('ui.profiles.scriptModal.diffTab')}
-            </button>
-          </div>
-        </div>
-
+      <div className="edBody">
         {/* A failure recorded by the last real generation, so the user sees why
             the profile is badged without having to press Preview first. */}
         {recorded && !preview ? (
-          <p className="rulesYamlErr small scriptErrorLine">
+          <p className="edError" role="alert">
             {recorded.line > 0
               ? t('ui.profiles.scriptModal.recordedErrorAt', {
                   error: recorded.error,
@@ -200,36 +217,29 @@ export function ProfileScriptModal({
         ) : null}
 
         {showDiff && preview ? (
-          <div className="scriptPreviewBody">
-            <p className="eyebrow">
+          <div className="edField">
+            <span className="edEyebrow">
               {preview.changed
                 ? t('ui.profiles.scriptModal.diffChanged')
                 : t('ui.profiles.scriptModal.diffUnchanged')}
-            </p>
+            </span>
             <MonacoDiffViewer
-              className="vergePaneYaml modalMonacoWrap"
               original={preview.withoutScript}
               modified={preview.withScript}
               language="yaml"
-              height="52vh"
             />
           </div>
         ) : (
-          <label className="field modalField scriptEditorField">
-            <span className="fieldLab">
+          <div className="edField">
+            <span className="edFieldLabel">
               {t('ui.profiles.scriptModal.editorLabel')}
             </span>
-            <MonacoScriptEditor
-              className="vergePaneYaml modalMonacoWrap"
-              value={draft}
-              onChange={setDraft}
-              height="52vh"
-            />
-          </label>
+            <MonacoScriptEditor value={draft} onChange={setDraft} />
+          </div>
         )}
 
         {previewErr ? (
-          <p className="rulesYamlErr small scriptErrorLine">
+          <p className="edError" role="alert">
             {position
               ? t('ui.profiles.scriptModal.failedAt', {
                   error: previewErr,
@@ -240,11 +250,11 @@ export function ProfileScriptModal({
         ) : null}
 
         {previewConsole.length > 0 ? (
-          <div className="scriptConsole">
-            <p className="eyebrow">
+          <div className="edConsole">
+            <span className="edEyebrow">
               {t('ui.profiles.scriptModal.consoleLabel')}
-            </p>
-            <pre className="scriptConsoleOut allowSelect">
+            </span>
+            <pre className="edConsoleOut allowSelect">
               {previewConsole.join('\n')}
               {preview?.result?.consoleTruncated
                 ? `\n${t('ui.profiles.scriptModal.consoleTruncated')}`
@@ -252,41 +262,7 @@ export function ProfileScriptModal({
             </pre>
           </div>
         ) : null}
-
-        <div className="modalFooter">
-          <button type="button" className="btn ghost" onClick={onClose}>
-            {t('common.cancel')}
-          </button>
-          <div className="modalFooterRight">
-            <button
-              type="button"
-              className="btn ghost"
-              disabled={busy}
-              onClick={() => void clear()}
-            >
-              {t('ui.profiles.scriptModal.clear')}
-            </button>
-            <button
-              type="button"
-              className="btn ghost"
-              disabled={previewing || busy}
-              onClick={() => void runPreview()}
-            >
-              {previewing
-                ? t('ui.profiles.scriptModal.previewing')
-                : t('ui.profiles.scriptModal.preview')}
-            </button>
-            <button
-              type="button"
-              className="btn primary"
-              disabled={busy}
-              onClick={() => void save()}
-            >
-              {t('common.save')}
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

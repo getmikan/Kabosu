@@ -1,0 +1,113 @@
+/* Service log viewer. */
+.lgPage {
+  gap: 12px;
+}
+.lgHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.lgHead h2 {
+  flex: 1;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+}
+.lgHeadActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.lgToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.lgSearch {
+  flex: 1 1 240px;
+  min-width: 200px;
+  max-width: 420px;
+}
+.lgLevels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lgTail {
+  margin-left: auto;
+}
+.lgTail .m3SwitchRow {
+  min-height: 40px;
+  padding: 0;
+  gap: 12px;
+}
+.lgTail .m3SwitchRowLabel {
+  font-size: 14px;
+}
+.lgMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.lgMeta strong {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  word-break: break-all;
+}
+.lgLive {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: livePulse 2.4s var(--ease-standard) infinite;
+}
+.lgToast {
+  align-self: flex-start;
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--inverse-surface);
+  color: var(--inverse-on-surface);
+  font-size: 12px;
+}
+.lgPre {
+  margin: 0;
+  max-height: calc(100vh - 360px);
+  min-height: 200px;
+  overflow: auto;
+  padding: 16px;
+  border-radius: var(--radius-xl);
+  background: var(--surface-container-highest);
+  color: var(--on-surface);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.lgLine {
+  display: block;
+  padding: 0 8px;
+  margin: 0 -8px;
+  border-radius: var(--radius-xs);
+}
+.lgLine[data-level="error"] {
+  background: color-mix(in srgb, var(--error) 14%, transparent);
+  color: var(--error);
+}
+.lgLine[data-level="warn"] {
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+  color: var(--warning);
+}
+.lgLine[data-level="debug"] {
+  color: var(--on-surface-variant);
+}

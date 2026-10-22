@@ -6,6 +6,7 @@ import { I18nextProvider } from 'react-i18next'
 
 import '@fontsource-variable/roboto-flex'
 import './style.css'
+import './ui/register'
 import App from './App'
 import { AppErrorFallback } from './components/AppErrorFallback'
 import i18n from './i18n'

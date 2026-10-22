@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
+import '../styles/operator.css'
+import { Button, Dialog, Progress, Shape } from '../ui/M3'
 import { formatBytesSmart } from '../utils/format'
 import {
   parseSubscriptionUsage,
@@ -9,6 +11,7 @@ import {
   subscriptionDaysLeft,
 } from '../utils/subscription'
 
+import { MaterialSymbol } from './MaterialSymbol'
 import { ServerGroups } from './ServerGroups'
 
 /**
@@ -107,139 +110,151 @@ export function OperatorModal({
     }
   }
 
-  return (
-    <div
-      className={embedded ? 'operatorPage' : 'modalOverlay'}
-      role="presentation"
-      onClick={embedded ? undefined : onClose}
-    >
-      <div
-        className={
-          embedded ? 'operatorPageCard' : 'modalCard operatorModalCard'
-        }
-        role={embedded ? 'region' : 'dialog'}
-        aria-modal={embedded ? undefined : true}
-        aria-labelledby="operatorTitle"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {logo ? (
-          <img className="operatorLogo" src={logo} alt={m.name || 'logo'} />
-        ) : null}
-        <h3 id="operatorTitle" className="modalTitle">
-          {m.name || t('settings.operator')}
-        </h3>
-        {m.tagline ? <p className="muted small">{m.tagline}</p> : null}
-        {host ? <p className="muted small operatorHost">{host}</p> : null}
-        {m.greeting || m.userDisplayName ? (
-          <p className="operatorGreeting">
-            {m.greeting}
-            {m.greeting && m.userDisplayName ? ' ' : ''}
-            {m.userDisplayName}
-          </p>
-        ) : null}
+  const devicesFull = Boolean(
+    m.devicesLimit && (m.devicesUsed ?? 0) >= m.devicesLimit,
+  )
 
-        {usage || m.devicesUsed || m.devicesLimit ? (
-          <div className="operatorUsage">
-            {usage ? (
-              <div className="operatorUsageRow">
-                <span className="muted small">{t('ui.operator.traffic')}</span>
-                <span className="operatorUsageValue">
-                  {formatBytesSmart(usage.usedBytes)}
-                  {usage.totalBytes > 0
-                    ? ` / ${formatBytesSmart(usage.totalBytes)}`
-                    : ''}
-                </span>
-              </div>
-            ) : null}
-            {pct !== null ? (
-              <div
-                className="operatorUsageBar"
-                role="progressbar"
-                aria-valuenow={pct}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
-                <div
-                  className="operatorUsageBarFill"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            ) : null}
-            {m.devicesUsed || m.devicesLimit ? (
-              <div className="operatorUsageRow">
-                <span className="muted small">{t('ui.operator.devices')}</span>
-                <span
-                  className={
-                    m.devicesLimit && (m.devicesUsed ?? 0) >= m.devicesLimit
-                      ? 'operatorUsageValue operatorUsageWarn'
-                      : 'operatorUsageValue'
-                  }
-                >
-                  {m.devicesUsed ?? 0}
-                  {m.devicesLimit ? ` / ${m.devicesLimit}` : ''}
-                </span>
-              </div>
-            ) : null}
-            {daysLeft !== null ? (
-              <div className="operatorUsageRow">
-                <span className="muted small">{t('ui.operator.expires')}</span>
-                <span
-                  className={
-                    daysLeft <= 3
-                      ? 'operatorUsageValue operatorUsageWarn'
-                      : 'operatorUsageValue'
-                  }
-                >
-                  {daysLeft >= 0
-                    ? t('ui.operator.daysLeft', { count: daysLeft })
-                    : t('ui.operator.expired')}
-                </span>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        <ServerGroups
-          metadata={activeProfile?.panel?.groups}
-          pageUrl={m.cabinetUrl || activeProfile?.panel?.webPageUrl}
-          onOpen={onBrowserOpen}
-        />
-        {shown.length > 0 ? (
-          <div className="operatorLinks">
-            {shown.map(([label, url]) => (
-              <button
-                key={label}
-                type="button"
-                className="btn ghost operatorLinkBtn"
-                onClick={() => onBrowserOpen(String(url))}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        <p className="muted small operatorAttribution">
-          Powered by Kabosu · Citrus
+  const content = (
+    <div className="opBody">
+      <header className="opHero">
+        <span className="opLogo">
+          <Shape name="soft-burst" />
+          {logo ? (
+            <img src={logo} alt={m.name || 'logo'} />
+          ) : (
+            <MaterialSymbol name="shield" />
+          )}
+        </span>
+        <div className="opHeroText">
+          <h3 id="operatorTitle" className="opTitle">
+            {m.name || t('settings.operator')}
+          </h3>
+          {m.tagline ? <p className="opTagline">{m.tagline}</p> : null}
+          {host ? <span className="opHost mono">{host}</span> : null}
+        </div>
+      </header>
+      {m.greeting || m.userDisplayName ? (
+        <p className="opGreeting">
+          {m.greeting}
+          {m.greeting && m.userDisplayName ? ' ' : ''}
+          {m.userDisplayName}
         </p>
-        <div className="modalFooter">
-          <button
-            type="button"
-            className="btn btnModalSecondary"
-            onClick={() => void copySupportInfo()}
-          >
-            {copied ? t('ui.operator.copied') : t('ui.operator.copyForSupport')}
-          </button>
-          <button
-            type="button"
-            className="btn"
-            hidden={embedded}
-            onClick={onClose}
-          >
-            {t('common.close')}
-          </button>
+      ) : null}
+
+      {usage || m.devicesUsed || m.devicesLimit ? (
+        <div className="opUsage stagger">
+          {usage ? (
+            <div className="opTile" style={{ '--i': 0 } as CSSProperties}>
+              <span className="opTileLabel">{t('ui.operator.traffic')}</span>
+              <span className="opTileValue">
+                {formatBytesSmart(usage.usedBytes)}
+                {usage.totalBytes > 0
+                  ? ` / ${formatBytesSmart(usage.totalBytes)}`
+                  : ''}
+              </span>
+              {pct !== null ? (
+                <Progress
+                  className="opTileBar"
+                  value={pct}
+                  ariaLabel={t('ui.operator.traffic')}
+                />
+              ) : null}
+            </div>
+          ) : null}
+          {m.devicesUsed || m.devicesLimit ? (
+            <div
+              className="opTile"
+              data-warn={devicesFull || undefined}
+              style={{ '--i': 1 } as CSSProperties}
+            >
+              <span className="opTileLabel">{t('ui.operator.devices')}</span>
+              <span className="opTileValue">
+                {m.devicesUsed ?? 0}
+                {m.devicesLimit ? ` / ${m.devicesLimit}` : ''}
+              </span>
+            </div>
+          ) : null}
+          {daysLeft !== null ? (
+            <div
+              className="opTile"
+              data-warn={daysLeft <= 3 || undefined}
+              style={{ '--i': 2 } as CSSProperties}
+            >
+              <span className="opTileLabel">{t('ui.operator.expires')}</span>
+              <span className="opTileValue">
+                {daysLeft >= 0
+                  ? t('ui.operator.daysLeft', { count: daysLeft })
+                  : t('ui.operator.expired')}
+              </span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <ServerGroups
+        metadata={activeProfile?.panel?.groups}
+        pageUrl={m.cabinetUrl || activeProfile?.panel?.webPageUrl}
+        onOpen={onBrowserOpen}
+      />
+      {shown.length > 0 ? (
+        <div className="opLinks stagger">
+          {shown.map(([label, url], i) => (
+            <Button
+              key={label}
+              variant="outlined"
+              trailingIcon="chevron"
+              className="opLinkBtn"
+              style={{ '--i': i } as CSSProperties}
+              onClick={() => onBrowserOpen(String(url))}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+      ) : null}
+
+      <p className="opAttribution">Powered by Kabosu · Citrus</p>
+    </div>
+  )
+
+  const copyButton = (
+    <Button
+      variant="tonal"
+      icon={copied ? 'check' : 'download'}
+      onClick={() => void copySupportInfo()}
+    >
+      {copied ? t('ui.operator.copied') : t('ui.operator.copyForSupport')}
+    </Button>
+  )
+
+  if (embedded) {
+    return (
+      <div className="operatorPage opPage">
+        <div
+          className="operatorPageCard opCard"
+          role="region"
+          aria-labelledby="operatorTitle"
+        >
+          {content}
+          <div className="opFooter">{copyButton}</div>
         </div>
       </div>
-    </div>
+    )
+  }
+
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      className="opDialog"
+      actions={
+        <>
+          {copyButton}
+          <Button onClick={onClose}>{t('common.close')}</Button>
+        </>
+      }
+    >
+      {content}
+    </Dialog>
   )
 }

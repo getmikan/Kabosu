@@ -1,0 +1,144 @@
+/* Profile context menu and profile dialogs. Prefix pd (ctxMenu is read by App.tsx). */
+.ctxMenu {
+  position: fixed;
+  z-index: 3100;
+  min-width: 240px;
+  max-height: calc(100vh - 16px);
+  padding: 8px;
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+  box-shadow:
+    0 8px 24px rgb(0 0 0 / 24%),
+    0 0 0 1px var(--outline-variant);
+  transform-origin: top left;
+  animation: pdMenuIn 280ms var(--ease-spring) both;
+}
+@keyframes pdMenuIn {
+  from {
+    opacity: 0;
+    scale: 0.92;
+    translate: 0 -8px;
+  }
+}
+.ctxTitle {
+  padding: 8px 12px;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--primary);
+}
+.ctxItem {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--on-surface);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast),
+    border-radius var(--dur-base) var(--ease-spring);
+}
+.ctxItem:hover:not(:disabled),
+.ctxItem:focus-visible {
+  border-radius: var(--radius-xs);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+.ctxItem:active:not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--on-secondary-container) 14%,
+    var(--secondary-container)
+  );
+}
+.ctxItem:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.ctxSection {
+  margin-top: 4px;
+  padding: 12px 12px 4px;
+  border-top: 1px solid var(--outline-variant);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--on-surface-variant);
+}
+.ctxItemSub {
+  padding-left: 20px;
+}
+
+/* --- Dialogs --- */
+.pdBlurb {
+  margin: 0;
+}
+.pdModes {
+  align-self: flex-start;
+}
+.pdDetect {
+  color: var(--primary);
+}
+.pdDetect-unknown {
+  color: var(--error);
+}
+.pdTextarea textarea {
+  font-family: var(--font-mono, ui-monospace, Consolas, monospace);
+  font-size: 12px;
+  line-height: 16px;
+}
+.pdFooterLeft {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-right: auto;
+}
+.pdHiddenFile {
+  display: none;
+}
+.pdBody {
+  margin: 0;
+  color: var(--on-surface-variant);
+  overflow-wrap: anywhere;
+}
+.pdBody strong {
+  color: var(--on-surface);
+}
+.pdDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-high);
+}
+.pdRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pdLabel {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--on-surface-variant);
+}
+.pdUrl {
+  font-family: var(--font-mono, ui-monospace, Consolas, monospace);
+  font-size: 12px;
+  line-height: 16px;
+  overflow-wrap: anywhere;
+  -webkit-user-select: text;
+  user-select: text;
+}

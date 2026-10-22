@@ -7,6 +7,7 @@ import Maximize from '@material-symbols/svg-400/rounded/crop_square.svg?react'
 import Moon from '@material-symbols/svg-400/rounded/dark_mode.svg?react'
 import Devices from '@material-symbols/svg-400/rounded/devices.svg?react'
 import Download from '@material-symbols/svg-400/rounded/download.svg?react'
+import Edit from '@material-symbols/svg-400/rounded/edit.svg?react'
 import Error from '@material-symbols/svg-400/rounded/error.svg?react'
 import Help from '@material-symbols/svg-400/rounded/help.svg?react'
 import Home from '@material-symbols/svg-400/rounded/home.svg?react'
@@ -19,6 +20,7 @@ import Power from '@material-symbols/svg-400/rounded/power_settings_new.svg?reac
 import Refresh from '@material-symbols/svg-400/rounded/refresh.svg?react'
 import Minimize from '@material-symbols/svg-400/rounded/remove.svg?react'
 import Rules from '@material-symbols/svg-400/rounded/route.svg?react'
+import Search from '@material-symbols/svg-400/rounded/search.svg?react'
 import Settings from '@material-symbols/svg-400/rounded/settings.svg?react'
 import Shield from '@material-symbols/svg-400/rounded/shield.svg?react'
 import Speed from '@material-symbols/svg-400/rounded/speed.svg?react'
@@ -57,6 +59,8 @@ const icons = {
   minimize: Minimize,
   maximize: Maximize,
   more: More,
+  search: Search,
+  edit: Edit,
 }
 
 export type MaterialSymbolName = keyof typeof icons

@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
 
+import '../styles/panel.css'
+import { Progress } from '../ui/M3'
 import { formatBytesSmart } from '../utils/format'
 import {
   parseSubscriptionUsage,
@@ -21,18 +23,37 @@ export function SubscriptionStats({
       ? formatBytesSmart(Math.max(0, usage.totalBytes - usage.usedBytes))
       : '∞'
     : '—'
+  const leftPercent =
+    usage && usage.totalBytes > 0
+      ? Math.max(
+          0,
+          Math.min(
+            100,
+            Math.round(
+              ((usage.totalBytes - usage.usedBytes) / usage.totalBytes) * 100,
+            ),
+          ),
+        )
+      : null
   return (
     <dl className={`subscriptionStats${compact ? ' compact' : ''}`}>
-      <div>
+      <div className="subscriptionStat">
         <dt>{t('expressive.trafficLeft')}</dt>
         <dd>{remaining}</dd>
+        {leftPercent !== null && !compact ? (
+          <Progress
+            className="subscriptionStatBar"
+            value={leftPercent}
+            ariaLabel={t('expressive.trafficLeft')}
+          />
+        ) : null}
       </div>
-      <div>
+      <div className="subscriptionStat">
         <dt>{t('expressive.daysLeft')}</dt>
         <dd>{days === null ? '—' : Math.max(0, days)}</dd>
       </div>
       {!compact ? (
-        <div>
+        <div className="subscriptionStat">
           <dt>{t('expressive.expires')}</dt>
           <dd>
             {usage?.expiresAt

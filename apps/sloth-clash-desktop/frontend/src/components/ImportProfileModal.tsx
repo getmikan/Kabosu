@@ -1,6 +1,9 @@
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '../styles/profile-dialogs.css'
+import { Button, Dialog, Segmented, TextField } from '../ui/M3'
+
 export type ImportMode = 'url' | 'paste'
 
 const SCHEME_RE = /\b(?:vless|vmess|ss|trojan|hysteria2|hy2|tuic):\/\//gi
@@ -119,116 +122,30 @@ export function ImportProfileModal({
   }
 
   return (
-    <div className="modalOverlay" role="presentation" onClick={onClose}>
-      <div
-        className="modalCard"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="importTitle"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 id="importTitle" className="modalTitle">
-          {title}
-        </h3>
-        <p className="muted small">{blurb}</p>
-
-        {hidePaste ? null : (
-          <div className="segmentInset importModeTabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={effectiveMode === 'url'}
-              className={effectiveMode === 'url' ? 'btn' : 'btn ghost'}
-              onClick={() => onModeChange('url')}
-            >
-              {t('ui.profiles.importModal.tabUrl')}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={effectiveMode === 'paste'}
-              className={effectiveMode === 'paste' ? 'btn' : 'btn ghost'}
-              onClick={() => onModeChange('paste')}
-            >
-              {t('ui.profiles.importModal.tabPaste')}
-            </button>
-          </div>
-        )}
-
-        {effectiveMode === 'url' ? (
-          <label className="field modalField">
-            <span className="fieldLab">
-              {t('ui.profiles.importModal.subscriptionUrl')}
-            </span>
-            <input
-              className="input"
-              value={url}
-              onChange={(e) => onUrlChange(e.target.value)}
-              placeholder="https://…"
-            />
-          </label>
-        ) : (
-          <label className="field modalField">
-            <span className="fieldLab">
-              {t('ui.profiles.importModal.configOrLinks')}
-              {detection ? (
-                <span className={`importDetect importDetect-${detection.kind}`}>
-                  {' '}
-                  · {detection.label}
-                </span>
-              ) : null}
-            </span>
-            <textarea
-              className="input importTextarea"
-              value={content}
-              rows={10}
-              spellCheck={false}
-              onChange={(e) => onContentChange(e.target.value)}
-              placeholder={t('ui.profiles.importModal.pastePlaceholder')}
-            />
-          </label>
-        )}
-
-        <label className="field modalField">
-          <span className="fieldLab">
-            {t('ui.profiles.importModal.displayName')}{' '}
-            <span className="optional">{t('common.optional')}</span>
-          </span>
-          <input
-            className="input"
-            value={name}
-            onChange={(e) => onNameChange(e.target.value)}
-            placeholder={
-              effectiveMode === 'url'
-                ? t('ui.profiles.importModal.namePlaceholderUrl')
-                : t('ui.profiles.importModal.namePlaceholderPaste')
-            }
-          />
-        </label>
-
-        <div className="modalFooter">
-          <div className="modalFooterLeft">
-            <button
-              type="button"
-              className="btn btnModalSecondary"
-              onClick={onPasteFromClipboard}
-            >
+    <Dialog
+      open
+      wide={effectiveMode === 'paste'}
+      onClose={onClose}
+      title={title}
+      actions={
+        <>
+          <div className="pdFooterLeft">
+            <Button variant="outlined" onClick={onPasteFromClipboard}>
               {t('ui.profiles.importModal.pasteFromClipboard')}
-            </button>
+            </Button>
             {effectiveMode === 'paste' ? (
               <>
-                <button
-                  type="button"
-                  className="btn btnModalSecondary"
+                <Button
+                  variant="outlined"
                   onClick={() => fileRef.current?.click()}
                 >
                   {t('ui.profiles.importModal.loadFromFile')}
-                </button>
+                </Button>
                 <input
                   ref={fileRef}
                   type="file"
+                  className="pdHiddenFile"
                   accept=".yaml,.yml,.txt,.conf,text/*"
-                  style={{ display: 'none' }}
                   onChange={(e) => {
                     void onFilePicked(e.target.files?.[0])
                     e.target.value = ''
@@ -237,26 +154,81 @@ export function ImportProfileModal({
               </>
             ) : null}
           </div>
-          <div className="modalFooterRight">
-            <button
-              type="button"
-              className="btn ghost"
-              disabled={busy}
-              onClick={onClose}
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="button"
-              className="btn primary"
-              disabled={!canSubmit}
-              onClick={onSubmit}
-            >
-              {t('common.import')}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+          <Button variant="text" disabled={busy} onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            variant="filled"
+            busy={busy}
+            disabled={!canSubmit && !busy}
+            onClick={onSubmit}
+          >
+            {t('common.import')}
+          </Button>
+        </>
+      }
+    >
+      <p className="pdBlurb muted small">{blurb}</p>
+
+      {hidePaste ? null : (
+        <Segmented
+          className="pdModes"
+          value={effectiveMode}
+          onChange={onModeChange}
+          options={[
+            { value: 'url', label: t('ui.profiles.importModal.tabUrl') },
+            { value: 'paste', label: t('ui.profiles.importModal.tabPaste') },
+          ]}
+        />
+      )}
+
+      {effectiveMode === 'url' ? (
+        <TextField
+          value={url}
+          onChange={onUrlChange}
+          label={t('ui.profiles.importModal.subscriptionUrl')}
+          placeholder="https://…"
+          autoFocus
+        />
+      ) : (
+        <TextField
+          className="pdTextarea"
+          multiline
+          rows={10}
+          mono
+          spellCheck={false}
+          value={content}
+          onChange={onContentChange}
+          label={
+            <>
+              {t('ui.profiles.importModal.configOrLinks')}
+              {detection ? (
+                <span className={`pdDetect pdDetect-${detection.kind}`}>
+                  {' '}
+                  · {detection.label}
+                </span>
+              ) : null}
+            </>
+          }
+          placeholder={t('ui.profiles.importModal.pastePlaceholder')}
+        />
+      )}
+
+      <TextField
+        value={name}
+        onChange={onNameChange}
+        label={
+          <>
+            {t('ui.profiles.importModal.displayName')}{' '}
+            <span className="optional">{t('common.optional')}</span>
+          </>
+        }
+        placeholder={
+          effectiveMode === 'url'
+            ? t('ui.profiles.importModal.namePlaceholderUrl')
+            : t('ui.profiles.importModal.namePlaceholderPaste')
+        }
+      />
+    </Dialog>
   )
 }

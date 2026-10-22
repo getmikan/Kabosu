@@ -1,0 +1,451 @@
+/* Profile editor dialogs: info, YAML file, merge template, proxy groups, rules, script. */
+.edDialogWide {
+  --m3e-dialog-max-width: min(1040px, 94vw);
+  /* Same width in visual and YAML modes, so switching never resizes it. */
+  --m3e-dialog-min-width: min(1000px, 94vw);
+}
+.edDialogNarrow {
+  --m3e-dialog-max-width: min(520px, 92vw);
+  --m3e-dialog-min-width: min(440px, 92vw);
+}
+.edBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.edBlurb {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--on-surface-variant);
+}
+.edBlurb code {
+  padding: 0 6px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-container-high);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.edPath {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-container-high);
+  font-size: 12px;
+  line-height: 16px;
+  word-break: break-all;
+}
+.edGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: center;
+}
+.edGrid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.edRowActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.edHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.edSwitchTile {
+  padding: 0 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+}
+.edAge {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+  animation: riseIn 420ms var(--ease-emphasized) both;
+}
+.edAge .edRowActions {
+  align-items: center;
+}
+.edAgeSelect {
+  width: 200px;
+}
+
+/* Monaco container: a real height and rounded clipped frame. */
+.edMonaco {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--outline-variant);
+  background: #1e1e1e;
+  min-height: 240px;
+}
+.edField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.edFieldLabel {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--on-surface-variant);
+}
+.edFieldLabel .optional {
+  margin-left: 4px;
+  font-weight: 400;
+}
+.edError {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--error-container);
+  color: var(--on-error-container);
+  font-size: 12px;
+  line-height: 16px;
+  word-break: break-word;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.edEyebrow {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--primary);
+}
+.edHint {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.edLoading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+/* Add-rule bar and columns */
+.edAddBar {
+  display: grid;
+  grid-template-columns: 200px minmax(160px, 1fr) auto 200px;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+}
+.edAddBar .edAddFoot {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.edAddArrow {
+  color: var(--on-surface-variant);
+  font-size: 18px;
+}
+.edCols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.edColsForm {
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+}
+.edCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.edFormCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+}
+.edList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: min(34vh, 320px);
+  overflow: hidden auto;
+  padding-right: 4px;
+}
+.edBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.edLine {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, auto) auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 4px 4px 4px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-high);
+  font-size: 14px;
+  transition: background var(--dur-fast), opacity var(--dur-base);
+}
+.edLine:hover {
+  background: var(--surface-container-highest);
+}
+.edLine[data-deleted] {
+  opacity: 0.55;
+}
+.edLine[data-deleted] .edLineMain {
+  text-decoration: line-through;
+}
+.edLineType {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.edLineMain {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.edLineArrow {
+  color: var(--on-surface-variant);
+}
+.edLinePolicy {
+  overflow: hidden;
+  max-width: 160px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--primary);
+}
+.edLinePos {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Script dialog */
+.edConsole {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.edConsoleOut {
+  margin: 0;
+  max-height: 160px;
+  overflow: auto;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-highest);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: pre-wrap;
+}
+.edBusyRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 860px) {
+  .edAddBar,
+  .edColsForm,
+  .edCols,
+  .edGrid3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .edAddArrow {
+    display: none;
+  }
+}
+
+/* Rules dialog: form | divider | list */
+.edTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+.edRulesSplit {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) 1px minmax(0, 3fr);
+  gap: 20px;
+  align-items: stretch;
+  min-width: 0;
+  /* Fixed height: only the rules list scrolls, never the dialog body. */
+  height: min(46vh, 460px);
+}
+.edRulesSplit .edRulesList {
+  min-height: 0;
+}
+.edRulesSplit .edListTall {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+.edRulesForm,
+.edRulesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.edRulesFormActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.edBlockBtn {
+  display: block;
+  width: 100%;
+}
+.edVDivider {
+  width: 1px;
+  background: var(--outline-variant);
+}
+.edHelp {
+  padding: 4px 0 12px;
+}
+.edRulesHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.edRulesHead h3 {
+  margin-right: 4px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.edCount {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.edCountAdded {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  animation: livePulse 2.4s var(--ease-standard) 2;
+}
+.edListTall {
+  max-height: min(46vh, 420px);
+}
+.edRule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 8px 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--primary-container) 28%, transparent);
+  transition: background var(--dur-fast);
+}
+.edRule:hover {
+  background: color-mix(in srgb, var(--primary-container) 48%, transparent);
+}
+.edRule[data-user] {
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+.edRule[data-deleted] .edRuleContent {
+  text-decoration: line-through;
+}
+.edRuleType {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--inverse-surface);
+  color: var(--inverse-on-surface);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.edRuleBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.edRuleContent {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.edRulePolicy {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--on-surface-variant);
+}
+.edRulePolicy em {
+  margin-left: 8px;
+  font-style: normal;
+  color: var(--primary);
+}
+.edRuleAction {
+  opacity: 0;
+  transition: opacity var(--dur-fast);
+}
+.edRule:hover .edRuleAction,
+.edRule:focus-within .edRuleAction {
+  opacity: 1;
+}
+@media (max-width: 860px) {
+  .edRulesSplit {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .edVDivider {
+    width: auto;
+    height: 1px;
+  }
+}

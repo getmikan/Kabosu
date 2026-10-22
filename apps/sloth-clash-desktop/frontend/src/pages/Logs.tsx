@@ -1,7 +1,11 @@
-import { useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
+import { Button, FilterChip, Shape, SwitchRow, TextField } from '../ui/M3'
+
+import '../styles/logs.css'
 
 type Level = 'info' | 'warn' | 'error' | 'debug' | 'other'
 
@@ -41,6 +45,8 @@ export function LogsPage({
   const [level, setLevel] = useState<LevelFilter>('all')
   const [tailOnly, setTailOnly] = useState(true)
   const [copyToast, setCopyToast] = useState('')
+  const preRef = useRef<HTMLPreElement>(null)
+  const stickRef = useRef(true)
 
   const text = serviceLog?.text ?? ''
 
@@ -76,80 +82,87 @@ export function LogsPage({
     }
   }
 
+
+  // Auto-scroll: stick to the newest line unless the user scrolled up.
+  useLayoutEffect(() => {
+    const el = preRef.current
+    if (el && stickRef.current) el.scrollTop = el.scrollHeight
+  }, [filtered])
+
+  const levelLabel = (lv: LevelFilter) =>
+    t(
+      lv === 'all'
+        ? 'ui.logs.levelAll'
+        : lv === 'info'
+          ? 'ui.logs.levelInfo'
+          : lv === 'warn'
+            ? 'ui.logs.levelWarn'
+            : lv === 'error'
+              ? 'ui.logs.levelError'
+              : 'ui.logs.levelDebug',
+    )
+
   return (
-    <div className="panel rulesPanel">
-      <div className="rulesPanelHead">
-        <h2 className="rulesPanelTitle">{t('ui.logs.title')}</h2>
-        <div className="row" style={{ gap: 8 }}>
-          <button type="button" className="btn ghost" onClick={onRefresh}>
+    <div className="page lgPage">
+      <div className="lgHead">
+        <h2 className="srOnly">{t('ui.logs.title')}</h2>
+        <div className="lgHeadActions">
+          <Button variant="text" icon="refresh" onClick={onRefresh}>
             {t('ui.logs.refresh')}
-          </button>
-          <button
-            type="button"
-            className="btn ghost"
+          </Button>
+          <Button
+            variant="outlined"
             onClick={() => void copyText(allLines)}
             disabled={allLines.length === 0}
           >
             {t('ui.logs.copyAll')}
-          </button>
-          <button
-            type="button"
-            className="btn ghost"
+          </Button>
+          <Button
+            variant="tonal"
             onClick={() => void copyText(filtered)}
             disabled={filtered.length === 0}
           >
             {t('ui.logs.copyFiltered')}
-          </button>
+          </Button>
         </div>
       </div>
 
-      <div className="logsToolbar">
-        <input
-          type="text"
-          className="inputModern logsSearchInput"
+      <div className="lgToolbar">
+        <TextField
+          className="lgSearch"
           placeholder={t('ui.logs.search')}
+          ariaLabel={t('ui.logs.search')}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label={t('ui.logs.search')}
+          onChange={setQuery}
+          leadingIcon="search"
         />
-        <div className="logsLevelChips" role="group" aria-label="Log level">
+        <div className="lgLevels" role="group" aria-label="Log level">
           {(['all', 'info', 'warn', 'error', 'debug'] as LevelFilter[]).map(
             (lv) => (
-              <button
+              <FilterChip
                 key={lv}
-                type="button"
-                className={`logsLevelChip${level === lv ? ' active' : ''} logsLevelChip-${lv}`}
-                onClick={() => setLevel(lv)}
+                selected={level === lv}
+                onToggle={() => setLevel(lv)}
               >
-                {t(
-                  lv === 'all'
-                    ? 'ui.logs.levelAll'
-                    : lv === 'info'
-                      ? 'ui.logs.levelInfo'
-                      : lv === 'warn'
-                        ? 'ui.logs.levelWarn'
-                        : lv === 'error'
-                          ? 'ui.logs.levelError'
-                          : 'ui.logs.levelDebug',
-                )}
-              </button>
+                {levelLabel(lv)}
+              </FilterChip>
             ),
           )}
         </div>
-        <label className="logsTailToggle" title={t('ui.logs.tailOnlyHint')}>
-          <input
-            type="checkbox"
+        <div className="lgTail" title={t('ui.logs.tailOnlyHint')}>
+          <SwitchRow
+            label={t('ui.logs.tailOnly')}
             checked={tailOnly}
-            onChange={(e) => setTailOnly(e.target.checked)}
+            onChange={setTailOnly}
           />
-          {t('ui.logs.tailOnly')}
-        </label>
+        </div>
       </div>
 
       {serviceLog?.path ? (
-        <p className="muted small tight">
-          <strong className="monoTight">{serviceLog.path}</strong>{' '}
-          <span className="muted">
+        <p className="lgMeta">
+          <span className="lgLive" aria-hidden="true" />
+          <strong>{serviceLog.path}</strong>
+          <span>
             ·{' '}
             {t('ui.logs.lineCount', {
               visible: filtered.length,
@@ -159,17 +172,49 @@ export function LogsPage({
         </p>
       ) : null}
       {serviceLog?.lastError ? (
-        <p className="error tight">{serviceLog.lastError}</p>
+        <div className="inlineError" role="alert">
+          <p>{serviceLog.lastError}</p>
+        </div>
       ) : null}
 
-      {copyToast ? <p className="muted small tight">{copyToast}</p> : null}
+      <AnimatePresence>
+        {copyToast ? (
+          <motion.p
+            className="lgToast"
+            role="status"
+            initial={{ opacity: 0, y: -8, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            {copyToast}
+          </motion.p>
+        ) : null}
+      </AnimatePresence>
 
       {filtered.length === 0 ? (
-        <p className="muted small">
-          {allLines.length === 0 ? t('ui.logs.empty') : t('ui.logs.noMatch')}
-        </p>
+        <div className="emptyState">
+          <Shape name="6-sided-cookie" />
+          <p>
+            {allLines.length === 0 ? t('ui.logs.empty') : t('ui.logs.noMatch')}
+          </p>
+        </div>
       ) : (
-        <pre className="mono tightPre logPre">{filtered.join('\n')}</pre>
+        <pre
+          ref={preRef}
+          className="lgPre"
+          onScroll={(e) => {
+            const el = e.currentTarget
+            stickRef.current =
+              el.scrollHeight - el.scrollTop - el.clientHeight < 24
+          }}
+        >
+          {filtered.map((line, i) => (
+            // eslint-disable-next-line @eslint-react/no-array-index-key -- log lines have no id and may repeat
+            <span key={i} className="lgLine" data-level={classifyLevel(line)}>
+              {line + '\n'}
+            </span>
+          ))}
+        </pre>
       )}
     </div>
   )

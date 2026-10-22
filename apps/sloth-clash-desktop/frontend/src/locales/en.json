@@ -400,7 +400,19 @@
         "loadingRules": "Loading subscription rules…",
         "noRulesDetected": "No subscription rules detected.",
         "fixYamlBeforeVisual": "Fix rules advanced YAML before switching to Visual mode.",
-        "savedBanner": "Rules saved into merge template."
+        "savedBanner": "Rules saved into merge template.",
+        "ruleType": "Rule type",
+        "param": "Rule parameter",
+        "proxy": "Proxy",
+        "addStart": "Add rule to the start",
+        "addEnd": "Add rule to the end",
+        "current": "Current rules",
+        "search": "Search rules",
+        "help": "Instructions",
+        "helpBody": "A rule added to the start fires before the subscription rules, one added to the end fires after them. Subscription rules can be removed with the delete button and restored. Changes are saved into the profile merge template.",
+        "toYaml": "YAML editor",
+        "toVisual": "Visual editor",
+        "added": "Added in this session"
       },
       "deleteModal": {
         "title": "Delete profile",

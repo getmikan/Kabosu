@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
+import '../styles/panel.css'
+import { Button, Expansion, Progress } from '../ui/M3'
 import { formatBytesSmart } from '../utils/format'
 
 export function ServerGroups({
@@ -17,12 +19,18 @@ export function ServerGroups({
     metadata?.groups?.filter((group) => group.mode !== 'main') ?? []
   if (!groups.length) return null
   return (
-    <details className="serverQuotaPanel">
-      <summary>
-        {t('panel.serverGroups')} <span>{groups.length}</span>
-      </summary>
-      <div className="serverQuotaRows">
-        {groups.map((group) => {
+    <Expansion
+      className="serverQuotaPanel"
+      icon="proxies"
+      header={
+        <>
+          {t('panel.serverGroups')}
+          <span className="serverQuotaCount">{groups.length}</span>
+        </>
+      }
+    >
+      <div className="serverQuotaRows stagger">
+        {groups.map((group, i) => {
           const total =
             group.left === undefined ? null : group.used + group.left
           const percent =
@@ -32,7 +40,12 @@ export function ServerGroups({
                 ? Math.min(100, Math.round((group.used / total) * 100))
                 : 100
           return (
-            <div className="serverQuotaRow" key={group.id}>
+            <div
+              className="serverQuotaRow"
+              key={group.id}
+              data-exhausted={group.exhausted || undefined}
+              style={{ '--i': i } as React.CSSProperties}
+            >
               <div className="serverQuotaLabel">
                 <strong>{group.name}</strong>
                 <span>
@@ -46,7 +59,7 @@ export function ServerGroups({
                 </span>
               </div>
               {percent !== null ? (
-                <progress max="100" value={percent} aria-label={group.name} />
+                <Progress value={percent} ariaLabel={group.name} />
               ) : null}
               <div className="serverQuotaMeta">
                 <span>
@@ -78,15 +91,11 @@ export function ServerGroups({
           </span>
         ) : null}
         {pageUrl ? (
-          <button
-            className="btn ghost"
-            type="button"
-            onClick={() => onOpen(pageUrl)}
-          >
+          <Button variant="tonal" icon="add" onClick={() => onOpen(pageUrl)}>
             {t('panel.buyTraffic')}
-          </button>
+          </Button>
         ) : null}
       </div>
-    </details>
+    </Expansion>
   )
 }

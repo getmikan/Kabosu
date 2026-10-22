@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
+import '../styles/settings.css'
+import { Button, Dialog, Segmented, TextField } from '../ui/M3'
 
 type TunDrafts = { dnsHijack?: string; mtu?: string; device?: string }
 
@@ -39,188 +41,131 @@ export function TunSettingsModal({
   onClose: () => void
 }) {
   const { t } = useTranslation()
-  if (!open) return null
+
+  const inherit = t('settings.tun.inherit')
+  const INHERIT = '__inherit'
+  const toSeg = (v: string) => v || INHERIT
+  const fromSeg = (v: string) => (v === INHERIT ? '' : v)
 
   const tunStackValue = panelStack || tunPrefs.stack || ''
   const findProcessModeValue: string = trafficPrefs.findProcessMode ?? ''
 
-  const tunStackOptions: { id: string; label: string }[] = [
-    { id: '', label: t('settings.tun.inherit') },
-    { id: 'mips', label: 'mips' },
-    { id: 'gvisor', label: 'gvisor' },
-    { id: 'system', label: 'system' },
-    { id: 'mixed', label: 'mixed' },
+  const tunStackOptions = [
+    { value: INHERIT, label: inherit },
+    ...['mips', 'gvisor', 'system', 'mixed'].map((v) => ({
+      value: v,
+      label: v,
+    })),
+  ]
+  const findProcessModeOptions = [
+    { value: INHERIT, label: inherit },
+    ...['off', 'strict', 'always'].map((v) => ({ value: v, label: v })),
   ]
 
-  const findProcessModeOptions: { id: string; label: string }[] = [
-    { id: '', label: t('settings.tun.inherit') },
-    { id: 'off', label: 'off' },
-    { id: 'strict', label: 'strict' },
-    { id: 'always', label: 'always' },
-  ]
-
-  const tristatePills = (
+  type Tri = 'inherit' | 'on' | 'off'
+  const tristate = (
+    label: string,
     value: boolean | undefined,
     onChange: (next: boolean | undefined) => void,
   ) => (
-    <div className="segPill settingsTunPillRow">
-      <button
-        type="button"
-        className={value === undefined ? 'pillOpt active' : 'pillOpt'}
-        onClick={() => onChange(undefined)}
-        disabled={tunPrefsSaving}
-      >
-        {t('settings.tun.inherit')}
-      </button>
-      <button
-        type="button"
-        className={value === true ? 'pillOpt active' : 'pillOpt'}
-        onClick={() => onChange(true)}
-        disabled={tunPrefsSaving}
-      >
-        {t('common.on')}
-      </button>
-      <button
-        type="button"
-        className={value === false ? 'pillOpt active' : 'pillOpt'}
-        onClick={() => onChange(false)}
-        disabled={tunPrefsSaving}
-      >
-        {t('common.off')}
-      </button>
+    <div className="stField">
+      <span className="stFieldLabel">{label}</span>
+      <Segmented<Tri>
+        ariaLabel={label}
+        value={value === undefined ? 'inherit' : value ? 'on' : 'off'}
+        onChange={(next) =>
+          onChange(next === 'inherit' ? undefined : next === 'on')
+        }
+        options={[
+          { value: 'inherit', label: inherit, disabled: tunPrefsSaving },
+          { value: 'on', label: t('common.on'), disabled: tunPrefsSaving },
+          { value: 'off', label: t('common.off'), disabled: tunPrefsSaving },
+        ]}
+      />
     </div>
   )
 
   return (
-    <div className="modalOverlay" role="presentation" onClick={onClose}>
-      <div
-        className="modalCard modalCardVisualTall tunSettingsModal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="tunSettingsTitle"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 id="tunSettingsTitle" className="modalTitle">
-          {t('settings.tun.title')}
-        </h3>
-        <p className="muted small">{t('settings.tun.hint')}</p>
-        {panelStack ? (
-          <p className="muted small" role="status">
-            {t('panel.stack', { stack: panelStack })}
-          </p>
-        ) : null}
-        <div className="tunModalBody">
-          <label className="field modalField">
-            <span className="fieldLab">{t('settings.tun.stackLabel')}</span>
-            <div className="segPill settingsTunPillRow">
-              {tunStackOptions.map((opt) => (
-                <button
-                  key={opt.id || 'inherit'}
-                  type="button"
-                  className={
-                    tunStackValue === opt.id ? 'pillOpt active' : 'pillOpt'
-                  }
-                  disabled={tunPrefsSaving || Boolean(panelStack)}
-                  onClick={() => onCommitTunPrefs({ stack: opt.id })}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </label>
-          <label className="field modalField">
-            <span className="fieldLab">{t('settings.tun.autoRouteLabel')}</span>
-            {tristatePills(tunPrefs.autoRoute, (next) =>
-              onCommitTunPrefs({ autoRoute: next }),
-            )}
-          </label>
-          <label className="field modalField">
-            <span className="fieldLab">
-              {t('settings.tun.autoDetectInterfaceLabel')}
-            </span>
-            {tristatePills(tunPrefs.autoDetectInterface, (next) =>
-              onCommitTunPrefs({ autoDetectInterface: next }),
-            )}
-          </label>
-          <label className="field modalField">
-            <span className="fieldLab">
-              {t('settings.tun.strictRouteLabel')}
-            </span>
-            {tristatePills(tunPrefs.strictRoute, (next) =>
-              onCommitTunPrefs({ strictRoute: next }),
-            )}
-          </label>
-          <label className="field modalField">
-            <span className="fieldLab">{t('settings.tun.dnsHijackLabel')}</span>
-            <input
-              className="input"
-              placeholder="any:53"
-              value={tunDnsHijackDraft}
-              onChange={(e) => onTunDnsHijackDraftChange(e.target.value)}
-              onBlur={() =>
-                onCommitTunPrefs({}, { dnsHijack: tunDnsHijackDraft })
-              }
-            />
-          </label>
-          <label className="field modalField">
-            <span className="fieldLab">{t('settings.tun.mtuLabel')}</span>
-            <input
-              className="input"
-              placeholder="1500"
-              value={tunMtuDraft}
-              onChange={(e) => onTunMtuDraftChange(e.target.value)}
-              onBlur={() => onCommitTunPrefs({}, { mtu: tunMtuDraft })}
-            />
-          </label>
-          <label className="field modalField">
-            <span className="fieldLab">{t('settings.tun.deviceLabel')}</span>
-            <input
-              className="input"
-              placeholder="Mihomo"
-              value={tunDeviceDraft}
-              onChange={(e) => onTunDeviceDraftChange(e.target.value)}
-              onBlur={() => onCommitTunPrefs({}, { device: tunDeviceDraft })}
-            />
-          </label>
-          <label className="field modalField">
-            <span className="fieldLab">{t('settings.tun.snifferLabel')}</span>
-            {tristatePills(trafficPrefs.snifferEnabled, (next) =>
-              onCommitTrafficPrefs({ snifferEnabled: next }),
-            )}
-          </label>
-          <label className="field modalField">
-            <span className="fieldLab">
-              {t('settings.tun.findProcessLabel')}
-            </span>
-            <div className="segPill settingsTunPillRow">
-              {findProcessModeOptions.map((opt) => (
-                <button
-                  key={opt.id || 'inherit'}
-                  type="button"
-                  className={
-                    findProcessModeValue === opt.id
-                      ? 'pillOpt active'
-                      : 'pillOpt'
-                  }
-                  disabled={tunPrefsSaving}
-                  onClick={() =>
-                    onCommitTrafficPrefs({ findProcessMode: opt.id })
-                  }
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </label>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      wide
+      title={t('settings.tun.title')}
+      actions={
+        <Button onClick={onClose}>{t('common.close') || 'Close'}</Button>
+      }
+    >
+      <p className="muted stDialogText">{t('settings.tun.hint')}</p>
+      {panelStack ? (
+        <p className="stNote" role="status">
+          {t('panel.stack', { stack: panelStack })}
+        </p>
+      ) : null}
+      <div className="stTunForm">
+        <div className="stField stTunWide">
+          <span className="stFieldLabel">{t('settings.tun.stackLabel')}</span>
+          <Segmented
+            ariaLabel={t('settings.tun.stackLabel')}
+            value={toSeg(tunStackValue)}
+            onChange={(v) => onCommitTunPrefs({ stack: fromSeg(v) })}
+            options={tunStackOptions.map((o) => ({
+              ...o,
+              disabled: tunPrefsSaving || Boolean(panelStack),
+            }))}
+          />
         </div>
-        <div className="modalFooter">
-          <div className="modalFooterRight">
-            <button type="button" className="btn primary" onClick={onClose}>
-              {t('common.close') || 'Close'}
-            </button>
-          </div>
+        {tristate(t('settings.tun.autoRouteLabel'), tunPrefs.autoRoute, (next) =>
+          onCommitTunPrefs({ autoRoute: next }),
+        )}
+        {tristate(
+          t('settings.tun.autoDetectInterfaceLabel'),
+          tunPrefs.autoDetectInterface,
+          (next) => onCommitTunPrefs({ autoDetectInterface: next }),
+        )}
+        {tristate(
+          t('settings.tun.strictRouteLabel'),
+          tunPrefs.strictRoute,
+          (next) => onCommitTunPrefs({ strictRoute: next }),
+        )}
+        {tristate(
+          t('settings.tun.snifferLabel'),
+          trafficPrefs.snifferEnabled,
+          (next) => onCommitTrafficPrefs({ snifferEnabled: next }),
+        )}
+        <TextField
+          label={t('settings.tun.dnsHijackLabel')}
+          placeholder="any:53"
+          value={tunDnsHijackDraft}
+          onChange={onTunDnsHijackDraftChange}
+          onBlur={() => onCommitTunPrefs({}, { dnsHijack: tunDnsHijackDraft })}
+        />
+        <TextField
+          label={t('settings.tun.mtuLabel')}
+          placeholder="1500"
+          value={tunMtuDraft}
+          onChange={onTunMtuDraftChange}
+          onBlur={() => onCommitTunPrefs({}, { mtu: tunMtuDraft })}
+        />
+        <TextField
+          label={t('settings.tun.deviceLabel')}
+          placeholder="Mihomo"
+          value={tunDeviceDraft}
+          onChange={onTunDeviceDraftChange}
+          onBlur={() => onCommitTunPrefs({}, { device: tunDeviceDraft })}
+        />
+        <div className="stField stTunWide">
+          <span className="stFieldLabel">{t('settings.tun.findProcessLabel')}</span>
+          <Segmented
+            ariaLabel={t('settings.tun.findProcessLabel')}
+            value={toSeg(findProcessModeValue)}
+            onChange={(v) => onCommitTrafficPrefs({ findProcessMode: fromSeg(v) })}
+            options={findProcessModeOptions.map((o) => ({
+              ...o,
+              disabled: tunPrefsSaving,
+            }))}
+          />
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }
