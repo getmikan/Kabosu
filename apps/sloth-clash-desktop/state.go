@@ -9,6 +9,7 @@ type AppState struct {
 	Service    ServiceState    `json:"service"`
 	Core       CoreState       `json:"core"`
 	Insight    HomeInsight     `json:"insight"`
+	KillSwitch KillSwitchState `json:"killSwitch"`
 	UI         UIState         `json:"ui"`
 	UpdatedAt  int64           `json:"updatedAt"`
 }
@@ -240,4 +241,14 @@ type RuntimeDiagEvent struct {
 	TsUnixMs int64  `json:"ts"`
 	Category string `json:"category"`
 	Message  string `json:"message,omitempty"`
+}
+
+// KillSwitchState mirrors the service-side kill switch for the UI.
+type KillSwitchState struct {
+	// Active: the OS firewall currently blocks non-VPN traffic.
+	Active bool `json:"active"`
+	// TunBound: the TUN adapter is resolved and allowed (TUN mode only).
+	TunBound bool `json:"tunBound,omitempty"`
+	// Error is why it could not be applied (old service, unsupported OS…).
+	Error string `json:"error,omitempty"`
 }

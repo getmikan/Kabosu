@@ -12,6 +12,7 @@ export {
   SetCloseToTrayPreference,
   SetExperimentalSettings,
   SetHwidEnabled,
+  SetKillSwitch,
   SetLaunchOnStartupPreference,
   SetTraySettings,
   SetUISettings,

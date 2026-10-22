@@ -56,6 +56,9 @@ type App struct {
 	// instead of silently going out through the real IP. Only an explicit
 	// Connect, Disconnect or app shutdown releases it.
 	holdSystemProxy bool
+	// killSwitchArmed: a session is up and, if the user enabled the kill
+	// switch, the service must keep blocking non-VPN traffic (killswitch.go).
+	killSwitchArmed bool
 	systemProxySnapshot map[string]SystemProxyServiceSnapshot
 	tunTakenOver        []tunServiceTakeover
 	connectGen          atomic.Uint64 // bumped when starting async connect or on Disconnect; invalidates in-flight worker
@@ -313,6 +316,7 @@ func (a *App) drainTunAndStopCore() {
 		time.Sleep(tunDrainSettle)
 	}
 
+	a.disarmKillSwitch()
 	a.mu.Lock()
 	a.holdSystemProxy = false
 	a.stopCoreLocked()
@@ -840,6 +844,13 @@ func (a *App) SetTrafficMode(mode string) (AppState, error) {
 			a.emitAppStateChanged()
 			return a.GetAppState(), err
 		}
+	}
+	// Proxy ↔ TUN changes what the kill switch must allow (the TUN adapter).
+	a.mu.RLock()
+	sessionUp := a.killSwitchArmed
+	a.mu.RUnlock()
+	if sessionUp {
+		a.armKillSwitch()
 	}
 	return a.GetAppState(), nil
 }

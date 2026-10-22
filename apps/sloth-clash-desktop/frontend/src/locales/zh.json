@@ -167,7 +167,16 @@
     "coreBuildLocal": "mihomo {{version}}，本地构建内核",
     "coreBuildPatches": "内核源码",
     "coreBuildDoc": "Citrus 文档",
-    "coreBuildCitrus": "Citrus {{version}}"
+    "coreBuildCitrus": "Citrus {{version}}",
+    "killSwitch": {
+      "title": "断网保护",
+      "description": "当 VPN 断开或内核重启时阻止网络访问，防止流量从真实 IP 发出。适用于代理和 TUN 模式。",
+      "enable": "无 VPN 时阻止上网",
+      "allowLan": "允许局域网",
+      "allowLanHint": "打印机、NAS 和路由器页面仍可访问。",
+      "statusActive": "保护已开启：流量仅通过 VPN。",
+      "statusArmed": "连接后开启。"
+    }
   },
   "tour": {
     "back": "上一步",

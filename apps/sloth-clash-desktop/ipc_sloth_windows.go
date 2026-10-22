@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -262,4 +263,42 @@ func ipcSlothEnsureCorpDriver(ctx context.Context, driverDir string) error {
 
 func ipcSlothCorpVpnStatus(ctx context.Context) (int, []byte, error) {
 	return ipcSlothDo(ctx, http.MethodGet, "/corp/status", nil)
+}
+
+// ipcSlothKillSwitchEnable turns on (or re-binds) the service's WFP kill
+// switch. Services older than the kill-switch release answer 404.
+func ipcSlothKillSwitchEnable(ctx context.Context, req killSwitchRequest) (killSwitchStatus, error) {
+	raw, err := json.Marshal(req)
+	if err != nil {
+		return killSwitchStatus{}, err
+	}
+	return ipcSlothKillSwitchCall(ctx, http.MethodPut, raw)
+}
+
+// ipcSlothKillSwitchDisable removes every kill switch filter.
+func ipcSlothKillSwitchDisable(ctx context.Context) (killSwitchStatus, error) {
+	return ipcSlothKillSwitchCall(ctx, http.MethodDelete, nil)
+}
+
+func ipcSlothKillSwitchCall(ctx context.Context, method string, body []byte) (killSwitchStatus, error) {
+	st, b, err := ipcSlothDo(ctx, method, "/killswitch", body)
+	if err != nil {
+		return killSwitchStatus{}, err
+	}
+	if st == http.StatusNotFound {
+		return killSwitchStatus{}, errors.New("the Kabosu service is too old for the kill switch: reinstall the service in Settings")
+	}
+	var env struct {
+		Code    int              `json:"code"`
+		Message string           `json:"message"`
+		Data    killSwitchStatus `json:"data"`
+	}
+	_ = json.Unmarshal(b, &env)
+	if st < 200 || st >= 300 || env.Code != 0 {
+		if env.Message != "" {
+			return killSwitchStatus{}, errors.New(env.Message)
+		}
+		return killSwitchStatus{}, fmt.Errorf("%s /killswitch: HTTP %d — %s", method, st, strings.TrimSpace(string(b)))
+	}
+	return env.Data, nil
 }

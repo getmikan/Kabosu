@@ -1,5 +1,5 @@
 # Builds Kabosu desktop for Windows, macOS (Apple Silicon + Intel), and Linux.
-# Service binaries: https://github.com/Nemu-x/sloth-clash-service-ipc/releases
+# Service binaries: https://github.com/getmikan/kabosu-service/releases
 # Run: workflow_dispatch or push tag v* for the full release artifact set.
 # A tag with a suffix (v0.9.5-rc.1, v0.9.5-beta.2) is a PRE-RELEASE: same build,
 # but never "latest" (the in-app updater reads releases/latest), and no

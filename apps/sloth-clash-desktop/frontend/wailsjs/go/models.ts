@@ -540,6 +540,22 @@ export namespace main {
       this.since = source['since']
     }
   }
+  export class KillSwitchState {
+    active: boolean
+    tunBound?: boolean
+    error?: string
+
+    static createFrom(source: any = {}) {
+      return new KillSwitchState(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.active = source['active']
+      this.tunBound = source['tunBound']
+      this.error = source['error']
+    }
+  }
   export class AppState {
     connection: ConnectionState
     mode: ModeState
@@ -549,6 +565,7 @@ export namespace main {
     service: ServiceState
     core: CoreState
     insight: HomeInsight
+    killSwitch: KillSwitchState
     ui: UIState
     updatedAt: number
 
@@ -569,6 +586,7 @@ export namespace main {
       this.service = this.convertValues(source['service'], ServiceState)
       this.core = this.convertValues(source['core'], CoreState)
       this.insight = this.convertValues(source['insight'], HomeInsight)
+      this.killSwitch = this.convertValues(source['killSwitch'], KillSwitchState)
       this.ui = this.convertValues(source['ui'], UIState)
       this.updatedAt = source['updatedAt']
     }
@@ -850,6 +868,8 @@ export namespace main {
   }
   export class PrivacySettings {
     hwidEnabled?: boolean
+    killSwitch?: boolean
+    killSwitchAllowLan?: boolean
 
     static createFrom(source: any = {}) {
       return new PrivacySettings(source)
@@ -858,6 +878,8 @@ export namespace main {
     constructor(source: any = {}) {
       if ('string' === typeof source) source = JSON.parse(source)
       this.hwidEnabled = source['hwidEnabled']
+      this.killSwitch = source['killSwitch']
+      this.killSwitchAllowLan = source['killSwitchAllowLan']
     }
   }
   export class RealitySettings {

@@ -136,6 +136,12 @@ type PrivacySettings struct {
 	// x-app-version) are unaffected and still sent — they are not
 	// device-unique.
 	HwidEnabled *bool `json:"hwidEnabled,omitempty"`
+	// KillSwitch blocks every outbound connection that does not go through
+	// the VPN while a session is up (see killswitch.go). Off by default.
+	KillSwitch bool `json:"killSwitch,omitempty"`
+	// KillSwitchAllowLan keeps LAN devices (printer, NAS, router page)
+	// reachable while the kill switch blocks everything else.
+	KillSwitchAllowLan bool `json:"killSwitchAllowLan,omitempty"`
 }
 
 // IsHwidEnabled returns true when the x-hwid header should be sent. The
@@ -417,6 +423,19 @@ func (a *App) SetHwidEnabled(enabled bool) DesktopPrefs {
 	snapshot := prefsCurrent
 	savePrefsBestEffort(snapshot)
 	prefsMu.Unlock()
+	return snapshot
+}
+
+// SetKillSwitch saves the kill switch preference and applies it to the
+// running session right away.
+func (a *App) SetKillSwitch(enabled bool, allowLan bool) DesktopPrefs {
+	prefsMu.Lock()
+	prefsCurrent.Privacy.KillSwitch = enabled
+	prefsCurrent.Privacy.KillSwitchAllowLan = allowLan
+	snapshot := prefsCurrent
+	savePrefsBestEffort(snapshot)
+	prefsMu.Unlock()
+	a.safeGo("killswitch", func() { a.syncKillSwitch() })
 	return snapshot
 }
 

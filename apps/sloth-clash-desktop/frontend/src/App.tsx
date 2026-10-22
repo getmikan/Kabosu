@@ -2547,6 +2547,8 @@ function App() {
                 {screen === 'settings' ? (
                   <Suspense fallback={<PageSkeleton />}>
                     <SettingsPage
+                      killSwitch={state?.killSwitch}
+                      connected={state?.connection?.status === 'connected'}
                       theme={theme}
                       accent={customAccent}
                       onSetAccent={setCustomAccent}

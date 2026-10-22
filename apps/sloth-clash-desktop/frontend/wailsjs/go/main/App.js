@@ -302,6 +302,10 @@ export function SetHwidEnabled(arg1) {
   return window['go']['main']['App']['SetHwidEnabled'](arg1)
 }
 
+export function SetKillSwitch(arg1, arg2) {
+  return window['go']['main']['App']['SetKillSwitch'](arg1, arg2)
+}
+
 export function SetLaunchOnStartupPreference(arg1) {
   return window['go']['main']['App']['SetLaunchOnStartupPreference'](arg1)
 }

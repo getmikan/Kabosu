@@ -167,7 +167,16 @@
     "coreBuildLocal": "mihomo {{version}}, local core build",
     "coreBuildPatches": "Core source",
     "coreBuildDoc": "Citrus documentation",
-    "coreBuildCitrus": "Citrus {{version}}"
+    "coreBuildCitrus": "Citrus {{version}}",
+    "killSwitch": {
+      "title": "Kill switch",
+      "description": "If the VPN drops or the core restarts, internet access is blocked so traffic never leaves from your real IP. Works in Proxy and TUN modes.",
+      "enable": "Block internet without VPN",
+      "allowLan": "Allow local network",
+      "allowLanHint": "Printers, NAS and the router page stay reachable.",
+      "statusActive": "Protection on: traffic only goes through the VPN.",
+      "statusArmed": "Turns on when you connect."
+    }
   },
   "tour": {
     "back": "Back",

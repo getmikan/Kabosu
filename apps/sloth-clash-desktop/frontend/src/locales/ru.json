@@ -167,7 +167,16 @@
     "coreBuildLocal": "mihomo {{version}}, локальная сборка ядра",
     "coreBuildPatches": "Исходники ядра",
     "coreBuildDoc": "Документация Citrus",
-    "coreBuildCitrus": "Citrus {{version}}"
+    "coreBuildCitrus": "Citrus {{version}}",
+    "killSwitch": {
+      "title": "Kill switch",
+      "description": "Если VPN упадёт или ядро перезапускается, интернет блокируется, чтобы трафик не ушёл с вашего настоящего IP. Работает в режимах Прокси и TUN.",
+      "enable": "Блокировать интернет без VPN",
+      "allowLan": "Разрешить локальную сеть",
+      "allowLanHint": "Принтеры, NAS и страница роутера останутся доступны.",
+      "statusActive": "Защита включена: трафик идёт только через VPN.",
+      "statusArmed": "Включится при подключении."
+    }
   },
   "tour": {
     "back": "Назад",

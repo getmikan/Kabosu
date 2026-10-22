@@ -45,10 +45,16 @@ var errIPCServiceVersionUnavailable = errors.New("service version unavailable")
 // the "old service silently runs after a reinstall" trap where the bundled/rolling
 // service lagged the code.
 //
-// ⚠️ SEQUENCING: only ship this bump once the 2.5.0 service binaries are actually
+// 2.6.0 is the first build from our own fork, getmikan/kabosu-service. It adds
+// the kill switch (PUT/DELETE/GET /killswitch, WFP on Windows) that blocks all
+// non-VPN traffic while a session is up. An older service answers 404 and the
+// switch could not protect anyone, so requiring 2.6.0 surfaces the reinstall
+// banner on existing installs.
+//
+// ⚠️ SEQUENCING: only ship this bump once the service binaries are actually
 // published (Release CI → rolling per-triple tags) and pulled by prebuild —
 // otherwise the banner can never clear.
-const expectedSlothServiceVersion = "2.5.0"
+const expectedSlothServiceVersion = "2.6.0"
 
 // ServiceRuntimeInfo is the health/version snapshot the UI uses to decide
 // whether to nudge the user to update the privileged helper service.

@@ -583,9 +583,9 @@ const SERVICE_DOWNLOAD_TAG =
     ? SIDECAR_HOST.replace('pc-windows-gnu', 'pc-windows-msvc')
     : SIDECAR_HOST)
 
-const SERVICE_URL = `https://github.com/Nemu-x/sloth-clash-service-ipc/releases/download/${SERVICE_DOWNLOAD_TAG}`
+const SERVICE_URL = `https://github.com/getmikan/kabosu-service/releases/download/${SERVICE_DOWNLOAD_TAG}`
 
-/** Same filenames as GitHub Release assets (see sloth-clash-service-ipc release.yml). */
+/** Same filenames as GitHub Release assets (see getmikan/kabosu-service release.yml). */
 const resolveService = () => {
   const ext = platform === 'win32' ? '.exe' : ''
   const name = `sloth-clash-service${ext}`

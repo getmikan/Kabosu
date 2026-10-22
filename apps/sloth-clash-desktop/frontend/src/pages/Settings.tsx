@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
 import {
+  KillSwitchCard,
+  type KillSwitchView,
+} from '../components/KillSwitchCard'
+import {
   MaterialSymbol,
   type MaterialSymbolName,
 } from '../components/MaterialSymbol'
@@ -324,6 +328,8 @@ const GITHUB_ICON = (
 )
 
 export function SettingsPage({
+  killSwitch,
+  connected,
   theme,
   accent,
   onSetAccent,
@@ -375,6 +381,9 @@ export function SettingsPage({
   corpVpnEnabled,
   onToggleCorpVpn,
 }: {
+  /** Service-side kill switch state (AppState.killSwitch). */
+  killSwitch?: KillSwitchView
+  connected: boolean
   theme: ThemeMode
   lang: Lang
   settings: CompactSettings
@@ -459,6 +468,7 @@ export function SettingsPage({
 
       <div className="stGrid stagger">
         <div className="stCol stagger" style={{ '--i': 0 } as CSSProperties}>
+          <KillSwitchCard state={killSwitch} connected={connected} />
           <section className="stCard">
             <SectionHead icon="settings">{t('settings.general')}</SectionHead>
             <SwitchRow

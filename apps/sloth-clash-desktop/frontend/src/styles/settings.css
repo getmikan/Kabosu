@@ -368,3 +368,56 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Kill switch card */
+.stKillSwitch[data-active] {
+  background: color-mix(in srgb, var(--primary-container) 80%, transparent);
+}
+.stKillHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.stKillHead strong {
+  font-size: 16px;
+  line-height: 24px;
+}
+.stKillHead p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--on-surface-variant);
+}
+.stKillIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.stKillIcon svg {
+  width: 22px;
+  height: 22px;
+}
+.stKillSwitch[data-active] .stKillIcon svg {
+  animation: livePulse 2.4s var(--ease-standard) infinite;
+}
+.stKillStatus {
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-container-high);
+  font-size: 12px;
+}
+.stKillStatus[data-tone="ok"] {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.stKillStatus[data-tone="error"] {
+  background: var(--error-container);
+  color: var(--on-error-container);
+}

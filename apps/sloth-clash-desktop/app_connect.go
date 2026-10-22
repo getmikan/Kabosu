@@ -302,6 +302,7 @@ func (a *App) finishConnectJobOK(gen uint64) {
 	a.mu.Unlock()
 	if notify {
 		a.traceEvent("pipeline.connect.done", "ok", 0, map[string]any{"gen": gen})
+		a.armKillSwitch()
 		a.emitAppStateChanged()
 	} else {
 		// Visibility: when the OK marker silently does nothing the user used
@@ -576,6 +577,9 @@ func (a *App) connectAfterCoreStarts(gen uint64) error {
 }
 
 func (a *App) Disconnect() AppState {
+	// An intentional Disconnect lifts the kill switch first, so going direct
+	// is the user's explicit choice.
+	a.disarmKillSwitch()
 	gen := a.connectGen.Add(1)
 	a.traceEvent("pipeline.disconnect.requested", "ok", 0, map[string]any{
 		"gen":        gen,

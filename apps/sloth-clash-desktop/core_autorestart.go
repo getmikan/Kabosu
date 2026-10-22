@@ -174,6 +174,8 @@ func (a *App) attemptCoreAutoRestart(profileID, traffic string) {
 		a.state.UpdatedAt = time.Now().Unix()
 		a.mu.Unlock()
 		a.emitAppStateChanged()
+		// The recreated TUN adapter has a new identity: re-bind the kill switch.
+		a.armKillSwitch()
 		a.traceEvent("core.autorestart.success", "ok", 0, map[string]any{
 			"profileId": profileID,
 			"attempt":   attempt,

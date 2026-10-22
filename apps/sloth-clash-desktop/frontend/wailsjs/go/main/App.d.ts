@@ -193,6 +193,8 @@ export function SetExperimentalSettings(
 
 export function SetHwidEnabled(arg1: boolean): Promise<main.DesktopPrefs>
 
+export function SetKillSwitch(arg1: boolean, arg2: boolean): Promise<main.DesktopPrefs>
+
 export function SetLaunchOnStartupPreference(arg1: boolean): Promise<void>
 
 export function SetMode(arg1: string): Promise<main.AppState>
