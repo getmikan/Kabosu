@@ -485,6 +485,11 @@
   color: var(--on-tertiary-container);
   animation: riseIn 520ms var(--ease-emphasized) both;
 }
+.shell[data-theme="dark"] .homeAnnouncement {
+  /* m3e's dark scheme keeps tertiary-container light; tint the surface instead. */
+  background: color-mix(in srgb, var(--tertiary) 22%, var(--surface-container-high));
+  color: var(--on-surface);
+}
 .homeAnnouncementIcon svg {
   width: 20px;
   height: 20px;

@@ -288,6 +288,9 @@
 .shell[data-theme="dark"] .backdropShape {
   opacity: calc(var(--alpha, 0.5) * 0.45);
 }
+.shell[data-theme="dark"] .backdropShape:nth-child(2) {
+  --m3e-shape-container-color: var(--secondary-container);
+}
 .shell[data-theme="dark"] .backdropShape:nth-child(5) {
   --m3e-shape-container-color: var(--surface-container-high);
 }
