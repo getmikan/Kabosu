@@ -396,6 +396,53 @@ func pruneFallbackAutoManualIfCustom(m map[string]any) {
 		return
 	}
 
+	// A fallback group the template/profile actually points at (from its own
+	// group or a non-MATCH rule) is not stale: keep it, or the reference dangles.
+	refs := map[string]bool{}
+	addGroupRefs := func(gm map[string]any) {
+		if arr, ok := gm["proxies"].([]any); ok {
+			for _, p := range arr {
+				if s, ok := p.(string); ok {
+					refs[strings.TrimSpace(s)] = true
+				}
+			}
+		}
+	}
+	for i, g := range rawGroups {
+		if gm, ok := g.(map[string]any); ok && i != autoIdx && i != manualIdx {
+			addGroupRefs(gm)
+		}
+	}
+	if rules, ok := m["rules"].([]any); ok {
+		for _, r := range rules {
+			line, ok := r.(string)
+			if !ok {
+				continue
+			}
+			head, _, _ := strings.Cut(line, ",")
+			if h := strings.ToUpper(strings.TrimSpace(head)); h == "MATCH" || h == "FINAL" {
+				continue
+			}
+			if policy := extractRulePolicyToken(line); policy != "" {
+				refs[policy] = true
+			}
+		}
+	}
+	groupName := func(idx int) string {
+		name, _ := rawGroups[idx].(map[string]any)["name"].(string)
+		return strings.TrimSpace(name)
+	}
+	if manualIdx >= 0 && refs[groupName(manualIdx)] {
+		addGroupRefs(rawGroups[manualIdx].(map[string]any))
+		manualIdx = -1
+	}
+	if autoIdx >= 0 && refs[groupName(autoIdx)] {
+		autoIdx = -1
+	}
+	if autoIdx < 0 && manualIdx < 0 {
+		return
+	}
+
 	filtered := make([]any, 0, len(rawGroups))
 	for i, g := range rawGroups {
 		if i == autoIdx || i == manualIdx {

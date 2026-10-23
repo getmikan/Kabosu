@@ -1,3 +1,7 @@
+## Kabosu desktop `0.1.1` — 2026-10-23
+
+- **Fixed:** Connect failed with `proxy-groups[0] "VPN" references unknown proxy/group "Auto"` when a profile's merge template added its own group pointing at the built-in `Auto` (or `Manual`) group. The app dropped those built-in groups as soon as a custom group appeared; it now keeps any built-in group that another group or a rule still points at.
+
 ## Kabosu desktop `0.1.0` — 2026-10-22
 
 First Kabosu release, built on the Sloth Clash desktop code base.

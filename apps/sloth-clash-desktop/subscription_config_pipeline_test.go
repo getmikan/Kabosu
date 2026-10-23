@@ -80,6 +80,52 @@ func TestNormalizeProxySNI(t *testing.T) {
 	}
 }
 
+// Regression: a merge template that adds its own group pointing at the
+// synthetic Auto group (e.g. `VPN: [Auto, DIRECT]`) used to lose Auto to the
+// fallback pruning, failing validation with "references unknown proxy/group".
+func TestPruneFallbackAutoManualKeepsReferencedGroups(t *testing.T) {
+	t.Parallel()
+	m := map[string]any{
+		"proxy-providers": map[string]any{"sub1": map[string]any{"type": "http"}},
+		"proxy-groups": []any{
+			map[string]any{"name": "Auto", "type": "url-test", "use": []any{"sub1"}},
+			map[string]any{"name": "Manual", "type": "select", "proxies": []any{"Auto"}, "use": []any{"sub1"}},
+			map[string]any{"name": "VPN", "type": "select", "proxies": []any{"Auto", "DIRECT"}},
+		},
+		"rules": []any{"MATCH,Manual"},
+	}
+	pruneFallbackAutoManualIfCustom(m)
+	names := map[string]bool{}
+	for _, g := range m["proxy-groups"].([]any) {
+		names[g.(map[string]any)["name"].(string)] = true
+	}
+	if !names["Auto"] || !names["VPN"] {
+		t.Fatalf("groups after prune = %v, want Auto and VPN kept", names)
+	}
+	if names["Manual"] {
+		t.Fatalf("unreferenced Manual must still be pruned, got %v", names)
+	}
+	if got := m["rules"].([]any)[0]; got != "MATCH,Auto" {
+		t.Fatalf("MATCH rule = %v, want MATCH,Auto", got)
+	}
+	if err := validateProxyGroupRefs(m); err != nil {
+		t.Fatalf("validateProxyGroupRefs: %v", err)
+	}
+
+	// A group referenced only from a non-MATCH rule is kept as well.
+	m = map[string]any{
+		"proxy-groups": []any{
+			map[string]any{"name": "Auto", "type": "url-test", "use": []any{"sub1"}},
+			map[string]any{"name": "Main", "type": "select", "proxies": []any{"DIRECT"}},
+		},
+		"rules": []any{"DOMAIN-SUFFIX,example.com,Auto", "MATCH,Main"},
+	}
+	pruneFallbackAutoManualIfCustom(m)
+	if err := validateRulePoliciesExist(m); err != nil {
+		t.Fatalf("validateRulePoliciesExist: %v", err)
+	}
+}
+
 func TestNormalizeProxyGroupRefsPrunesUnknownProxies(t *testing.T) {
 	t.Parallel()
 	m := map[string]any{
