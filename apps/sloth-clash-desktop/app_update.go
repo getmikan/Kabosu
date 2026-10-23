@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -34,6 +35,7 @@ var (
 
 type githubRelease struct {
 	TagName string        `json:"tag_name"`
+	Draft   bool          `json:"draft"`
 	HTMLURL string        `json:"html_url"`
 	Body    string        `json:"body"`
 	Assets  []githubAsset `json:"assets"`
@@ -70,17 +72,88 @@ func parseVersionParts(s string) (a, b, c int) {
 	return
 }
 
-// remoteIsNewer returns true if remoteTag is a higher version than localVer (e.g. 0.2.0 vs 0.1.0).
+// splitPrerelease splits "v0.1.1-beta.2" into its base ("0.1.1") and
+// prerelease ("beta.2", "" for a stable version).
+func splitPrerelease(s string) (base, pre string) {
+	s = stripV(s)
+	if i := strings.IndexAny(s, "-+"); i >= 0 {
+		base, pre = s[:i], s[i:]
+		if pre[0] == '-' {
+			pre, _, _ = strings.Cut(pre[1:], "+")
+		} else {
+			pre = "" // build metadata only
+		}
+		return base, pre
+	}
+	return s, ""
+}
+
+// comparePrerelease orders prerelease strings by SemVer rules: a stable
+// version ("") outranks any prerelease, numeric identifiers compare
+// numerically and below alphanumeric ones, a shorter prefix sorts first.
+func comparePrerelease(a, b string) int {
+	if a == b {
+		return 0
+	}
+	if a == "" {
+		return 1
+	}
+	if b == "" {
+		return -1
+	}
+	as, bs := strings.Split(a, "."), strings.Split(b, ".")
+	for i := 0; i < len(as) && i < len(bs); i++ {
+		an, aErr := strconv.Atoi(as[i])
+		bn, bErr := strconv.Atoi(bs[i])
+		switch {
+		case aErr == nil && bErr == nil:
+			if an != bn {
+				if an < bn {
+					return -1
+				}
+				return 1
+			}
+		case aErr == nil:
+			return -1
+		case bErr == nil:
+			return 1
+		default:
+			if c := strings.Compare(as[i], bs[i]); c != 0 {
+				return c
+			}
+		}
+	}
+	switch {
+	case len(as) < len(bs):
+		return -1
+	case len(as) > len(bs):
+		return 1
+	}
+	return 0
+}
+
+// compareAppVersions returns -1, 0 or 1 as a is older than, equal to or newer
+// than b. Prereleases sort before their release: 0.1.1-beta.1 < 0.1.1-beta.2 < 0.1.1.
+func compareAppVersions(a, b string) int {
+	aBase, aPre := splitPrerelease(a)
+	bBase, bPre := splitPrerelease(b)
+	a1, a2, a3 := parseVersionParts(aBase)
+	b1, b2, b3 := parseVersionParts(bBase)
+	for _, d := range [][2]int{{a1, b1}, {a2, b2}, {a3, b3}} {
+		if d[0] != d[1] {
+			if d[0] < d[1] {
+				return -1
+			}
+			return 1
+		}
+	}
+	return comparePrerelease(aPre, bPre)
+}
+
+// remoteIsNewer returns true if remoteTag is a higher version than localVer
+// (e.g. 0.2.0 vs 0.1.0, or 0.1.1 vs 0.1.1-beta.1).
 func remoteIsNewer(remoteTag, localVer string) bool {
-	r1, r2, r3 := parseVersionParts(remoteTag)
-	l1, l2, l3 := parseVersionParts(localVer)
-	if r1 != l1 {
-		return r1 > l1
-	}
-	if r2 != l2 {
-		return r2 > l2
-	}
-	return r3 > l3
+	return compareAppVersions(remoteTag, localVer) > 0
 }
 
 func windowsInstallerArchToken() string {
@@ -172,29 +245,42 @@ func parseChecksumsFile(body []byte) map[string]string {
 	return out
 }
 
-// fetchReleaseAssets returns the asset list of the latest GitHub release.
-func fetchReleaseAssets() ([]githubAsset, error) {
-	u := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", githubOwner, githubRepo)
+// githubGetJSON GETs a GitHub API path under the Kabosu repo into out.
+func githubGetJSON(path string, out any) error {
+	u := fmt.Sprintf("https://api.github.com/repos/%s/%s/%s", githubOwner, githubRepo, path)
 	req, err := http.NewRequest(http.MethodGet, u, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("User-Agent", "Kabosu/"+AppVersion)
 	resp, err := githubAPIHTTPClient.Do(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 8*1024*1024))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("GitHub API %s", resp.Status)
+		snippet := string(body)
+		if len(snippet) > 200 {
+			snippet = snippet[:200]
+		}
+		return fmt.Errorf("GitHub API %s: %s", resp.Status, strings.TrimSpace(snippet))
+	}
+	return json.Unmarshal(body, out)
+}
+
+// fetchReleaseAssets returns the asset list of the release tagged tag — the
+// one the last update check offered, so its checksums match the installer.
+func fetchReleaseAssets(tag string) ([]githubAsset, error) {
+	if strings.TrimSpace(tag) == "" {
+		return nil, errors.New("no release tag — run Check for updates first")
 	}
 	var rel githubRelease
-	if err := json.Unmarshal(body, &rel); err != nil {
+	if err := githubGetJSON("releases/tags/"+url.PathEscape(tag), &rel); err != nil {
 		return nil, err
 	}
 	return rel.Assets, nil
@@ -243,11 +329,11 @@ func pickSignatureAsset(assets []githubAsset) (name, url string) {
 //   - A present-but-invalid signature is a hard error (an attack signal).
 //   - No checksums file → ("", false, nil): the caller's fail-closed policy
 //     decides whether to proceed (see ApplyUpdate).
-func (a *App) resolveInstallerDigest(installerName string) (digest string, verified bool, err error) {
+func (a *App) resolveInstallerDigest(tag, installerName string) (digest string, verified bool, err error) {
 	if strings.TrimSpace(installerName) == "" {
 		return "", false, nil
 	}
-	assets, err := fetchReleaseAssets()
+	assets, err := fetchReleaseAssets(tag)
 	if err != nil {
 		return "", false, fmt.Errorf("look up release: %w", err)
 	}
@@ -298,33 +384,35 @@ func hashFileSHA256(path string) (string, error) {
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
-func fetchLatestGitHubRelease() (tag, htmlURL, notes, assetName, assetURL string, err error) {
-	u := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", githubOwner, githubRepo)
-	req, err := http.NewRequest(http.MethodGet, u, nil)
-	if err != nil {
-		return "", "", "", "", "", err
-	}
-	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("User-Agent", "Kabosu/"+AppVersion)
-
-	resp, err := githubAPIHTTPClient.Do(req)
-	if err != nil {
-		return "", "", "", "", "", err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", "", "", "", "", err
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		snippet := string(body)
-		if len(snippet) > 200 {
-			snippet = snippet[:200]
+// pickNewestRelease returns the highest-versioned published release; drafts
+// and untagged entries are skipped. Prereleases count, so the beta channel also
+// moves on to a stable release once it outranks the betas.
+func pickNewestRelease(releases []githubRelease) (githubRelease, bool) {
+	var best githubRelease
+	found := false
+	for _, rel := range releases {
+		if rel.Draft || strings.TrimSpace(rel.TagName) == "" {
+			continue
 		}
-		return "", "", "", "", "", fmt.Errorf("GitHub API %s: %s", resp.Status, strings.TrimSpace(snippet))
+		if !found || compareAppVersions(rel.TagName, best.TagName) > 0 {
+			best, found = rel, true
+		}
 	}
+	return best, found
+}
+
+// fetchLatestGitHubRelease returns the release the given channel should
+// offer: releases/latest (never a prerelease) on stable, the newest release
+// including prereleases on beta.
+func fetchLatestGitHubRelease(channel string) (tag, htmlURL, notes, assetName, assetURL string, err error) {
 	var rel githubRelease
-	if err := json.Unmarshal(body, &rel); err != nil {
+	if channel == updateChannelBeta {
+		var all []githubRelease
+		if err := githubGetJSON("releases?per_page=30", &all); err != nil {
+			return "", "", "", "", "", err
+		}
+		rel, _ = pickNewestRelease(all)
+	} else if err := githubGetJSON("releases/latest", &rel); err != nil {
 		return "", "", "", "", "", err
 	}
 	tag = strings.TrimSpace(rel.TagName)
@@ -342,14 +430,17 @@ func fetchLatestGitHubRelease() (tag, htmlURL, notes, assetName, assetURL string
 }
 
 func (a *App) runGitHubUpdateCheck() {
-	tag, htmlURL, notes, assetName, assetURL, err := fetchLatestGitHubRelease()
+	channel := currentDesktopPrefs().AppUpdate.UpdateChannel()
+	tag, htmlURL, notes, assetName, assetURL, err := fetchLatestGitHubRelease(channel)
 
 	a.mu.Lock()
+	a.update.Channel = channel
 	a.update.LastCheckedAt = time.Now().Unix()
 	a.update.CurrentVersion = AppVersion
 	a.update.ReleaseURL = htmlURL
 	a.update.ReleaseNotes = notes
 	a.update.LatestVersion = stripV(tag)
+	a.update.LatestTag = tag
 	a.update.AssetName = assetName
 	a.update.AssetDownloadURL = assetURL
 	a.update.LastError = ""
@@ -436,6 +527,7 @@ func (a *App) ApplyUpdate() error {
 	a.mu.RLock()
 	url := strings.TrimSpace(a.update.AssetDownloadURL)
 	installerName := strings.TrimSpace(a.update.AssetName)
+	tag := strings.TrimSpace(a.update.LatestTag)
 	a.mu.RUnlock()
 	if url == "" {
 		return errors.New("no installer URL — run Check for updates first")
@@ -452,7 +544,7 @@ func (a *App) ApplyUpdate() error {
 	// SLOTH_ALLOW_UNVERIFIED_UPDATE=1 escape hatch (local testing only) downgrades
 	// to best-effort. A present-but-invalid signature is always refused.
 	allowUnverified := strings.EqualFold(strings.TrimSpace(os.Getenv("SLOTH_ALLOW_UNVERIFIED_UPDATE")), "1")
-	digest, verified, vErr := a.resolveInstallerDigest(installerName)
+	digest, verified, vErr := a.resolveInstallerDigest(tag, installerName)
 	if vErr != nil {
 		_ = os.Remove(tmp)
 		return fmt.Errorf("refusing to launch update: %w", vErr)

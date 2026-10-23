@@ -118,7 +118,7 @@ func NewApp(bundle embed.FS) *App {
 		},
 		profiles: []Profile{},
 		update: UpdateState{
-			Channel:        "stable",
+			Channel:        updateChannelStable,
 			CurrentVersion: AppVersion,
 		},
 		closeToTray: true,
@@ -1803,18 +1803,30 @@ func (a *App) SetProxyNode(groupName, proxyName string) (AppState, error) {
 }
 
 func (a *App) GetUpdateState() UpdateState {
+	channel := currentDesktopPrefs().AppUpdate.UpdateChannel()
 	a.mu.RLock()
 	defer a.mu.RUnlock()
-	return a.update
+	st := a.update
+	st.Channel = channel
+	return st
 }
 
+// SetUpdateChannel switches the app update channel ("stable" or "beta"),
+// persists it to prefs.json and re-runs the update check against it.
 func (a *App) SetUpdateChannel(channel string) (UpdateState, error) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	if channel != "stable" {
+	channel = strings.ToLower(strings.TrimSpace(channel))
+	if channel != updateChannelStable && channel != updateChannelBeta {
+		a.mu.RLock()
+		defer a.mu.RUnlock()
 		return a.update, errors.New("invalid update channel")
 	}
-	a.update.Channel = channel
+	prefsMu.Lock()
+	prefsCurrent.AppUpdate.Channel = channel
+	savePrefsBestEffort(prefsCurrent)
+	prefsMu.Unlock()
+	a.runGitHubUpdateCheck()
+	a.mu.RLock()
+	defer a.mu.RUnlock()
 	return a.update, nil
 }
 

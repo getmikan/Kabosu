@@ -79,7 +79,7 @@ import {
 } from './api/service'
 import { GetAppState, RefreshHomeInsight } from './api/state'
 import { GetSubscriptionDeviceIdentity } from './api/subscription'
-import { ApplyUpdate } from './api/update'
+import { ApplyUpdate, SetUpdateChannel } from './api/update'
 import { AppChrome } from './components/AppChrome'
 import { Backdrop } from './components/Backdrop'
 import { DeleteProfileModal } from './components/DeleteProfileModal'
@@ -101,7 +101,7 @@ import { ProfileProxyModal } from './components/ProfileProxyModal'
 import { ProfileRulesModal } from './components/ProfileRulesModal'
 import { ProfileScriptModal } from './components/ProfileScriptModal'
 import { SettingsResetModal } from './components/SettingsResetModal'
-import { SidebarNav } from './components/SidebarNav'
+import { type NavUpdate, SidebarNav } from './components/SidebarNav'
 import { ToastHub } from './components/ToastHub'
 import { TunSettingsModal } from './components/TunSettingsModal'
 import {
@@ -213,7 +213,9 @@ function App() {
     snap: updateSnap,
     runCheck: runUpdateCheck,
     invalidate: invalidateUpdateState,
+    setSnap: setUpdateSnap,
   } = useUpdateState()
+  const [updateChannelBusy, setUpdateChannelBusy] = useState(false)
   const [state, setState] = useState<any>(null)
   const [service, setService] = useState<any>(null)
   const [error, setError] = useState('')
@@ -1529,7 +1531,7 @@ function App() {
       rememberPick(group, node)
       if (liveConnected) void run(() => SetProxyNode(group, node))
     },
-     
+
     [liveConnected, rememberPick],
   )
 
@@ -1633,6 +1635,74 @@ function App() {
       setError(String(e))
     }
   }, [updateSnap?.assetDownloadUrl, updateSnap?.releaseUrl])
+
+  // Download, verify and launch the installer (Windows); the backend exits the
+  // process once the installer takes over. `confirm` asks first (Settings); the
+  // nav button is already an explicit "update now".
+  const handleApplyUpdate = useCallback(
+    async (confirm: boolean) => {
+      setError('')
+      if (
+        confirm &&
+        !window.confirm(
+          'The update will download, then the installer starts and Kabosu restarts to apply it. Continue?',
+        )
+      ) {
+        return
+      }
+      try {
+        setUpdateProgress({ downloaded: 0, total: 0, pct: 0 })
+        await ApplyUpdate()
+        // Backend exits the process after handing off to the installer.
+        return
+      } catch (e: any) {
+        setUpdateProgress(null)
+        setError(String(e))
+      }
+      await refresh()
+      invalidateUpdateState()
+    },
+    [refresh, invalidateUpdateState],
+  )
+
+  const navUpdate = useMemo<NavUpdate | null>(() => {
+    if (!updateSnap?.hasUpdate) return null
+    const installable = Boolean(
+      String(updateSnap?.assetDownloadUrl ?? '').trim(),
+    )
+    return {
+      version: String(updateSnap?.latestVersion ?? '').trim(),
+      installable,
+      progress: updateProgress ? updateProgress.pct : null,
+      onClick: installable
+        ? () => void handleApplyUpdate(false)
+        : () => {
+            const releaseURL = String(updateSnap?.releaseUrl ?? '').trim()
+            if (releaseURL) BrowserOpenURL(releaseURL)
+          },
+    }
+  }, [
+    updateSnap?.hasUpdate,
+    updateSnap?.assetDownloadUrl,
+    updateSnap?.latestVersion,
+    updateSnap?.releaseUrl,
+    updateProgress,
+    handleApplyUpdate,
+  ])
+
+  const handleToggleBetaUpdates = useCallback(
+    async (next: boolean) => {
+      setUpdateChannelBusy(true)
+      try {
+        setUpdateSnap(await SetUpdateChannel(next ? 'beta' : 'stable'))
+      } catch (e) {
+        setError(String(e))
+      } finally {
+        setUpdateChannelBusy(false)
+      }
+    },
+    [setUpdateSnap],
+  )
 
   useEffect(() => {
     if (screen !== 'advanced') return
@@ -2105,6 +2175,7 @@ function App() {
             ...(corpVpnEnabled ? [] : (['corp'] as const)),
           ]}
           activeScreens={corpConnected ? ['corp'] : []}
+          update={navUpdate}
         />
 
         <div className="workspace">
@@ -2637,32 +2708,14 @@ function App() {
                           }
                         })()
                       }
-                      onApplyUpdate={() =>
-                        void (async () => {
-                          setError('')
-                          try {
-                            const ok = window.confirm(
-                              'The update will download, then the installer starts and Kabosu restarts to apply it. Continue?',
-                            )
-                            if (!ok) return
-                            setUpdateProgress({
-                              downloaded: 0,
-                              total: 0,
-                              pct: 0,
-                            })
-                            await ApplyUpdate()
-                            // Backend exits the process after handing off to the installer.
-                            return
-                          } catch (e: any) {
-                            setUpdateProgress(null)
-                            setError(String(e))
-                          }
-                          await refresh()
-                          invalidateUpdateState()
-                        })()
-                      }
+                      onApplyUpdate={() => void handleApplyUpdate(true)}
                       updateProgress={updateProgress}
                       appUpdateEnabled={appUpdateEnabled}
+                      betaUpdates={updateSnap?.channel === 'beta'}
+                      betaUpdatesBusy={updateChannelBusy}
+                      onToggleBetaUpdates={(next: boolean) =>
+                        void handleToggleBetaUpdates(next)
+                      }
                       onToggleAppUpdate={(next: boolean) => {
                         setAppUpdateEnabled(next)
                         void SetAppAutoUpdateEnabled(next)

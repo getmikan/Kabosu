@@ -15,6 +15,9 @@
     "advanced": "Расширенное",
     "settings": "Настройки",
     "expandSidebar": "Развернуть панель",
+    "update": "Обновить",
+    "updateTo": "Обновить до {{version}} — Kabosu перезапустится",
+    "updateOpenPage": "Вышла версия {{version}} — открыть страницу загрузки",
     "collapseSidebar": "Свернуть панель"
   },
   "corp": {
@@ -115,6 +118,8 @@
     "info": "Сведения",
     "checkUpdates": "Проверить обновления",
     "autoUpdate": "Автообновление приложения",
+    "betaUpdates": "Бета-версии",
+    "betaUpdatesHint": "Получать новые версии раньше стабильного релиза. Возможны ошибки.",
     "corpVpnToggle": "Корпоративный VPN",
     "corpVpnHint": "Показать вкладку корпоративного VPN (Cisco AnyConnect, FortiGate…). OpenConnect скачается при первом подключении.",
     "whatsNew": "Что нового",

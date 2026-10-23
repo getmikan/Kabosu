@@ -203,6 +203,7 @@ type UpdateState struct {
 	LastCheckedAt    int64  `json:"lastCheckedAt,omitempty"`
 	CurrentVersion   string `json:"currentVersion,omitempty"`
 	LatestVersion    string `json:"latestVersion,omitempty"`
+	LatestTag        string `json:"latestTag,omitempty"`
 	ReleaseURL       string `json:"releaseUrl,omitempty"`
 	ReleaseNotes     string `json:"releaseNotes,omitempty"`
 	AssetName        string `json:"assetName,omitempty"`

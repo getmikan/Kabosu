@@ -28,6 +28,12 @@ export function useUpdateState() {
     qc.setQueryData(['update-state'], next)
     return next
   }, [qc])
+  const setSnap = useCallback(
+    (next: Awaited<ReturnType<typeof GetUpdateState>>) => {
+      qc.setQueryData(['update-state'], next)
+    },
+    [qc],
+  )
   const invalidate = useCallback(() => {
     void qc.invalidateQueries({ queryKey: ['update-state'] })
   }, [qc])
@@ -36,5 +42,6 @@ export function useUpdateState() {
     busy: q.isFetching,
     invalidate,
     runCheck,
+    setSnap,
   }
 }

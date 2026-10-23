@@ -378,6 +378,9 @@ export function SettingsPage({
   updateProgress,
   appUpdateEnabled,
   onToggleAppUpdate,
+  betaUpdates,
+  betaUpdatesBusy,
+  onToggleBetaUpdates,
   corpVpnEnabled,
   onToggleCorpVpn,
 }: {
@@ -445,13 +448,20 @@ export function SettingsPage({
   updateProgress: { downloaded: number; total: number; pct: number } | null
   appUpdateEnabled: boolean
   onToggleAppUpdate: (next: boolean) => void
+  betaUpdates: boolean
+  betaUpdatesBusy: boolean
+  onToggleBetaUpdates: (next: boolean) => void
   corpVpnEnabled: boolean
   onToggleCorpVpn: (next: boolean) => void
 }) {
   const { t } = useTranslation()
   const coreBuild = useCoreBuild()
   const tristate = (v: boolean | undefined) =>
-    v === undefined ? t('settings.tun.inherit') : v ? t('common.on') : t('common.off')
+    v === undefined
+      ? t('settings.tun.inherit')
+      : v
+        ? t('common.on')
+        : t('common.off')
   const hasAsset = Boolean(String(updateSnap?.assetDownloadUrl ?? '').trim())
   return (
     <div className="page stPage">
@@ -496,6 +506,13 @@ export function SettingsPage({
               label={t('settings.autoUpdate')}
               checked={appUpdateEnabled}
               onChange={onToggleAppUpdate}
+            />
+            <SwitchRow
+              label={t('settings.betaUpdates')}
+              description={t('settings.betaUpdatesHint')}
+              checked={betaUpdates}
+              disabled={betaUpdatesBusy}
+              onChange={onToggleBetaUpdates}
             />
             <Select
               label={t('settings.language')}
@@ -549,7 +566,9 @@ export function SettingsPage({
                     <Select
                       label={t('settings.trayIcon')}
                       value={trayIconStyle || 'auto'}
-                      onChange={(v) => onSetTrayIconStyle(v === 'auto' ? '' : v)}
+                      onChange={(v) =>
+                        onSetTrayIconStyle(v === 'auto' ? '' : v)
+                      }
                       options={[
                         { value: 'auto', label: t('settings.trayIconAuto') },
                         {
@@ -854,7 +873,9 @@ export function SettingsPage({
                 </div>
               ) : null}
               {updateSnap?.hasUpdate && !hasAsset ? (
-                <p className="muted small">{t('settings.updatePlatformNote')}</p>
+                <p className="muted small">
+                  {t('settings.updatePlatformNote')}
+                </p>
               ) : null}
               {updateSnap?.hasUpdate &&
               String(updateSnap?.releaseNotes ?? '').trim() ? (

@@ -8,7 +8,24 @@ import { IconChevronNav } from '../navIcons'
 import type { Screen } from '../types/app'
 import { IconButton, Shape, type ShapeName } from '../ui/M3'
 
-const LOGO_SHAPES: ShapeName[] = ['9-sided-cookie', 'sunny', 'flower', 'soft-burst']
+import { MaterialSymbol } from './MaterialSymbol'
+
+const LOGO_SHAPES: ShapeName[] = [
+  '9-sided-cookie',
+  'sunny',
+  'flower',
+  'soft-burst',
+]
+
+/** A newer release the nav offers to install (or, off Windows, to open). */
+export type NavUpdate = {
+  version: string
+  /** true: one click downloads + installs; false: opens the release page. */
+  installable: boolean
+  /** Download progress 0–100, -1 while the size is unknown, null when idle. */
+  progress: number | null
+  onClick: () => void
+}
 
 // Hand-built M3 navigation: compact = rail (icon in a pill, label below),
 // expanded = drawer (full-width pill with icon and label in one row). The
@@ -20,6 +37,7 @@ export function SidebarNav({
   onToggleCollapse,
   hiddenScreens,
   activeScreens,
+  update,
 }: {
   screen: Screen
   onChange: (next: Screen) => void
@@ -27,6 +45,7 @@ export function SidebarNav({
   onToggleCollapse: () => void
   hiddenScreens?: Screen[]
   activeScreens?: Screen[]
+  update?: NavUpdate | null
 }) {
   const { t } = useTranslation()
   const [logoStep, setLogoStep] = useState(0)
@@ -61,7 +80,11 @@ export function SidebarNav({
                     <motion.span
                       className="navIndicator"
                       layoutId="nav-indicator"
-                      transition={{ type: 'spring', stiffness: 520, damping: 38 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 520,
+                        damping: 38,
+                      }}
                     />
                   ) : null}
                   <span className="navIcon">
@@ -82,6 +105,9 @@ export function SidebarNav({
           },
         )}
       </nav>
+      {update ? (
+        <NavUpdateButton update={update} collapsed={collapsed} />
+      ) : null}
       <div className="navFooter">
         <IconButton
           variant="tonal"
@@ -96,5 +122,58 @@ export function SidebarNav({
         />
       </div>
     </aside>
+  )
+}
+
+function NavUpdateButton({
+  update,
+  collapsed,
+}: {
+  update: NavUpdate
+  collapsed: boolean
+}) {
+  const { t } = useTranslation()
+  const { progress } = update
+  const downloading = progress !== null
+  const pct = progress !== null && progress >= 0 ? Math.round(progress) : null
+  const title = update.installable
+    ? t('nav.updateTo', { version: update.version })
+    : t('nav.updateOpenPage', { version: update.version })
+  const label = downloading
+    ? pct !== null
+      ? `${pct}%`
+      : '…'
+    : collapsed
+      ? t('nav.update')
+      : `${t('nav.update')} ${update.version}`
+  return (
+    <motion.button
+      type="button"
+      className="navItem navUpdate"
+      title={title}
+      aria-label={title}
+      aria-busy={downloading || undefined}
+      disabled={downloading}
+      onClick={update.onClick}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+    >
+      <span className="navPill">
+        {downloading ? (
+          <span
+            className="navUpdateFill"
+            style={{ width: `${pct ?? 100}%` }}
+            data-indeterminate={pct === null || undefined}
+            aria-hidden
+          />
+        ) : null}
+        <span className="navIcon">
+          <MaterialSymbol name="download" />
+        </span>
+        {!collapsed ? <span className="navLabel">{label}</span> : null}
+      </span>
+      {collapsed ? <span className="navLabel">{label}</span> : null}
+    </motion.button>
   )
 }

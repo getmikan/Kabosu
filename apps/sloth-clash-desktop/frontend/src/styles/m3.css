@@ -60,7 +60,11 @@
   /* Translucent surfaces let the animated backdrop breathe through. */
   --pane: color-mix(in srgb, var(--surface-container-low) 84%, transparent);
   --pane-strong: color-mix(in srgb, var(--surface-container) 90%, transparent);
-  --pane-high: color-mix(in srgb, var(--surface-container-high) 92%, transparent);
+  --pane-high: color-mix(
+    in srgb,
+    var(--surface-container-high) 92%,
+    transparent
+  );
 
   --space-1: 4px;
   --space-2: 8px;
@@ -88,9 +92,21 @@
   --ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
   /* Expressive fast spatial spring (overshoot), as a CSS linear() curve. */
   --ease-spring: linear(
-    0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.5%,
-    1.067 22.6%, 1.087 25.8%, 1.085 29.4%, 1.04 37.5%, 1.009 45.2%, 0.996 54.3%,
-    0.999 72.9%, 1
+    0,
+    0.009,
+    0.035 2.1%,
+    0.141 4.4%,
+    0.723 12.9%,
+    0.938 16.7%,
+    1.017 19.5%,
+    1.067 22.6%,
+    1.087 25.8%,
+    1.085 29.4%,
+    1.04 37.5%,
+    1.009 45.2%,
+    0.996 54.3%,
+    0.999 72.9%,
+    1
   );
   --ease-expressive: var(--ease-spring);
   --dur-fast: 150ms;
@@ -338,7 +354,66 @@
   flex-shrink: 0;
 }
 .nav[data-mode="rail"] .navBrand,
-.nav[data-mode="rail"] .navFooter {
+.nav[data-mode="rail"] /* Update offer between the destinations and the collapse toggle: a filled
+   primary pill, so it reads as an action rather than another destination. */
+.navUpdate {
+  flex-shrink: 0;
+  color: var(--primary);
+  --wails-draggable: no-drag;
+}
+.navUpdate .navPill {
+  overflow: hidden;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.navUpdate:hover .navPill {
+  background: color-mix(in srgb, var(--on-primary) 8%, var(--primary));
+}
+.navUpdate .navLabel {
+  font-weight: 700;
+}
+.nav[data-mode="drawer"] .navUpdate {
+  min-height: 0;
+  align-items: stretch;
+  padding: 0 12px;
+}
+.nav[data-mode="drawer"] .navUpdate .navLabel {
+  color: inherit;
+}
+.navUpdate:focus-visible {
+  outline: none;
+}
+.navUpdate:focus-visible .navPill {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.navUpdate:disabled {
+  cursor: progress;
+}
+.navUpdate:disabled .navPill {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  scale: 1;
+}
+.navUpdateFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--primary) 32%, transparent);
+  transition: width var(--dur-fast) linear;
+}
+.navUpdateFill[data-indeterminate] {
+  animation: navUpdatePulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes navUpdatePulse {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.navFooter {
   justify-content: center;
   padding: 0;
 }

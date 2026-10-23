@@ -68,34 +68,6 @@ export namespace companion {
 }
 
 export namespace main {
-  export interface MikanServerGroup {
-    id: number
-    name: string
-    mode: string
-    used: number
-    limit?: number
-    extra: number
-    left?: number
-    exhausted: boolean
-    proxies?: string[]
-  }
-  export interface MikanGroups {
-    resetsAt?: number
-    groups: MikanServerGroup[]
-  }
-  export interface SubscriptionPanel {
-    webPageUrl?: string
-    announcementUrl?: string
-    updateIntervalMinutes?: number
-    shareLinksLocked?: boolean
-    networkStack?: string
-    hwidActive?: boolean
-    hwidNotSupported?: boolean
-    hwidMaxDevicesReached?: boolean
-    hwidLimit?: boolean
-    groups?: MikanGroups
-    brand?: BrandManifest
-  }
   export class BrandManifest {
     showOperatorTab?: boolean
     hideRouting?: boolean
@@ -276,6 +248,22 @@ export namespace main {
       this.activeScreen = source['activeScreen']
     }
   }
+  export class KillSwitchState {
+    active: boolean
+    tunBound?: boolean
+    error?: string
+
+    static createFrom(source: any = {}) {
+      return new KillSwitchState(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.active = source['active']
+      this.tunBound = source['tunBound']
+      this.error = source['error']
+    }
+  }
   export class HomeInsight {
     nodeLatencyMs: number
     latencyError?: string
@@ -416,6 +404,116 @@ export namespace main {
       return a
     }
   }
+  export class MikanServerGroup {
+    id: number
+    name: string
+    mode: string
+    used: number
+    limit?: number
+    extra: number
+    left?: number
+    exhausted: boolean
+    proxies?: string[]
+
+    static createFrom(source: any = {}) {
+      return new MikanServerGroup(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.id = source['id']
+      this.name = source['name']
+      this.mode = source['mode']
+      this.used = source['used']
+      this.limit = source['limit']
+      this.extra = source['extra']
+      this.left = source['left']
+      this.exhausted = source['exhausted']
+      this.proxies = source['proxies']
+    }
+  }
+  export class MikanGroups {
+    resetsAt?: number
+    groups: MikanServerGroup[]
+
+    static createFrom(source: any = {}) {
+      return new MikanGroups(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.resetsAt = source['resetsAt']
+      this.groups = this.convertValues(source['groups'], MikanServerGroup)
+    }
+
+    convertValues(a: any, classs: any, asMap: boolean = false): any {
+      if (!a) {
+        return a
+      }
+      if (a.slice && a.map) {
+        return (a as any[]).map((elem) => this.convertValues(elem, classs))
+      } else if ('object' === typeof a) {
+        if (asMap) {
+          for (const key of Object.keys(a)) {
+            a[key] = new classs(a[key])
+          }
+          return a
+        }
+        return new classs(a)
+      }
+      return a
+    }
+  }
+  export class SubscriptionPanel {
+    webPageUrl?: string
+    announcementUrl?: string
+    updateIntervalMinutes?: number
+    shareLinksLocked?: boolean
+    networkStack?: string
+    hwidActive?: boolean
+    hwidNotSupported?: boolean
+    hwidMaxDevicesReached?: boolean
+    hwidLimit?: boolean
+    groups?: MikanGroups
+    brand?: BrandManifest
+
+    static createFrom(source: any = {}) {
+      return new SubscriptionPanel(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.webPageUrl = source['webPageUrl']
+      this.announcementUrl = source['announcementUrl']
+      this.updateIntervalMinutes = source['updateIntervalMinutes']
+      this.shareLinksLocked = source['shareLinksLocked']
+      this.networkStack = source['networkStack']
+      this.hwidActive = source['hwidActive']
+      this.hwidNotSupported = source['hwidNotSupported']
+      this.hwidMaxDevicesReached = source['hwidMaxDevicesReached']
+      this.hwidLimit = source['hwidLimit']
+      this.groups = this.convertValues(source['groups'], MikanGroups)
+      this.brand = this.convertValues(source['brand'], BrandManifest)
+    }
+
+    convertValues(a: any, classs: any, asMap: boolean = false): any {
+      if (!a) {
+        return a
+      }
+      if (a.slice && a.map) {
+        return (a as any[]).map((elem) => this.convertValues(elem, classs))
+      } else if ('object' === typeof a) {
+        if (asMap) {
+          for (const key of Object.keys(a)) {
+            a[key] = new classs(a[key])
+          }
+          return a
+        }
+        return new classs(a)
+      }
+      return a
+    }
+  }
   export class Profile {
     panel?: SubscriptionPanel
     id: string
@@ -448,7 +546,7 @@ export namespace main {
 
     constructor(source: any = {}) {
       if ('string' === typeof source) source = JSON.parse(source)
-      this.panel = source['panel']
+      this.panel = this.convertValues(source['panel'], SubscriptionPanel)
       this.id = source['id']
       this.name = source['name']
       this.type = source['type']
@@ -472,6 +570,24 @@ export namespace main {
       this.scriptLastDurationMs = source['scriptLastDurationMs']
       this.skipAutoConfig = source['skipAutoConfig']
       this.lastGoodGroup = source['lastGoodGroup']
+    }
+
+    convertValues(a: any, classs: any, asMap: boolean = false): any {
+      if (!a) {
+        return a
+      }
+      if (a.slice && a.map) {
+        return (a as any[]).map((elem) => this.convertValues(elem, classs))
+      } else if ('object' === typeof a) {
+        if (asMap) {
+          for (const key of Object.keys(a)) {
+            a[key] = new classs(a[key])
+          }
+          return a
+        }
+        return new classs(a)
+      }
+      return a
     }
   }
   export class ProfileState {
@@ -540,22 +656,6 @@ export namespace main {
       this.since = source['since']
     }
   }
-  export class KillSwitchState {
-    active: boolean
-    tunBound?: boolean
-    error?: string
-
-    static createFrom(source: any = {}) {
-      return new KillSwitchState(source)
-    }
-
-    constructor(source: any = {}) {
-      if ('string' === typeof source) source = JSON.parse(source)
-      this.active = source['active']
-      this.tunBound = source['tunBound']
-      this.error = source['error']
-    }
-  }
   export class AppState {
     connection: ConnectionState
     mode: ModeState
@@ -586,7 +686,10 @@ export namespace main {
       this.service = this.convertValues(source['service'], ServiceState)
       this.core = this.convertValues(source['core'], CoreState)
       this.insight = this.convertValues(source['insight'], HomeInsight)
-      this.killSwitch = this.convertValues(source['killSwitch'], KillSwitchState)
+      this.killSwitch = this.convertValues(
+        source['killSwitch'],
+        KillSwitchState,
+      )
       this.ui = this.convertValues(source['ui'], UIState)
       this.updatedAt = source['updatedAt']
     }
@@ -611,6 +714,7 @@ export namespace main {
   }
   export class AppUpdateSettings {
     autoCheckEnabled?: boolean
+    channel?: string
 
     static createFrom(source: any = {}) {
       return new AppUpdateSettings(source)
@@ -619,6 +723,7 @@ export namespace main {
     constructor(source: any = {}) {
       if ('string' === typeof source) source = JSON.parse(source)
       this.autoCheckEnabled = source['autoCheckEnabled']
+      this.channel = source['channel']
     }
   }
 
@@ -1220,6 +1325,7 @@ export namespace main {
       this.appVersion = source['appVersion']
     }
   }
+
   export class SubscriptionPeek {
     panel?: SubscriptionPanel
     url: string
@@ -1237,7 +1343,7 @@ export namespace main {
 
     constructor(source: any = {}) {
       if ('string' === typeof source) source = JSON.parse(source)
-      this.panel = source['panel']
+      this.panel = this.convertValues(source['panel'], SubscriptionPanel)
       this.url = source['url']
       this.suggestedName = source['suggestedName']
       this.profileTitleRaw = source['profileTitleRaw']
@@ -1246,6 +1352,24 @@ export namespace main {
       this.subscriptionInfo = source['subscriptionInfo']
       this.subscriptionSupportUrl = source['subscriptionSupportUrl']
       this.subscriptionAnnouncement = source['subscriptionAnnouncement']
+    }
+
+    convertValues(a: any, classs: any, asMap: boolean = false): any {
+      if (!a) {
+        return a
+      }
+      if (a.slice && a.map) {
+        return (a as any[]).map((elem) => this.convertValues(elem, classs))
+      } else if ('object' === typeof a) {
+        if (asMap) {
+          for (const key of Object.keys(a)) {
+            a[key] = new classs(a[key])
+          }
+          return a
+        }
+        return new classs(a)
+      }
+      return a
     }
   }
 
@@ -1272,6 +1396,7 @@ export namespace main {
     lastCheckedAt?: number
     currentVersion?: string
     latestVersion?: string
+    latestTag?: string
     releaseUrl?: string
     releaseNotes?: string
     assetName?: string
@@ -1289,6 +1414,7 @@ export namespace main {
       this.lastCheckedAt = source['lastCheckedAt']
       this.currentVersion = source['currentVersion']
       this.latestVersion = source['latestVersion']
+      this.latestTag = source['latestTag']
       this.releaseUrl = source['releaseUrl']
       this.releaseNotes = source['releaseNotes']
       this.assetName = source['assetName']

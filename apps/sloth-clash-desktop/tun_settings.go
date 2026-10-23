@@ -160,6 +160,22 @@ type AppUpdateSettings struct {
 	// (default); false → no background check (the manual "Check for updates"
 	// button still works).
 	AutoCheckEnabled *bool `json:"autoCheckEnabled,omitempty"`
+	// Channel is "stable" (default, also for "") or "beta": beta also offers
+	// prereleases (v0.1.1-beta.1 …).
+	Channel string `json:"channel,omitempty"`
+}
+
+const (
+	updateChannelStable = "stable"
+	updateChannelBeta   = "beta"
+)
+
+// UpdateChannel returns the effective update channel; anything but "beta" is stable.
+func (s AppUpdateSettings) UpdateChannel() string {
+	if strings.EqualFold(strings.TrimSpace(s.Channel), updateChannelBeta) {
+		return updateChannelBeta
+	}
+	return updateChannelStable
 }
 
 // IsAutoCheckEnabled returns true when the background update check should run.

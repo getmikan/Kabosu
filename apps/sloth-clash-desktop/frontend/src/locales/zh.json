@@ -15,6 +15,9 @@
     "advanced": "高级",
     "settings": "设置",
     "expandSidebar": "展开侧栏",
+    "update": "更新",
+    "updateTo": "更新到 {{version}} — Kabosu 将重启",
+    "updateOpenPage": "{{version}} 已发布 — 打开下载页面",
     "collapseSidebar": "收起侧栏"
   },
   "corp": {
@@ -115,6 +118,8 @@
     "info": "信息",
     "checkUpdates": "检查更新",
     "autoUpdate": "自动更新应用",
+    "betaUpdates": "测试版",
+    "betaUpdatesHint": "在正式版之前获取新版本，可能存在错误。",
     "corpVpnToggle": "企业 VPN",
     "corpVpnHint": "显示企业 VPN 标签页（Cisco AnyConnect、FortiGate…）。首次连接时下载 OpenConnect。",
     "whatsNew": "更新内容",

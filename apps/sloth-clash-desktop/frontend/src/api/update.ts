@@ -3,4 +3,5 @@ export {
   ApplyUpdate,
   CheckForUpdates,
   GetUpdateState,
+  SetUpdateChannel,
 } from '../../wailsjs/go/main/App'

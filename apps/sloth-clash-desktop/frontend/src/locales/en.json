@@ -15,6 +15,9 @@
     "advanced": "Advanced",
     "settings": "Settings",
     "expandSidebar": "Expand sidebar",
+    "update": "Update",
+    "updateTo": "Update to {{version}} — Kabosu will restart",
+    "updateOpenPage": "Version {{version}} is out — open the download page",
     "collapseSidebar": "Collapse sidebar"
   },
   "corp": {
@@ -115,6 +118,8 @@
     "info": "Info",
     "checkUpdates": "Check for updates",
     "autoUpdate": "Automatic updates",
+    "betaUpdates": "Beta versions",
+    "betaUpdatesHint": "Get new versions before the stable release. They may contain bugs.",
     "corpVpnToggle": "Corporate VPN",
     "corpVpnHint": "Show the Corporate VPN tab (Cisco AnyConnect, FortiGate…). Downloads OpenConnect on first use.",
     "whatsNew": "What's new",
