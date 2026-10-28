@@ -109,6 +109,7 @@ type DesktopPrefs struct {
 	CorpVpn      CorpVpnCredentials   `json:"corpVpn"`
 	Tray         TraySettings         `json:"tray"`
 	UI           UISettings           `json:"ui"`
+	AppRouting   AppRoutingSettings   `json:"appRouting"`
 	// Lang is the current UI language ("en"/"ru"/"zh"/""). Frontend pushes
 	// this on i18n init / change so the native tray menu can localize its
 	// labels without a separate IPC roundtrip on each redraw.

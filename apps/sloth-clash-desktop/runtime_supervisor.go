@@ -82,6 +82,7 @@ func (a *App) runRuntimeSupervisorLoop(ctx context.Context) {
 			lastTick = now
 			a.maybeWindowsSysProxyReconcile()
 			coreFails = a.runCoreHealthWatch(coreFails, &restartInProgress)
+			a.CheckCustomProxies()
 		}
 	}
 }

@@ -14,6 +14,10 @@ export function ApplyUpdate() {
   return window['go']['main']['App']['ApplyUpdate']()
 }
 
+export function CheckCustomProxies() {
+  return window['go']['main']['App']['CheckCustomProxies']()
+}
+
 export function CheckForUpdates() {
   return window['go']['main']['App']['CheckForUpdates']()
 }
@@ -82,6 +86,14 @@ export function CopyTunDiagnostics() {
   return window['go']['main']['App']['CopyTunDiagnostics']()
 }
 
+export function DeleteAppRoute(arg1) {
+  return window['go']['main']['App']['DeleteAppRoute'](arg1)
+}
+
+export function DeleteCustomProxy(arg1) {
+  return window['go']['main']['App']['DeleteCustomProxy'](arg1)
+}
+
 export function DeleteProfile(arg1) {
   return window['go']['main']['App']['DeleteProfile'](arg1)
 }
@@ -124,6 +136,10 @@ export function GetAdvancedGeoStatus() {
 
 export function GetAdvancedPaths() {
   return window['go']['main']['App']['GetAdvancedPaths']()
+}
+
+export function GetAppRouting() {
+  return window['go']['main']['App']['GetAppRouting']()
 }
 
 export function GetAppState() {
@@ -210,6 +226,10 @@ export function ListProfiles() {
   return window['go']['main']['App']['ListProfiles']()
 }
 
+export function ListRunningApps() {
+  return window['go']['main']['App']['ListRunningApps']()
+}
+
 export function MarkQuitIntent() {
   return window['go']['main']['App']['MarkQuitIntent']()
 }
@@ -232,6 +252,10 @@ export function OpenPathInExplorer(arg1) {
 
 export function PeekSubscriptionFromURL(arg1) {
   return window['go']['main']['App']['PeekSubscriptionFromURL'](arg1)
+}
+
+export function PickAppExecutable(arg1) {
+  return window['go']['main']['App']['PickAppExecutable'](arg1)
 }
 
 export function PreviewProfileScript(arg1, arg2) {
@@ -276,6 +300,14 @@ export function ResetSubscriptionCache() {
 
 export function RestartCore() {
   return window['go']['main']['App']['RestartCore']()
+}
+
+export function SaveAppRoute(arg1) {
+  return window['go']['main']['App']['SaveAppRoute'](arg1)
+}
+
+export function SaveCustomProxy(arg1, arg2) {
+  return window['go']['main']['App']['SaveCustomProxy'](arg1, arg2)
 }
 
 export function SelectProxyGroup(arg1) {

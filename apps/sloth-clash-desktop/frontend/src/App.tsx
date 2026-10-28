@@ -138,6 +138,9 @@ import { ProxiesPage } from './pages/Proxies'
 const AdvancedPage = lazy(() =>
   import('./pages/Advanced').then((m) => ({ default: m.AdvancedPage })),
 )
+const AppsPage = lazy(() =>
+  import('./pages/Apps').then((m) => ({ default: m.AppsPage })),
+)
 const ConnectionsPage = lazy(() =>
   import('./pages/Connections').then((m) => ({ default: m.ConnectionsPage })),
 )
@@ -740,6 +743,35 @@ function App() {
   // walks its backoffs, the user sees "reconnecting" toasts and a clear
   // "recovered" message when it succeeds. Without this they'd have to spot
   // the status flicker on the Home screen mid-recovery.
+  // A user proxy that fails its check blocks its apps (routes have no
+  // fallback): say so once when it goes down and once when it is back.
+  const downProxiesRef = useRef<Map<string, string>>(new Map())
+  useEffect(() => {
+    const prev = downProxiesRef.current
+    const next = new Map<string, string>()
+    for (const d of (state?.appRouting?.down ??
+      []) as main.AppRoutingProxyDown[]) {
+      next.set(d.id, d.name)
+      if (!prev.has(d.id)) {
+        pushToast({
+          kind: 'error',
+          message: t('ui.toasts.appProxyDown', {
+            name: d.name,
+            apps: (d.apps ?? []).join(', '),
+          }),
+        })
+      }
+    }
+    for (const [id, name] of prev) {
+      if (!next.has(id))
+        pushToast({
+          kind: 'success',
+          message: t('ui.toasts.appProxyBack', { name }),
+        })
+    }
+    downProxiesRef.current = next
+  }, [state?.appRouting?.down, pushToast, t])
+
   const prevConnStatusRef = useRef<string>('')
   useEffect(() => {
     const cur = String(state?.connection?.status ?? '')
@@ -2421,6 +2453,16 @@ function App() {
                 {screen === 'devices' ? (
                   <Suspense fallback={<PageSkeleton />}>
                     <DevicesPage />
+                  </Suspense>
+                ) : null}
+
+                {screen === 'apps' ? (
+                  <Suspense fallback={<PageSkeleton />}>
+                    <AppsPage
+                      appRouting={state?.appRouting}
+                      proxyGroups={proxyGroups}
+                      traffic={String(state?.traffic ?? '')}
+                    />
                   </Suspense>
                 ) : null}
 

@@ -584,6 +584,7 @@ func (a *App) applyRuntimeConfigWithGen(profile Profile, traffic string, enableT
 	if err := writeRuntimeConfigIfNeeded(a, bin, dataDir, profile, ctrlPort, mixedPort, secret, traffic, ctrlPort > 0, enableTun); err != nil {
 		return err
 	}
+	a.syncAppRoutingIssues()
 	if expectedGen != 0 && a.connectGen.Load() != expectedGen {
 		return errConnectAborted
 	}

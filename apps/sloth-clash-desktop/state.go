@@ -10,6 +10,7 @@ type AppState struct {
 	Core       CoreState       `json:"core"`
 	Insight    HomeInsight     `json:"insight"`
 	KillSwitch KillSwitchState `json:"killSwitch"`
+	AppRouting AppRoutingState `json:"appRouting"`
 	UI         UIState         `json:"ui"`
 	UpdatedAt  int64           `json:"updatedAt"`
 }

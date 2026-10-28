@@ -231,6 +231,9 @@ func finalizeRuntimeConfigPipelineWithScript(
 		*scriptOut = res
 	}
 	applyPanelRuntimePolicy(m, panel)
+	// Last of the rule writers: the user's per-app routes win over the
+	// subscription, the templates and the profile script.
+	setAppRoutingIssues(applyAppRoutingOverlay(m, currentDesktopPrefs().AppRouting, appRoutingSecrets))
 	if err := validateFinalConfigSemantics(m); err != nil {
 		return err
 	}

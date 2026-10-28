@@ -6,6 +6,35 @@ import (
 )
 
 func validateRulePoliciesExist(m map[string]any) error {
+	known := knownRulePolicies(m)
+	rules, ok := m["rules"].([]any)
+	if !ok {
+		return nil
+	}
+	for idx, r := range rules {
+		line, ok := r.(string)
+		if !ok {
+			continue
+		}
+		policy := extractRulePolicyToken(line)
+		if policy == "" {
+			continue
+		}
+		if !known[policy] {
+			return fmt.Errorf(
+				"rules[%d] references unknown policy %q in rule %q",
+				idx,
+				policy,
+				strings.TrimSpace(line),
+			)
+		}
+	}
+	return nil
+}
+
+// knownRulePolicies is every name a rule may target: the built-ins, the
+// proxy-groups and the proxies.
+func knownRulePolicies(m map[string]any) map[string]bool {
 	known := map[string]bool{
 		"DIRECT":      true,
 		"REJECT":      true,
@@ -44,29 +73,7 @@ func validateRulePoliciesExist(m map[string]any) error {
 			}
 		}
 	}
-	rules, ok := m["rules"].([]any)
-	if !ok {
-		return nil
-	}
-	for idx, r := range rules {
-		line, ok := r.(string)
-		if !ok {
-			continue
-		}
-		policy := extractRulePolicyToken(line)
-		if policy == "" {
-			continue
-		}
-		if !known[policy] {
-			return fmt.Errorf(
-				"rules[%d] references unknown policy %q in rule %q",
-				idx,
-				policy,
-				strings.TrimSpace(line),
-			)
-		}
-	}
-	return nil
+	return known
 }
 
 func splitRuleCSV(rule string) []string {

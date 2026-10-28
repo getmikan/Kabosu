@@ -5,6 +5,7 @@ export type Screen =
   | 'profiles'
   | 'connections'
   | 'rules'
+  | 'apps'
   | 'logs'
   | 'devices'
   | 'corp'

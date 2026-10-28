@@ -12,6 +12,8 @@ export function ApplyBrandDebugHeaders(
 
 export function ApplyUpdate(): Promise<void>
 
+export function CheckCustomProxies(): Promise<main.AppRoutingState>
+
 export function CheckForUpdates(): Promise<main.UpdateState>
 
 export function ClearProfileScriptOverride(arg1: string): Promise<main.AppState>
@@ -57,6 +59,12 @@ export function Connect(): Promise<main.AppState>
 
 export function CopyTunDiagnostics(): Promise<string>
 
+export function DeleteAppRoute(arg1: string): Promise<main.AppRoutingSettings>
+
+export function DeleteCustomProxy(
+  arg1: string,
+): Promise<main.AppRoutingSettings>
+
 export function DeleteProfile(arg1: string): Promise<main.AppState>
 
 export function DeriveAgePublicKey(arg1: string): Promise<string>
@@ -78,6 +86,8 @@ export function GetActiveBranding(): Promise<main.ActiveBranding>
 export function GetAdvancedGeoStatus(): Promise<main.AdvancedGeoStatus>
 
 export function GetAdvancedPaths(): Promise<main.AdvancedPaths>
+
+export function GetAppRouting(): Promise<main.AppRoutingSettings>
 
 export function GetAppState(): Promise<main.AppState>
 
@@ -131,6 +141,8 @@ export function IsBootSettled(): Promise<boolean>
 
 export function ListProfiles(): Promise<Array<main.Profile>>
 
+export function ListRunningApps(): Promise<Array<main.RunningApp>>
+
 export function MarkQuitIntent(): Promise<void>
 
 export function NavigateUIScreen(arg1: string): Promise<void>
@@ -146,6 +158,8 @@ export function OpenPathInExplorer(arg1: string): Promise<void>
 export function PeekSubscriptionFromURL(
   arg1: string,
 ): Promise<main.SubscriptionPeek>
+
+export function PickAppExecutable(arg1: string): Promise<string>
 
 export function PreviewProfileScript(
   arg1: string,
@@ -174,6 +188,15 @@ export function RenameProfile(
 export function ResetSubscriptionCache(): Promise<void>
 
 export function RestartCore(): Promise<void>
+
+export function SaveAppRoute(
+  arg1: main.AppRoute,
+): Promise<main.AppRoutingSettings>
+
+export function SaveCustomProxy(
+  arg1: main.CustomProxy,
+  arg2: string,
+): Promise<main.AppRoutingSettings>
 
 export function SelectProxyGroup(arg1: string): Promise<main.AppState>
 

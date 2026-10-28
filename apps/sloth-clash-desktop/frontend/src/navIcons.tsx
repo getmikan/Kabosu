@@ -14,6 +14,9 @@ export function IconProxies(props: Props) {
 export function IconRules(props: Props) {
   return <MaterialSymbol {...props} name="rules" />
 }
+export function IconApps(props: Props) {
+  return <MaterialSymbol {...props} name="apps" />
+}
 export function IconConnections(props: Props) {
   return <MaterialSymbol {...props} name="connections" />
 }

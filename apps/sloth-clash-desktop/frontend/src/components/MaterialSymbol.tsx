@@ -1,4 +1,5 @@
 import Add from '@material-symbols/svg-400/rounded/add.svg?react'
+import Apps from '@material-symbols/svg-400/rounded/apps.svg?react'
 import Corp from '@material-symbols/svg-400/rounded/business_center.svg?react'
 import Check from '@material-symbols/svg-400/rounded/check.svg?react'
 import Chevron from '@material-symbols/svg-400/rounded/chevron_left.svg?react'
@@ -6,10 +7,12 @@ import Next from '@material-symbols/svg-400/rounded/chevron_right.svg?react'
 import Close from '@material-symbols/svg-400/rounded/close.svg?react'
 import Maximize from '@material-symbols/svg-400/rounded/crop_square.svg?react'
 import Moon from '@material-symbols/svg-400/rounded/dark_mode.svg?react'
+import Delete from '@material-symbols/svg-400/rounded/delete.svg?react'
 import Devices from '@material-symbols/svg-400/rounded/devices.svg?react'
 import Download from '@material-symbols/svg-400/rounded/download.svg?react'
 import Edit from '@material-symbols/svg-400/rounded/edit.svg?react'
 import Error from '@material-symbols/svg-400/rounded/error.svg?react'
+import Folder from '@material-symbols/svg-400/rounded/folder_open.svg?react'
 import Help from '@material-symbols/svg-400/rounded/help.svg?react'
 import Home from '@material-symbols/svg-400/rounded/home.svg?react'
 import Connections from '@material-symbols/svg-400/rounded/hub.svg?react'
@@ -63,6 +66,9 @@ const icons = {
   more: More,
   search: Search,
   edit: Edit,
+  apps: Apps,
+  delete: Delete,
+  folder: Folder,
 }
 
 export type MaterialSymbolName = keyof typeof icons

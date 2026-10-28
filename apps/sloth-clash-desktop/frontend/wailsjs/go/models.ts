@@ -248,6 +248,74 @@ export namespace main {
       this.activeScreen = source['activeScreen']
     }
   }
+  export class AppRoutingIssue {
+    kind: string
+    proxy?: string
+    process?: string
+    server?: string
+
+    static createFrom(source: any = {}) {
+      return new AppRoutingIssue(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.kind = source['kind']
+      this.proxy = source['proxy']
+      this.process = source['process']
+      this.server = source['server']
+    }
+  }
+  export class AppRoutingProxyDown {
+    id: string
+    name: string
+    error: string
+    apps: string[]
+
+    static createFrom(source: any = {}) {
+      return new AppRoutingProxyDown(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.id = source['id']
+      this.name = source['name']
+      this.error = source['error']
+      this.apps = source['apps']
+    }
+  }
+  export class AppRoutingState {
+    issues?: AppRoutingIssue[]
+    down?: AppRoutingProxyDown[]
+
+    static createFrom(source: any = {}) {
+      return new AppRoutingState(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.issues = this.convertValues(source['issues'], AppRoutingIssue)
+      this.down = this.convertValues(source['down'], AppRoutingProxyDown)
+    }
+
+    convertValues(a: any, classs: any, asMap: boolean = false): any {
+      if (!a) {
+        return a
+      }
+      if (a.slice && a.map) {
+        return (a as any[]).map((elem) => this.convertValues(elem, classs))
+      } else if ('object' === typeof a) {
+        if (asMap) {
+          for (const key of Object.keys(a)) {
+            a[key] = new classs(a[key])
+          }
+          return a
+        }
+        return new classs(a)
+      }
+      return a
+    }
+  }
   export class KillSwitchState {
     active: boolean
     tunBound?: boolean
@@ -666,6 +734,7 @@ export namespace main {
     core: CoreState
     insight: HomeInsight
     killSwitch: KillSwitchState
+    appRouting: AppRoutingState
     ui: UIState
     updatedAt: number
 
@@ -689,6 +758,10 @@ export namespace main {
       this.killSwitch = this.convertValues(
         source['killSwitch'],
         KillSwitchState,
+      )
+      this.appRouting = this.convertValues(
+        source['appRouting'],
+        AppRoutingState,
       )
       this.ui = this.convertValues(source['ui'], UIState)
       this.updatedAt = source['updatedAt']
@@ -1039,6 +1112,78 @@ export namespace main {
       this.device = source['device']
     }
   }
+  export class CustomProxy {
+    id: string
+    name: string
+    type: string
+    server: string
+    port: number
+    username?: string
+    viaVpn?: boolean
+
+    static createFrom(source: any = {}) {
+      return new CustomProxy(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.id = source['id']
+      this.name = source['name']
+      this.type = source['type']
+      this.server = source['server']
+      this.port = source['port']
+      this.username = source['username']
+      this.viaVpn = source['viaVpn']
+    }
+  }
+  export class AppRoute {
+    id: string
+    process: string
+    target: string
+
+    static createFrom(source: any = {}) {
+      return new AppRoute(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.id = source['id']
+      this.process = source['process']
+      this.target = source['target']
+    }
+  }
+  export class AppRoutingSettings {
+    proxies?: CustomProxy[]
+    routes?: AppRoute[]
+
+    static createFrom(source: any = {}) {
+      return new AppRoutingSettings(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.proxies = this.convertValues(source['proxies'], CustomProxy)
+      this.routes = this.convertValues(source['routes'], AppRoute)
+    }
+
+    convertValues(a: any, classs: any, asMap: boolean = false): any {
+      if (!a) {
+        return a
+      }
+      if (a.slice && a.map) {
+        return (a as any[]).map((elem) => this.convertValues(elem, classs))
+      } else if ('object' === typeof a) {
+        if (asMap) {
+          for (const key of Object.keys(a)) {
+            a[key] = new classs(a[key])
+          }
+          return a
+        }
+        return new classs(a)
+      }
+      return a
+    }
+  }
   export class DesktopPrefs {
     tun: TunSettings
     traffic: TrafficSettings
@@ -1050,6 +1195,7 @@ export namespace main {
     corpVpn: CorpVpnCredentials
     tray: TraySettings
     ui: UISettings
+    appRouting: AppRoutingSettings
     lang?: string
 
     static createFrom(source: any = {}) {
@@ -1077,6 +1223,10 @@ export namespace main {
       this.corpVpn = this.convertValues(source['corpVpn'], CorpVpnCredentials)
       this.tray = this.convertValues(source['tray'], TraySettings)
       this.ui = this.convertValues(source['ui'], UISettings)
+      this.appRouting = this.convertValues(
+        source['appRouting'],
+        AppRoutingSettings,
+      )
       this.lang = source['lang']
     }
 
@@ -1242,6 +1392,20 @@ export namespace main {
       this.lastError = source['lastError']
       this.rulesBody = source['rulesBody']
       this.ruleProvidersBody = source['ruleProvidersBody']
+    }
+  }
+  export class RunningApp {
+    name: string
+    path: string
+
+    static createFrom(source: any = {}) {
+      return new RunningApp(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.name = source['name']
+      this.path = source['path']
     }
   }
   export class RuntimeDiagEvent {

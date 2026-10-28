@@ -1,0 +1,183 @@
+/* Per-app routing: the user's own proxies and a route per application. */
+.apPage {
+  gap: 16px;
+}
+.apNote {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  font-size: 14px;
+  line-height: 20px;
+}
+.apIssues {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 16px;
+}
+.apSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.apSectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.apSectionHead h3 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.apRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.apRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 8px 12px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--pane-strong);
+  color: var(--on-surface);
+  transition:
+    border-radius var(--dur-slow) var(--ease-spring),
+    background var(--dur-fast);
+}
+.apRow:hover {
+  background: var(--pane-high);
+  border-radius: var(--radius-md);
+}
+.apRow[data-error] {
+  box-shadow: inset 0 0 0 1px var(--error);
+}
+.apRowMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.apRowTitle {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.apRowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.apRowError {
+  font-size: 12px;
+  color: var(--error);
+}
+.apMono {
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.apPill {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-container-highest);
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.apTarget {
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.apTarget[data-kind="proxy"] {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+.apTarget[data-kind="reject"] {
+  background: var(--error-container);
+  color: var(--on-error-container);
+}
+.apActions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+.apEmpty {
+  padding: 24px 16px;
+}
+.apSkeletonRow {
+  height: 64px;
+  border-radius: var(--radius-lg);
+}
+.apSkeletonField {
+  height: 56px;
+  border-radius: var(--radius-xs);
+}
+.apForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: min(480px, 80vw);
+}
+.apFormRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+.apFormRow > .apGrow {
+  flex: 1 1 200px;
+  min-width: 0;
+  width: auto;
+}
+.apFormRow > .apPort {
+  flex: 0 0 120px;
+}
+.apField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.apFieldLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+}
+.apFormError {
+  margin: 0;
+  font-size: 14px;
+  color: var(--error);
+}
+
+@media (max-width: 640px) {
+  .apRow {
+    flex-wrap: wrap;
+  }
+  .apTarget {
+    max-width: 100%;
+  }
+}
