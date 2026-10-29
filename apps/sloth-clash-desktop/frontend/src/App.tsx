@@ -814,6 +814,33 @@ function App() {
     }
   }, [state?.connection?.status, state?.connection?.lastError, pushToast])
 
+  // The service turned off IP forwarding on the adapter the core's traffic
+  // leaves through (connection sharing made TUN loop into itself): say so
+  // once per finding, and loudly when it could not keep it off.
+  const egressGuardSeenRef = useRef(new Set<string>())
+  useEffect(() => {
+    const guard = state?.egressGuard
+    const seen = egressGuardSeenRef.current
+    for (const what of guard?.turnedOff ?? []) {
+      if (seen.has(what)) continue
+      seen.add(what)
+      pushToast({
+        kind: 'warn',
+        message: t('ui.toasts.forwardingGuardTurnedOff', { what }),
+      })
+    }
+    for (const what of guard?.gaveUp ?? []) {
+      const key = `gaveUp:${what}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      pushToast({
+        kind: 'error',
+        message: t('ui.toasts.forwardingGuardGaveUp', { what }),
+        durationMs: 0,
+      })
+    }
+  }, [state?.egressGuard, pushToast, t])
+
   useEffect(() => {
     if (!connectBusy) return
     const st = state?.connection?.status
@@ -3049,6 +3076,7 @@ function App() {
           open={showTunModal}
           tunPrefs={tunPrefs}
           trafficPrefs={trafficPrefs}
+          egressGuard={state?.egressGuard}
           tunDnsHijackDraft={tunDnsHijackDraft}
           tunMtuDraft={tunMtuDraft}
           tunDeviceDraft={tunDeviceDraft}

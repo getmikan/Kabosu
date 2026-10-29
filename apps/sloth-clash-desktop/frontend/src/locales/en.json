@@ -111,7 +111,11 @@
       "mtuLabel": "MTU",
       "deviceLabel": "Device name",
       "snifferLabel": "Sniffer",
-      "findProcessLabel": "find-process-mode"
+      "findProcessLabel": "find-process-mode",
+      "forwardingGuardLabel": "Protect TUN from connection sharing",
+      "forwardingGuardHint": "While TUN is connected, IP forwarding and weak host send stay off on the main adapter. Internet Connection Sharing, Mobile Hotspot and some apps turn them on, and then the VPN loops into itself. Sharing that adapter's connection does not work meanwhile.",
+      "forwardingGuardTurnedOff": "Turned off now: {{what}}.",
+      "forwardingGuardGaveUp": "Cannot keep it off: {{what}}. Turn off connection sharing."
     },
     "profilesUpdates": "Profiles & Updates",
     "dataDiag": "Data & Diagnostics",
@@ -691,6 +695,8 @@
       "subAddFromLinkFailed": "Could not add subscription from link.",
       "coreRestarting": "Core exited — auto-restarting...",
       "connRecovered": "Connection recovered.",
+      "forwardingGuardTurnedOff": "Kabosu turned off {{what}}: it made TUN loop into itself. It comes back when you disconnect.",
+      "forwardingGuardGaveUp": "Something keeps turning {{what}} back on (connection sharing?). TUN may stop working: turn off connection sharing.",
       "coreNoRecover": "Core could not recover automatically.",
       "retry": "Retry",
       "logs": "Logs",

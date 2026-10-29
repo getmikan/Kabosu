@@ -332,6 +332,26 @@ export namespace main {
       this.error = source['error']
     }
   }
+  export class EgressGuardState {
+    active: boolean
+    interface?: string
+    turnedOff?: string[]
+    gaveUp?: string[]
+    error?: string
+
+    static createFrom(source: any = {}) {
+      return new EgressGuardState(source)
+    }
+
+    constructor(source: any = {}) {
+      if ('string' === typeof source) source = JSON.parse(source)
+      this.active = source['active']
+      this.interface = source['interface']
+      this.turnedOff = source['turnedOff']
+      this.gaveUp = source['gaveUp']
+      this.error = source['error']
+    }
+  }
   export class HomeInsight {
     nodeLatencyMs: number
     latencyError?: string
@@ -734,6 +754,7 @@ export namespace main {
     core: CoreState
     insight: HomeInsight
     killSwitch: KillSwitchState
+    egressGuard: EgressGuardState
     appRouting: AppRoutingState
     ui: UIState
     updatedAt: number
@@ -758,6 +779,10 @@ export namespace main {
       this.killSwitch = this.convertValues(
         source['killSwitch'],
         KillSwitchState,
+      )
+      this.egressGuard = this.convertValues(
+        source['egressGuard'],
+        EgressGuardState,
       )
       this.appRouting = this.convertValues(
         source['appRouting'],
@@ -1096,6 +1121,7 @@ export namespace main {
     dnsHijack?: string[]
     mtu?: number
     device?: string
+    forwardingGuard?: boolean
 
     static createFrom(source: any = {}) {
       return new TunSettings(source)
@@ -1110,6 +1136,7 @@ export namespace main {
       this.dnsHijack = source['dnsHijack']
       this.mtu = source['mtu']
       this.device = source['device']
+      this.forwardingGuard = source['forwardingGuard']
     }
   }
   export class CustomProxy {

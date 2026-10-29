@@ -102,21 +102,25 @@ func (a *App) syncKillSwitch() {
 }
 
 // armKillSwitch is called once a session is up (Connect done, auto-restart
-// recovered, traffic mode switched) and re-binds the TUN adapter.
+// recovered, traffic mode switched) and re-binds the TUN adapter. The egress
+// guard (egressguard.go) follows the same session.
 func (a *App) armKillSwitch() {
 	a.mu.Lock()
 	a.killSwitchArmed = true
 	a.mu.Unlock()
 	a.safeGo("killswitch", func() { a.syncKillSwitch() })
+	a.safeGo("egressguard", func() { a.syncEgressGuard() })
 }
 
 // disarmKillSwitch lifts the block for an intentional Disconnect/shutdown.
-// Synchronous so the user is never left offline after the app exits.
+// Synchronous so the user is never left offline after the app exits, and so
+// the service puts the adapter settings back before the app goes away.
 func (a *App) disarmKillSwitch() {
 	a.mu.Lock()
 	a.killSwitchArmed = false
 	a.mu.Unlock()
 	a.syncKillSwitch()
+	a.syncEgressGuard()
 }
 
 func outcomeOf(err error) string {

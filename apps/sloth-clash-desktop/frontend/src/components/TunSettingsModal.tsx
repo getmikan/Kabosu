@@ -2,15 +2,20 @@ import { useTranslation } from 'react-i18next'
 
 import type { main } from '../api/models'
 import '../styles/settings.css'
-import { Button, Dialog, Segmented, TextField } from '../ui/M3'
+import { Button, Dialog, Segmented, SwitchRow, TextField } from '../ui/M3'
 
 type TunDrafts = { dnsHijack?: string; mtu?: string; device?: string }
+
+// Only Windows ignores the core's interface binding when forwarding is on, so
+// the forwarding guard is offered there and nowhere else.
+const WINDOWS = /Windows/i.test(navigator.userAgent)
 
 export function TunSettingsModal({
   panelStack,
   open,
   tunPrefs,
   trafficPrefs,
+  egressGuard,
   tunDnsHijackDraft,
   tunMtuDraft,
   tunDeviceDraft,
@@ -26,6 +31,8 @@ export function TunSettingsModal({
   open: boolean
   tunPrefs: main.TunSettings
   trafficPrefs: main.TrafficSettings
+  /** Service-side forwarding guard state (AppState.egressGuard). */
+  egressGuard?: main.EgressGuardState
   tunDnsHijackDraft: string
   tunMtuDraft: string
   tunDeviceDraft: string
@@ -46,6 +53,24 @@ export function TunSettingsModal({
   const INHERIT = '__inherit'
   const toSeg = (v: string) => v || INHERIT
   const fromSeg = (v: string) => (v === INHERIT ? '' : v)
+
+  const forwardingGuardStatus = egressGuard?.error
+    ? { tone: 'error', text: egressGuard.error }
+    : egressGuard?.gaveUp?.length
+      ? {
+          tone: 'error',
+          text: t('settings.tun.forwardingGuardGaveUp', {
+            what: egressGuard.gaveUp.join(', '),
+          }),
+        }
+      : egressGuard?.turnedOff?.length
+        ? {
+            tone: 'idle',
+            text: t('settings.tun.forwardingGuardTurnedOff', {
+              what: egressGuard.turnedOff.join(', '),
+            }),
+          }
+        : null
 
   const tunStackValue = panelStack || tunPrefs.stack || ''
   const findProcessModeValue: string = trafficPrefs.findProcessMode ?? ''
@@ -165,6 +190,26 @@ export function TunSettingsModal({
             }))}
           />
         </div>
+        {WINDOWS ? (
+          <div className="stTunWide">
+            <SwitchRow
+              label={t('settings.tun.forwardingGuardLabel')}
+              description={t('settings.tun.forwardingGuardHint')}
+              checked={tunPrefs.forwardingGuard !== false}
+              disabled={tunPrefsSaving}
+              onChange={(v) => onCommitTunPrefs({ forwardingGuard: v })}
+            />
+            {forwardingGuardStatus ? (
+              <p
+                className="stKillStatus"
+                data-tone={forwardingGuardStatus.tone}
+                role="status"
+              >
+                {forwardingGuardStatus.text}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </Dialog>
   )

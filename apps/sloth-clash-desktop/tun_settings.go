@@ -21,6 +21,17 @@ type TunSettings struct {
 	DNSHijack           []string `json:"dnsHijack,omitempty"`           // nil / empty = inherit
 	MTU                 int      `json:"mtu,omitempty"`                 // 0 = inherit
 	Device              string   `json:"device,omitempty"`              // "" = inherit
+	// ForwardingGuard lets the service keep IP forwarding off on the egress
+	// adapter while TUN is up (egressguard.go). Not part of the core config.
+	// nil OR true → on (default); false → off, for users who share that
+	// adapter on purpose.
+	ForwardingGuard *bool `json:"forwardingGuard,omitempty"`
+}
+
+// IsForwardingGuardEnabled reports whether the egress guard may run; the
+// default (nil) is on.
+func (t TunSettings) IsForwardingGuardEnabled() bool {
+	return t.ForwardingGuard == nil || *t.ForwardingGuard
 }
 
 // TrafficSettings groups packet-pipeline knobs that are not strictly part of
@@ -357,6 +368,7 @@ func (a *App) SetTunSettings(next TunSettings) DesktopPrefs {
 	prefsMu.Unlock()
 
 	a.triggerRuntimeReloadForPrefs()
+	a.safeGo("egressguard", func() { a.syncEgressGuard() })
 	return snapshot
 }
 

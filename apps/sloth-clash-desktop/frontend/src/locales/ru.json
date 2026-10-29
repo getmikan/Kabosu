@@ -111,7 +111,11 @@
       "mtuLabel": "MTU",
       "deviceLabel": "Имя устройства",
       "snifferLabel": "Sniffer",
-      "findProcessLabel": "find-process-mode"
+      "findProcessLabel": "find-process-mode",
+      "forwardingGuardLabel": "Защищать TUN от общего доступа к интернету",
+      "forwardingGuardHint": "Пока TUN подключён, на основном адаптере выключены IP forwarding и weak host send. Их включают общий доступ к интернету (ICS), мобильный хотспот и некоторые программы, и тогда VPN зацикливается сам в себя. Раздать интернет через этот адаптер в это время не получится.",
+      "forwardingGuardTurnedOff": "Сейчас выключено: {{what}}.",
+      "forwardingGuardGaveUp": "Не удаётся удержать выключенным: {{what}}. Выключите раздачу интернета."
     },
     "profilesUpdates": "Профили и обновления",
     "dataDiag": "Данные и диагностика",
@@ -693,6 +697,8 @@
       "subAddFromLinkFailed": "Не удалось добавить подписку по ссылке.",
       "coreRestarting": "Ядро завершилось — авто-перезапуск...",
       "connRecovered": "Соединение восстановлено.",
+      "forwardingGuardTurnedOff": "Kabosu выключил {{what}}: из-за этого TUN зацикливался. При отключении VPN настройка вернётся.",
+      "forwardingGuardGaveUp": "Что-то снова и снова включает {{what}} (раздача интернета?). TUN может перестать работать: выключите раздачу.",
       "coreNoRecover": "Ядро не смогло восстановиться автоматически.",
       "retry": "Повторить",
       "logs": "Логи",

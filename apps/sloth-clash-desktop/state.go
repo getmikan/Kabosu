@@ -1,18 +1,19 @@
 package main
 
 type AppState struct {
-	Connection ConnectionState `json:"connection"`
-	Mode       ModeState       `json:"mode"`
-	Traffic    string          `json:"traffic"`
-	Profile    ProfileState    `json:"profile"`
-	Proxy      ProxyState      `json:"proxy"`
-	Service    ServiceState    `json:"service"`
-	Core       CoreState       `json:"core"`
-	Insight    HomeInsight     `json:"insight"`
-	KillSwitch KillSwitchState `json:"killSwitch"`
-	AppRouting AppRoutingState `json:"appRouting"`
-	UI         UIState         `json:"ui"`
-	UpdatedAt  int64           `json:"updatedAt"`
+	Connection  ConnectionState  `json:"connection"`
+	Mode        ModeState        `json:"mode"`
+	Traffic     string           `json:"traffic"`
+	Profile     ProfileState     `json:"profile"`
+	Proxy       ProxyState       `json:"proxy"`
+	Service     ServiceState     `json:"service"`
+	Core        CoreState        `json:"core"`
+	Insight     HomeInsight      `json:"insight"`
+	KillSwitch  KillSwitchState  `json:"killSwitch"`
+	EgressGuard EgressGuardState `json:"egressGuard"`
+	AppRouting  AppRoutingState  `json:"appRouting"`
+	UI          UIState          `json:"ui"`
+	UpdatedAt   int64            `json:"updatedAt"`
 }
 
 // HomeInsight is a best-effort snapshot for the Home screen (latency, exit/direct geo flags, IPs for tooltips / diagnostics).
@@ -252,5 +253,20 @@ type KillSwitchState struct {
 	// TunBound: the TUN adapter is resolved and allowed (TUN mode only).
 	TunBound bool `json:"tunBound,omitempty"`
 	// Error is why it could not be applied (old service, unsupported OS…).
+	Error string `json:"error,omitempty"`
+}
+
+// EgressGuardState mirrors the service-side egress guard (egressguard.go).
+type EgressGuardState struct {
+	// Active: the service keeps forwarding off on the egress adapter.
+	Active bool `json:"active"`
+	// Interface is the adapter the core's traffic leaves through.
+	Interface string `json:"interface,omitempty"`
+	// TurnedOff lists what the service turned off this session, e.g.
+	// "Ethernet: IPv4 forwarding".
+	TurnedOff []string `json:"turnedOff,omitempty"`
+	// GaveUp lists flags something kept turning back on (connection sharing).
+	GaveUp []string `json:"gaveUp,omitempty"`
+	// Error is why the guard could not be armed (old service…).
 	Error string `json:"error,omitempty"`
 }

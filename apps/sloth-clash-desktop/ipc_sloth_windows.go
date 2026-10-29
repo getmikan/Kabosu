@@ -281,24 +281,52 @@ func ipcSlothKillSwitchDisable(ctx context.Context) (killSwitchStatus, error) {
 }
 
 func ipcSlothKillSwitchCall(ctx context.Context, method string, body []byte) (killSwitchStatus, error) {
-	st, b, err := ipcSlothDo(ctx, method, "/killswitch", body)
+	return ipcSlothStatusCall[killSwitchStatus](ctx, method, "/killswitch", body,
+		errors.New("the Kabosu service is too old for the kill switch: reinstall the service in Settings"))
+}
+
+// ipcSlothEgressGuardArm arms (or re-binds) the service's egress guard for a
+// TUN session. Services older than 2.7.0 answer 404.
+func ipcSlothEgressGuardArm(ctx context.Context, req egressGuardRequest) (egressGuardStatus, error) {
+	raw, err := json.Marshal(req)
 	if err != nil {
-		return killSwitchStatus{}, err
+		return egressGuardStatus{}, err
+	}
+	return ipcSlothStatusCall[egressGuardStatus](ctx, http.MethodPut, "/egress-guard", raw, errEgressGuardServiceTooOld)
+}
+
+// ipcSlothEgressGuardDisarm disarms the guard; the service puts back the
+// adapter settings it turned off.
+func ipcSlothEgressGuardDisarm(ctx context.Context) (egressGuardStatus, error) {
+	return ipcSlothStatusCall[egressGuardStatus](ctx, http.MethodDelete, "/egress-guard", nil, errEgressGuardServiceTooOld)
+}
+
+func ipcSlothEgressGuardStatus(ctx context.Context) (egressGuardStatus, error) {
+	return ipcSlothStatusCall[egressGuardStatus](ctx, http.MethodGet, "/egress-guard", nil, errEgressGuardServiceTooOld)
+}
+
+// ipcSlothStatusCall calls a service endpoint that answers with a status in
+// `data`; tooOld is the error for a service without that endpoint (404).
+func ipcSlothStatusCall[T any](ctx context.Context, method, path string, body []byte, tooOld error) (T, error) {
+	var zero T
+	st, b, err := ipcSlothDo(ctx, method, path, body)
+	if err != nil {
+		return zero, err
 	}
 	if st == http.StatusNotFound {
-		return killSwitchStatus{}, errors.New("the Kabosu service is too old for the kill switch: reinstall the service in Settings")
+		return zero, tooOld
 	}
 	var env struct {
-		Code    int              `json:"code"`
-		Message string           `json:"message"`
-		Data    killSwitchStatus `json:"data"`
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Data    T      `json:"data"`
 	}
 	_ = json.Unmarshal(b, &env)
 	if st < 200 || st >= 300 || env.Code != 0 {
 		if env.Message != "" {
-			return killSwitchStatus{}, errors.New(env.Message)
+			return zero, errors.New(env.Message)
 		}
-		return killSwitchStatus{}, fmt.Errorf("%s /killswitch: HTTP %d — %s", method, st, strings.TrimSpace(string(b)))
+		return zero, fmt.Errorf("%s %s: HTTP %d — %s", method, path, st, strings.TrimSpace(string(b)))
 	}
 	return env.Data, nil
 }

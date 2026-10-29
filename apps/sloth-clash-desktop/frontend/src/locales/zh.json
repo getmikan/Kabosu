@@ -111,7 +111,11 @@
       "mtuLabel": "MTU",
       "deviceLabel": "设备名",
       "snifferLabel": "Sniffer",
-      "findProcessLabel": "find-process-mode"
+      "findProcessLabel": "find-process-mode",
+      "forwardingGuardLabel": "防止网络共享破坏 TUN",
+      "forwardingGuardHint": "TUN 连接期间，主网卡上的 IP 转发和弱主机发送保持关闭。Internet 连接共享、移动热点和部分应用会打开它们，导致 VPN 流量回环。此期间无法通过该网卡共享网络。",
+      "forwardingGuardTurnedOff": "当前已关闭：{{what}}。",
+      "forwardingGuardGaveUp": "无法保持关闭：{{what}}。请关闭网络共享。"
     },
     "profilesUpdates": "配置与更新",
     "dataDiag": "数据与诊断",
@@ -690,6 +694,8 @@
       "subAddFromLinkFailed": "无法通过链接添加订阅。",
       "coreRestarting": "内核已退出 — 正在自动重启...",
       "connRecovered": "连接已恢复。",
+      "forwardingGuardTurnedOff": "Kabosu 已关闭 {{what}}：它导致 TUN 流量回环。断开 VPN 后会恢复。",
+      "forwardingGuardGaveUp": "有程序反复重新打开 {{what}}（网络共享？）。TUN 可能无法工作：请关闭网络共享。",
       "coreNoRecover": "内核无法自动恢复。",
       "retry": "重试",
       "logs": "日志",
