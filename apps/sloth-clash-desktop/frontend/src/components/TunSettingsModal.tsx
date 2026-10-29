@@ -139,8 +139,10 @@ export function TunSettingsModal({
             }))}
           />
         </div>
-        {tristate(t('settings.tun.autoRouteLabel'), tunPrefs.autoRoute, (next) =>
-          onCommitTunPrefs({ autoRoute: next }),
+        {tristate(
+          t('settings.tun.autoRouteLabel'),
+          tunPrefs.autoRoute,
+          (next) => onCommitTunPrefs({ autoRoute: next }),
         )}
         {tristate(
           t('settings.tun.autoDetectInterfaceLabel'),
@@ -179,11 +181,15 @@ export function TunSettingsModal({
           onBlur={() => onCommitTunPrefs({}, { device: tunDeviceDraft })}
         />
         <div className="stField stTunWide">
-          <span className="stFieldLabel">{t('settings.tun.findProcessLabel')}</span>
+          <span className="stFieldLabel">
+            {t('settings.tun.findProcessLabel')}
+          </span>
           <Segmented
             ariaLabel={t('settings.tun.findProcessLabel')}
             value={toSeg(findProcessModeValue)}
-            onChange={(v) => onCommitTrafficPrefs({ findProcessMode: fromSeg(v) })}
+            onChange={(v) =>
+              onCommitTrafficPrefs({ findProcessMode: fromSeg(v) })
+            }
             options={findProcessModeOptions.map((o) => ({
               ...o,
               disabled: tunPrefsSaving,

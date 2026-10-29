@@ -120,7 +120,9 @@ function ConnectOrb({
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.span
-            key={busy ? 'busy' : !hasAnyProfile ? 'add' : connected ? 'on' : 'off'}
+            key={
+              busy ? 'busy' : !hasAnyProfile ? 'add' : connected ? 'on' : 'off'
+            }
             className="connectGlyph"
             initial={{ opacity: 0, scale: 0.6, rotate: -45 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
@@ -158,7 +160,15 @@ function StatusRow({
   )
 }
 
-function FlagValue({ iso, text, title }: { iso?: string; text?: string; title?: string }) {
+function FlagValue({
+  iso,
+  text,
+  title,
+}: {
+  iso?: string
+  text?: string
+  title?: string
+}) {
   if (!iso && !text) return <span className="muted">—</span>
   return (
     <span className="flagValue" title={title}>
@@ -212,6 +222,7 @@ export function HomePage({
   corpConnected,
   onOpenCorp,
   onConnectClick,
+  onDisconnectClick,
   onInstallService,
   onRefreshService,
   onSelectGroup,
@@ -262,6 +273,8 @@ export function HomePage({
   corpConnected?: boolean
   onOpenCorp?: () => void
   onConnectClick: () => void
+  /** Lifts a kill-switch block left by a connect that failed. */
+  onDisconnectClick: () => void
   onInstallService: () => void
   onRefreshService: () => void
   onSelectGroup: (name: string) => void
@@ -304,6 +317,10 @@ export function HomePage({
     connectionStatus === 'error'
       ? String(state?.connection?.lastError ?? '')
       : ''
+  // A connect that failed with the kill switch on keeps the internet blocked;
+  // the main button retries, so Disconnect sits next to the error.
+  const killSwitchHolding =
+    connectionStatus === 'error' && Boolean(state?.killSwitch?.active)
   const errorLines: string[] = (() => {
     if (lastConnectionError && error === lastConnectionError) {
       return [lastConnectionError]
@@ -384,7 +401,9 @@ export function HomePage({
           type="button"
           className="profilePicker"
           style={{ '--i': 0 } as CSSProperties}
-          onClick={hasAnyProfile ? onOpenProfiles : () => onOpenImport('manual')}
+          onClick={
+            hasAnyProfile ? onOpenProfiles : () => onOpenImport('manual')
+          }
         >
           <span className="profilePickerIcon">
             <MaterialSymbol name="profiles" />
@@ -607,7 +626,11 @@ export function HomePage({
               <span className="homeModeLabel">{t('ui.home.mode')}</span>
               <Segmented
                 ariaLabel={t('ui.home.routingModeAria')}
-                value={displayMode === 'global' && !hideGlobalMode ? 'global' : 'rule'}
+                value={
+                  displayMode === 'global' && !hideGlobalMode
+                    ? 'global'
+                    : 'rule'
+                }
                 onChange={(m) => onSetMode(m)}
                 options={[
                   {
@@ -633,7 +656,9 @@ export function HomePage({
               <span className="homeModeLabel">{t('ui.home.traffic')}</span>
               <Segmented
                 ariaLabel={t('ui.home.trafficModeAria')}
-                value={hideProxyMode || displayTraffic === 'tun' ? 'tun' : 'proxy'}
+                value={
+                  hideProxyMode || displayTraffic === 'tun' ? 'tun' : 'proxy'
+                }
                 onChange={(m) => onSwitchTraffic(m)}
                 options={[
                   // Like Hide-Global-Mode: drops the Proxy option (TUN-only
@@ -661,7 +686,11 @@ export function HomePage({
             <div className="statusCard">
               <StatusRow label={t('ui.home.service')} tour="service">
                 {!service?.installed ? (
-                  <Button variant="tonal" size="extra-small" onClick={onInstallService}>
+                  <Button
+                    variant="tonal"
+                    size="extra-small"
+                    onClick={onInstallService}
+                  >
                     {t('settings.installService')}
                   </Button>
                 ) : null}
@@ -692,7 +721,11 @@ export function HomePage({
                       ? String(service.lastError).trim()
                       : t('ui.home.serviceStoppedHint')}
                   </p>
-                  <Button variant="text" size="extra-small" onClick={onRefreshService}>
+                  <Button
+                    variant="text"
+                    size="extra-small"
+                    onClick={onRefreshService}
+                  >
                     {t('ui.home.serviceRetry')}
                   </Button>
                 </div>
@@ -749,7 +782,9 @@ export function HomePage({
                 )}
               </StatusRow>
               <StatusRow label={t('ui.home.insightDirect')}>
-                {ruleMode && state?.insight?.directError && !state?.insight?.directFlagIso2 ? (
+                {ruleMode &&
+                state?.insight?.directError &&
+                !state?.insight?.directFlagIso2 ? (
                   <span className="muted small statusErr">
                     {state.insight.directError}
                   </span>
@@ -763,7 +798,10 @@ export function HomePage({
                 )}
               </StatusRow>
               <StatusRow label={t('ui.home.insightSpeed')}>
-                <span className="speedRow" title={state?.insight?.trafficError || undefined}>
+                <span
+                  className="speedRow"
+                  title={state?.insight?.trafficError || undefined}
+                >
                   <span className="speedChip">↑ {upload}</span>
                   <span className="speedChip">↓ {download}</span>
                 </span>
@@ -776,7 +814,19 @@ export function HomePage({
       {errorLines.length ? (
         <div className="inlineError homeConnError" role="alert">
           <MaterialSymbol name="error" />
-          <p>{errorLines.join(' · ')}</p>
+          <p>
+            {errorLines.join(' · ')}
+            {killSwitchHolding ? ` · ${t('ui.home.killSwitchHolding')}` : ''}
+          </p>
+          {killSwitchHolding ? (
+            <Button
+              variant="text"
+              size="extra-small"
+              onClick={onDisconnectClick}
+            >
+              {t('ui.home.disconnect')}
+            </Button>
+          ) : null}
           <Button
             variant="text"
             size="extra-small"

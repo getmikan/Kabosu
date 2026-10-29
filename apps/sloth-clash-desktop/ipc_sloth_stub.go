@@ -20,8 +20,8 @@ func ipcSlothStopCore(ctx context.Context) error {
 	return nil
 }
 
-func ipcSlothRemoveTun(ctx context.Context) (int, error) {
-	_ = ctx
+func ipcSlothRemoveTun(ctx context.Context, names []string) (int, error) {
+	_, _ = ctx, names
 	return 0, nil
 }
 

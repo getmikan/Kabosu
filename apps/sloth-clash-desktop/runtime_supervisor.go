@@ -176,7 +176,7 @@ func (a *App) runNetworkResumePass(restartInProgress *atomic.Bool) {
 	// Sleep/resume is a classic wintun killer: the controller API answers while
 	// the adapter is gone (audit finding C2). Verify the adapter and run the
 	// standard bounded recovery (which re-verifies TUN on success, see C1).
-	if traffic == "tun" && !osHasTunAdapter() {
+	if traffic == "tun" && !tunAdapterLive() {
 		if a.connectGen.Load() != gen || profileID == "" {
 			return
 		}

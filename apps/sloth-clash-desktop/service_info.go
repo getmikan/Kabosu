@@ -51,10 +51,17 @@ var errIPCServiceVersionUnavailable = errors.New("service version unavailable")
 // switch could not protect anyone, so requiring 2.6.0 surfaces the reinstall
 // banner on existing installs.
 //
+// 2.7.0 adds the egress guard (PUT/DELETE/GET /egress-guard): while TUN is up
+// the service keeps IP forwarding off on the adapter the core's traffic leaves
+// through, which another app (connection sharing, O+Connect) turning it on
+// makes Windows ignore the core's interface binding. /tun/remove takes only
+// the adapters the app names (older services removed every wintun adapter,
+// other apps' too), and a core stop waits for the process to exit.
+//
 // ⚠️ SEQUENCING: only ship this bump once the service binaries are actually
 // published (Release CI → rolling per-triple tags) and pulled by prebuild —
 // otherwise the banner can never clear.
-const expectedSlothServiceVersion = "2.6.0"
+const expectedSlothServiceVersion = "2.7.0"
 
 // ServiceRuntimeInfo is the health/version snapshot the UI uses to decide
 // whether to nudge the user to update the privileged helper service.

@@ -2373,6 +2373,9 @@ function App() {
                     corpConnected={corpVpnEnabled && corpConnected}
                     onOpenCorp={() => setScreen('corp')}
                     onConnectClick={connectAction}
+                    onDisconnectClick={() =>
+                      void run(() => Promise.resolve(Disconnect()))
+                    }
                     onInstallService={() => void installService()}
                     onRefreshService={() =>
                       void (async () => {

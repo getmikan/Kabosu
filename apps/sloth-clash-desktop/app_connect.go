@@ -113,6 +113,8 @@ func (a *App) runConnectJob(active Profile, gen uint64) {
 		traffic = "tun"
 	}
 	enableTun := traffic == "tun"
+	// The TUN verdict below reads only what the core logs from here on.
+	logMark := markCoreLog(active.ID)
 
 	ensureStart := time.Now()
 	a.traceEvent("pipeline.connect.ensure_core", "start", 0, map[string]any{
@@ -179,7 +181,12 @@ func (a *App) runConnectJob(active Profile, gen uint64) {
 	// restart before we dare report "connected". Without this we report a false
 	// "connected" while nothing routes. See architecture/tun-bringup-reliability.md.
 	if enableTun {
-		if err := a.ensureTunUpWithRetry(active, gen); err != nil {
+		// Kill switch: block before the adapter is verified. On Windows the
+		// bring-up can take up to a minute and restart the core twice, and
+		// nothing may go around the VPN meanwhile. The egress guard comes up with
+		// it, so another app's forwarding cannot break the bring-up either.
+		a.armKillSwitch()
+		if err := a.ensureTunUpWithRetry(active, gen, logMark); err != nil {
 			if errors.Is(err, errConnectAborted) {
 				a.traceEvent("pipeline.connect.aborted", "skip", 0, map[string]any{
 					"gen": gen, "where": "tun_verify",
@@ -189,6 +196,13 @@ func (a *App) runConnectJob(active Profile, gen uint64) {
 			a.traceEvent("pipeline.connect.tun_verify", "fail", 0, map[string]any{
 				"gen": gen, "error": err.Error(),
 			})
+			// With the kill switch on the block stays: a tunnel that did not come
+			// up must not turn into traffic around it. Only Disconnect lifts it
+			// (Home offers it next to the error). Without the kill switch there is
+			// no session to hold anything for.
+			if !currentDesktopPrefs().Privacy.KillSwitch {
+				a.disarmKillSwitch()
+			}
 			a.finishConnectJobFailed(gen, err)
 			return
 		}

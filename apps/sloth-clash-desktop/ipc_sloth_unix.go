@@ -155,8 +155,8 @@ func ipcSlothStopCore(ctx context.Context) error {
 // ipcSlothRemoveTun is a no-op on unix: there is no wintun and mihomo tears its
 // own utun/tun device down on stop. Present so cross-platform recovery code
 // compiles.
-func ipcSlothRemoveTun(ctx context.Context) (int, error) {
-	_ = ctx
+func ipcSlothRemoveTun(ctx context.Context, names []string) (int, error) {
+	_, _ = ctx, names
 	return 0, nil
 }
 

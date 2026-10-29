@@ -265,6 +265,7 @@
       "globalTitle": "Global - main outbound",
       "directTitle": "Direct - no proxy",
       "connect": "Connect",
+      "killSwitchHolding": "The kill switch keeps the internet blocked until you connect or disconnect.",
       "copyDiagnostics": "Copy diagnostics",
       "copyDiagnosticsHint": "Copy a diagnostics report (OS, service state, core log, network adapters) to share when reporting a TUN/adapter problem",
       "diagnosticsCopied": "Copied!",

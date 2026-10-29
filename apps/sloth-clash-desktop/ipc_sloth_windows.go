@@ -172,8 +172,15 @@ func ipcSlothStopCore(ctx context.Context) error {
 // unprivileged app cannot remove it; the SYSTEM service can. Returns the number
 // of adapters removed. Requires service ≥ 2.4.2; older services answer 404,
 // which surfaces here as a non-2xx error the caller treats as best-effort.
-func ipcSlothRemoveTun(ctx context.Context) (int, error) {
-	st, b, err := ipcSlothDo(ctx, http.MethodDelete, "/tun/remove", nil)
+// ipcSlothRemoveTun asks the service to remove our stale TUN adapters by
+// name; only services from 2.7.0 honour the names (see
+// tunRemoveScopedServiceVersion).
+func ipcSlothRemoveTun(ctx context.Context, names []string) (int, error) {
+	body, err := json.Marshal(map[string][]string{"names": names})
+	if err != nil {
+		return 0, err
+	}
+	st, b, err := ipcSlothDo(ctx, http.MethodDelete, "/tun/remove", body)
 	if err != nil {
 		return 0, err
 	}

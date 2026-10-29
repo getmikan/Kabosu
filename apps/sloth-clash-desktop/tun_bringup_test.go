@@ -1,6 +1,11 @@
 package main
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+)
 
 func TestCurrentBootLogIgnoresStaleFailure(t *testing.T) {
 	t.Parallel()
@@ -125,4 +130,90 @@ func toLowerASCII(s string) string {
 		}
 	}
 	return string(b)
+}
+
+// On Windows the service writes logs/service_latest.log, the app-run core
+// core.log; the verdict must read the one written last, not a missing file
+// that always looked like success.
+func TestCoreLogPathFollowsTheLiveLog(t *testing.T) {
+	root, err := slothDataRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := "profile-log-path"
+	dir := filepath.Join(root, "runtime", id)
+	service := filepath.Join(dir, "logs", "service_latest.log")
+	core := filepath.Join(dir, "core.log")
+	if got, _ := coreLogPathForProfile(id); got != service {
+		t.Fatalf("no log yet: got %s, want the service log", got)
+	}
+	writeLog(t, core, "old app-run core\n")
+	writeLog(t, service, "service-run core\n")
+	past := time.Now().Add(-time.Hour)
+	if err := os.Chtimes(core, past, past); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := coreLogPathForProfile(id); got != service {
+		t.Fatalf("service log is newer: got %s", got)
+	}
+	future := time.Now().Add(time.Minute)
+	if err := os.Chtimes(core, future, future); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := coreLogPathForProfile(id); got != core {
+		t.Fatalf("core.log is newer: got %s", got)
+	}
+}
+
+// A failed attempt of the same core (e.g. the Connect before) must not fail
+// the next one, and a rotated log is read from its start.
+func TestCoreLogMarkReadsOnlyWhatCameAfter(t *testing.T) {
+	root, err := slothDataRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := "profile-log-mark"
+	path := filepath.Join(root, "runtime", id, "logs", "service_latest.log")
+	failure := "level=error msg=\"Start TUN listening error: configure tun interface: The system cannot find the file specified.\"\n"
+	writeLog(t, path, "level=info msg=\"Start initial configuration in progress\"\n"+failure)
+
+	mark := markCoreLog(id)
+	if got := scanTunBringUpLog(mark.text(id, 64*1024)); got != tunVerifyUnknown {
+		t.Fatalf("before anything new: %v, want unknown (the old failure is not this attempt's)", got)
+	}
+	appendLog(t, path, "level=warning msg=\"[TUN] default interface changed by monitor, => Ethernet\"\n")
+	if got := scanTunBringUpLog(mark.text(id, 64*1024)); got != tunVerifyUnknown {
+		t.Fatalf("unrelated line: %v, want unknown", got)
+	}
+	appendLog(t, path, failure)
+	if got := scanTunBringUpLog(mark.text(id, 64*1024)); got != tunVerifyFailed {
+		t.Fatalf("new failure: %v, want failed", got)
+	}
+
+	writeLog(t, path, "level=info msg=\"[TUN] Tun adapter listening at: SlothClash\"\n")
+	if got := scanTunBringUpLog(mark.text(id, 64*1024)); got != tunVerifyUp {
+		t.Fatalf("rotated log: %v, want up", got)
+	}
+}
+
+func writeLog(t *testing.T, path, text string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(text), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func appendLog(t *testing.T, path, text string) {
+	t.Helper()
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	if _, err := f.WriteString(text); err != nil {
+		t.Fatal(err)
+	}
 }

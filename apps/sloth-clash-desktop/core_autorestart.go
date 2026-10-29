@@ -118,6 +118,7 @@ func (a *App) attemptCoreAutoRestart(profileID, traffic string) {
 			"enableTun": enableTun,
 		})
 
+		logMark := markCoreLog(active.ID)
 		// gen=0 — this restart is not tied to any Connect job; the helper
 		// uses it only to abort if the user cancels (which we check above).
 		if err := a.ensureCoreForProfile(active, 0, enableTun); err != nil {
@@ -140,7 +141,7 @@ func (a *App) attemptCoreAutoRestart(profileID, traffic string) {
 			// Same out-of-band adapter verification the Connect pipeline uses —
 			// without it a recovery could reintroduce the false-"connected"
 			// dead-adapter state (audit finding C1). Superseded → stop quietly.
-			if err := a.ensureTunUpWithRetry(active, a.connectGen.Load()); err != nil {
+			if err := a.ensureTunUpWithRetry(active, a.connectGen.Load(), logMark); err != nil {
 				if errors.Is(err, errConnectAborted) {
 					return
 				}
